@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>TravelBrain — Trip Planner Prototype</title>
+		<link rel="stylesheet" href="css/style.css" />
+		<link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+	</head>
+	<body>
+		<!-- Header / Top Navigation -->
+			<header class="site-header">
+			<div class="topbar container">
+						<div class="brand">
+							<img id="logoImg" class="logo-img" src="img/travelbrain-logo.jpg" alt="TravelBrain logo" />
+					<div class="brand-text">
+							<strong>TravelBrain</strong>
+							<small>UI Prototype</small>
+					</div>
+				</div>
+					<nav class="main-nav" aria-label="main">
+						<a href="#">Ride</a>
+						<a href="#">Services</a>
+						<a href="#">Fares</a>
+						<a href="#">About</a>
+						<a href="#">Connect</a>
+				</nav>
+				<div class="actions">
+					<button class="btn btn-outline">Trip Planner</button>
+					<button class="btn btn-outline">
+							Transit Alerts <span class="badge">113</span>
+					</button>
+				</div>
+			</div>
+
+				<div class="searchbar container" role="search">
+				<div class="search-input">
+					<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+						<input id="searchHeader" type="text" placeholder="Where are you traveling from?" />
+				</div>
+					<button id="btnGetDirections" class="btn btn-primary">Get directions</button>
+			</div>
+		</header>
+
+		<!-- Main layout -->
+		<main class="layout container">
+			<!-- Sidebar (left) -->
+					<aside class="sidebar" aria-label="search panel">
+				<div class="panel">
+										<div class="modes" role="tablist" aria-label="travel modes">
+											<button class="mode active" role="tab" title="Car" aria-selected="true">🚗</button>
+											<button class="mode" role="tab" title="Transit" aria-selected="false">🚌</button>
+											<button class="mode" role="tab" title="Bike" aria-selected="false">🚲</button>
+											<button class="mode" role="tab" title="Walk" aria-selected="false">🚶</button>
+					</div>
+
+					<div class="fields">
+						<label class="field">
+									<span class="field-label">From</span>
+							<input id="fromInput" type="text" placeholder="Sangolquí" />
+						</label>
+						<label class="field">
+									<span class="field-label">To</span>
+							<input id="toInput" type="text" placeholder="Bogotá, Colombia" />
+						</label>
+								<button class="link small" id="addStop">+ Add stop</button>
+					</div>
+
+					<div class="options-row">
+								<button class="btn btn-chip">Leave now</button>
+								<button class="btn btn-chip">Options</button>
+					</div>
+				</div>
+
+				<div class="panel route-card">
+					<div class="route-header">
+								<span class="pill best">Best</span>
+						<span class="muted">23 h 22 min</span>
+					</div>
+					<div class="route-body">
+						<div class="route-line"></div>
+						<div>
+							  <div class="route-title">via E20</div>
+									<div class="route-sub">1,204 km • Tolls • Crosses border</div>
+						</div>
+								<button class="btn btn-small btn-primary outline" id="btnPreview">Preview</button>
+					</div>
+				</div>
+
+				<div class="panel">
+							<div class="panel-title">Recents</div>
+					<ul class="recents">
+						<li><label><input type="checkbox" /> <span class="thumb" data-initial="S"></span> Sangolquí</label></li>
+						<li><label><input type="checkbox" /> <span class="thumb" data-initial="B"></span> Bogotá</label></li>
+						<li><label><input type="checkbox" /> <span class="thumb" data-initial="Q"></span> Quito</label></li>
+						<li><label><input type="checkbox" /> <span class="thumb" data-initial="C"></span> Colombia</label></li>
+					</ul>
+					<div class="actions-row">
+								<button class="btn btn-outline btn-small" id="selectAll">Select all</button>
+					</div>
+				</div>
+
+				<div class="panel">
+							<div class="panel-title">Explore places</div>
+					<div class="chips">
+								<button class="chip">Viewpoints</button>
+								<button class="chip">Museums</button>
+								<button class="chip">Restaurants</button>
+								<button class="chip">Hotels</button>
+					</div>
+				</div>
+			</aside>
+
+			<!-- Map area (right) -->
+					<section class="map-panel" aria-label="mock map">
+				<div class="map-canvas">
+					<!-- Mapbox GL map container -->
+					<div id="map" class="mapbox-map" aria-label="interactive map"></div>
+
+					<!-- Floating cards like weather/summary -->
+								<div class="floating-card" style="top: 20px; left: 20px;">
+									<div class="card-title">Sangolquí, EC</div>
+									<div class="temp">15°C</div>
+									<div class="meta">Light rain • Gentle breeze</div>
+					</div>
+					<div class="floating-card" style="top: 140px; left: 180px;">
+						<div class="card-title">Bogotá, CO</div>
+						<div class="temp">14°C</div>
+									<div class="meta">Cloudy • Light breeze</div>
+					</div>
+
+					<button class="map-control" style="left: 16px; bottom: 16px;">Layers</button>
+				</div>
+			</section>
+		</main>
+
+		<!-- Bottom converter bar -->
+			<footer class="converter-bar" aria-label="currency converter">
+			<div class="container converter">
+				<div class="converter-left">
+						<button class="btn btn-pill">Convert</button>
+						<button class="btn btn-pill ghost">Send</button>
+						<button class="btn btn-pill ghost">Charts</button>
+						<button class="btn btn-pill ghost">Alerts</button>
+				</div>
+				<form id="fxForm" class="converter-form" autocomplete="off">
+					<label class="money">
+							<span class="muted">Amount</span>
+						<input id="amount" type="number" step="0.01" min="0" value="1.00" />
+					</label>
+					<label class="currency">
+							<span class="muted">From</span>
+						<select id="fromCurr">
+								<option value="USD">USD — US Dollar</option>
+								<option value="EUR">EUR — Euro</option>
+								<option value="COP">COP — Colombian Peso</option>
+								<option value="MXN">MXN — Mexican Peso</option>
+								<option value="CLP">CLP — Chilean Peso</option>
+						</select>
+					</label>
+						<button type="button" id="swap" class="swap" title="Swap">⟲</button>
+					<label class="currency">
+							<span class="muted">To</span>
+						<select id="toCurr">
+								<option value="COP">COP — Colombian Peso</option>
+								<option value="USD">USD — US Dollar</option>
+								<option value="EUR">EUR — Euro</option>
+								<option value="MXN">MXN — Mexican Peso</option>
+								<option value="CLP">CLP — Chilean Peso</option>
+						</select>
+					</label>
+						<button type="submit" class="btn btn-primary big">Convert</button>
+					<output id="result" class="result" aria-live="polite"></output>
+				</form>
+			</div>
+		</footer>
+
+		<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+		<script src="js/app.js"></script>
+	</body>
+	</html>

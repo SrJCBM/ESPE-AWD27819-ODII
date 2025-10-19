@@ -1,0 +1,130 @@
+/*
+  Prototype styles for Trip Planner front-end only
+  Author: SrJCBM
+*/
+:root{
+  --bg:#0b1d40;
+  --bg-2:#0e2a64;
+  --surface:#0f1e3a;
+  --panel:#ffffff;
+  --muted:#5f6b85;
+  --text:#0f172a;
+  --ink:#0a0f1f;
+  --primary:#0b57d0;
+  --primary-2:#1a73e8;
+  --accent:#ffb300;
+  --danger:#d93025;
+  --ok:#1e8e3e;
+  --border:#e6eaf3;
+  --chip:#eef3ff;
+  --shadow:0 2px 10px rgba(10,15,31,.08);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font:14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Noto Sans', 'Helvetica Neue', Arial, 'Apple Color Emoji','Segoe UI Emoji';
+  color:var(--text);
+  background:#f6f8fc;
+}
+.container{max-width:1280px;margin-inline:auto;padding:0 16px}
+
+/* Header */
+.site-header{
+  background:var(--bg);
+  color:#fff;
+  position:sticky;top:0;z-index:10;
+  box-shadow:0 2px 12px rgba(0,0,0,.25);
+}
+.topbar{display:flex;align-items:center;gap:24px;min-height:72px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{display:grid;place-items:center;width:40px;height:40px;border-radius:8px;background:#0e3b96;font-weight:800}
+.logo-img{width:40px;height:40px;object-fit:contain;border-radius:8px;background:#0e3b96}
+.brand-text small{display:block;opacity:.7}
+.main-nav{display:flex;gap:24px;margin-left:auto;margin-right:8px}
+.main-nav a{color:#d3e3fd;text-decoration:none;font-weight:600}
+.main-nav a:hover{color:#fff}
+.actions{display:flex;gap:12px}
+.badge{background:#12264c;color:#d3e3fd;border-radius:999px;padding:2px 8px;margin-left:6px;border:1px solid #27447e}
+
+.searchbar{display:flex;align-items:center;gap:12px;padding:12px 0 16px}
+.search-input{flex:1;display:flex;align-items:center;gap:8px;background:#fff;border-radius:14px;padding:10px 14px;border:1px solid var(--border)}
+.search-input .icon{width:20px;height:20px;fill:#5b6f99}
+.search-input input{border:0;outline:0;flex:1;font-size:14px}
+
+/* Buttons */
+.btn{border:0;border-radius:12px;padding:10px 14px;font-weight:600;cursor:pointer}
+.btn:hover{filter:brightness(.98)}
+.btn:active{transform:translateY(1px)}
+.btn-outline{background:transparent;color:#d3e3fd;border:1px solid #27447e}
+.btn-primary{background:var(--accent);color:#0a1a3a}
+.btn-primary.big{padding:12px 18px;border-radius:14px}
+.btn-small{padding:8px 10px;border-radius:10px}
+.btn-pill{border-radius:999px;background:#e4e8f4;color:#0f1e3a}
+.btn-pill.ghost{background:transparent;border:1px solid var(--border)}
+.btn-chip{background:var(--chip);color:#0b3a7a;border:1px solid #dbe7ff;border-radius:999px}
+.btn-primary.outline{background:transparent;border:1px solid var(--primary);color:var(--primary)}
+.link{background:transparent;border:0;color:var(--primary);font-weight:600;cursor:pointer}
+.link.small{font-size:12px}
+
+/* Layout */
+.layout{display:grid;grid-template-columns:360px 1fr;gap:16px;margin:16px auto}
+.sidebar{display:flex;flex-direction:column;gap:12px}
+.panel{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:12px}
+.panel-title{font-weight:800;color:#1f2a44;margin:6px 4px 10px}
+
+.modes{display:flex;gap:8px}
+.mode{border:1px solid var(--border);background:#f8fbff;border-radius:10px;padding:8px 10px;cursor:pointer}
+.mode.active{background:#e9f2ff;border-color:#b8cffc}
+
+.fields{display:grid;gap:10px;margin-top:10px}
+.field{display:grid;gap:4px}
+.field-label{font-size:12px;color:#6b778c}
+.field input{padding:10px 12px;border:1px solid var(--border);border-radius:12px}
+.options-row{display:flex;gap:8px;margin-top:8px}
+
+.route-card .route-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.pill{border-radius:999px;padding:2px 8px;font-size:12px;font-weight:700}
+.pill.best{background:#e8f5ee;color:#0a6c35;border:1px solid #b7e5c9}
+.route-body{display:grid;grid-template-columns:8px 1fr auto;align-items:center;gap:12px}
+.route-line{width:6px;height:46px;background:linear-gradient(#1a73e8,#0b57d0);border-radius:99px}
+.route-title{font-weight:800}
+.route-sub{color:#5b6f85;font-size:12px}
+
+.recents{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.recents li label{display:flex;align-items:center;gap:10px}
+.thumb{width:22px;height:22px;border-radius:6px;background:#e9eefc;display:grid;place-items:center;font-weight:800;color:#294894}
+.thumb::after{content:attr(data-initial)}
+.actions-row{display:flex;justify-content:flex-end;margin-top:8px}
+
+/* Map panel */
+.map-panel{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow)}
+.map-canvas{position:relative;aspect-ratio:16/9;min-height:420px;border-radius:16px;overflow:hidden}
+.svg-map{width:100%;height:100%;display:block}
+.mapbox-map{position:absolute;inset:0;width:100%;height:100%;background:#eef6ff}
+.map-alert{position:absolute;inset:auto 16px 16px 16px;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:10px 12px;color:#6b778c;max-width:520px}
+.map-alert b{color:#1f2a44}
+.floating-card{position:absolute;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:10px 12px;min-width:160px}
+.floating-card .card-title{font-weight:800;color:#12264c}
+.floating-card .temp{font-size:22px;font-weight:800}
+.floating-card .meta{color:#6b778c}
+.map-control{position:absolute;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:8px 10px}
+
+/* Bottom converter */
+.converter-bar{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--border);box-shadow:0 -4px 16px rgba(0,0,0,.06);}
+.converter{display:flex;align-items:center;gap:16px;padding:12px 0;}
+.converter-left{display:flex;gap:8px}
+.converter-form{display:flex;align-items:end;gap:10px;flex-wrap:wrap}
+.money input{padding:10px 12px;border:1px solid var(--border);border-radius:12px;width:130px}
+.currency select{padding:10px 12px;border:1px solid var(--border);border-radius:12px;min-width:220px}
+.muted{color:#6b778c;font-size:12px;display:block;margin-bottom:4px}
+.swap{height:40px;width:40px;border-radius:12px;border:1px solid var(--border);background:#f7f9ff;cursor:pointer}
+.result{min-width:160px;font-weight:800}
+
+
+/* Responsive */
+@media (max-width: 980px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{order:2}
+  .map-panel{order:1}
+}
