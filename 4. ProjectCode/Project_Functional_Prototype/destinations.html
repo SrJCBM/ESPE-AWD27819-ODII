@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>Destinos - Prototipo</title>
+	<link rel="stylesheet" href="./public/css/style.css">
+</head>
+<body>
+	<header class="site-header">
+		<h1>Destinos</h1>
+		<nav>
+			<a href="./index.html">Inicio</a>
+			<a href="./destinations.html">Destinos</a>
+			<a href="./trips.html">Viajes</a>
+			<a href="./route.html">Rutas</a>
+			<a href="./weather.html">Clima</a>
+			<a href="./budget.html">Presupuesto</a>
+			<a href="./itinerary.html">Itinerario</a>
+		</nav>
+	</header>
+
+	<main class="container">
+		<section class="card">
+			<h2>Registrar destino</h2>
+			<form id="destForm">
+				<input type="hidden" id="destId">
+				<label>Nombre<input id="destName" required></label>
+				<label>País<input id="destCountry" required></label>
+				<label>Descripción<textarea id="destDesc"></textarea></label>
+				<label>Latitud<input id="destLat" type="number" step="any" placeholder="opcional"></label>
+				<label>Longitud<input id="destLng" type="number" step="any" placeholder="opcional"></label>
+				<label>Imagen URL<input id="destImg" placeholder="https://..."></label>
+				<button type="submit">Guardar</button>
+			</form>
+		</section>
+
+		<section class="card">
+			<h2>Lista de destinos</h2>
+			<input id="searchDest" placeholder="Buscar por nombre o país">
+			<ul id="destList" class="list"></ul>
+		</section>
+	</main>
+
+	<footer class="site-footer"><small>Datos en localStorage</small></footer>
+	<script src="./public/js/main.js"></script>
+	<script>
+		// inicialización y bindings específicos para destinos
+		document.addEventListener('DOMContentLoaded', () => {
+			window.app.renderDestinations();
+			document.getElementById('destForm').addEventListener('submit', (e) => {
+				e.preventDefault();
+				const id = document.getElementById('destId').value || null;
+				const dest = {
+					id,
+					name: document.getElementById('destName').value,
+					country: document.getElementById('destCountry').value,
+					description: document.getElementById('destDesc').value,
+					lat: parseFloat(document.getElementById('destLat').value) || null,
+					lng: parseFloat(document.getElementById('destLng').value) || null,
+					img: document.getElementById('destImg').value
+				};
+				window.app.saveDestination(dest);
+				document.getElementById('destForm').reset();
+			});
+			document.getElementById('searchDest').addEventListener('input', (e) => {
+				window.app.renderDestinations(e.target.value);
+			});
+		});
+	</script>
+</body>
+</html>

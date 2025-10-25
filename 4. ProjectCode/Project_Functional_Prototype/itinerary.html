@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="es">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>Itinerario - Prototipo</title>
+	<link rel="stylesheet" href="./public/css/style.css">
+</head>
+<body>
+	<header class="site-header">
+		<h1>Itinerario automático</h1>
+		<nav>
+			<a href="./index.html">Inicio</a>
+			<a href="./destinations.html">Destinos</a>
+			<a href="./trips.html">Viajes</a>
+			<a href="./route.html">Rutas</a>
+			<a href="./weather.html">Clima</a>
+			<a href="./budget.html">Presupuesto</a>
+			<a href="./itinerary.html">Itinerario</a>
+		</nav>
+	</header>
+
+	<main class="container">
+		<section class="card">
+			<h2>Generar itinerario</h2>
+			<label>Seleccionar viaje
+				<select id="itTripSelect"></select>
+			</label>
+			<label>Días del viaje<input id="itDays" type="number" min="1" value="3"></label>
+			<button id="genItBtn">Generar</button>
+			<button id="saveItBtn" style="display:none">Guardar itinerario</button>
+			<button id="exportItBtn" style="display:none">Exportar (Imprimir)</button>
+		</section>
+
+		<section class="card">
+			<h2>Itinerario generado</h2>
+			<div id="itineraryView" class="result"></div>
+		</section>
+	</main>
+
+	<footer class="site-footer"><small>Generación básica organizada por días</small></footer>
+	<script src="./public/js/main.js"></script>
+	<script>
+		document.addEventListener('DOMContentLoaded', () => {
+			window.app.populateTripSelect('itTripSelect');
+			document.getElementById('genItBtn').addEventListener('click', () => {
+				const tripId = document.getElementById('itTripSelect').value;
+				const days = parseInt(document.getElementById('itDays').value) || 1;
+				const it = window.app.generateItinerary(tripId, days);
+				document.getElementById('itineraryView').innerHTML = it.html;
+				window.currentItinerary = it;
+				document.getElementById('saveItBtn').style.display = 'inline-block';
+				document.getElementById('exportItBtn').style.display = 'inline-block';
+			});
+			document.getElementById('saveItBtn').addEventListener('click', () => {
+				window.app.saveItinerary(window.currentItinerary);
+				alert('Itinerario guardado');
+			});
+			document.getElementById('exportItBtn').addEventListener('click', () => {
+				window.print();
+			});
+		});
+	</script>
+</body>
+</html>

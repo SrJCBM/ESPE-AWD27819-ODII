@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>Presupuesto - Prototipo</title>
+	<link rel="stylesheet" href="./public/css/style.css">
+</head>
+<body>
+	<header class="site-header">
+		<h1>Presupuesto y gastos</h1>
+		<nav>
+			<a href="./index.html">Inicio</a>
+			<a href="./destinations.html">Destinos</a>
+			<a href="./trips.html">Viajes</a>
+			<a href="./route.html">Rutas</a>
+			<a href="./weather.html">Clima</a>
+			<a href="./budget.html">Presupuesto</a>
+			<a href="./itinerary.html">Itinerario</a>
+		</nav>
+	</header>
+
+	<main class="container">
+		<section class="card">
+			<h2>Configurar presupuesto del viaje</h2>
+			<label>Seleccionar viaje
+				<select id="budgetTripSelect"></select>
+			</label>
+			<label>Presupuesto total<input id="tripBudget" type="number" min="0"></label>
+			<button id="saveBudgetBtn">Guardar presupuesto</button>
+		</section>
+
+		<section class="card">
+			<h2>Agregar gasto</h2>
+			<label>Descripción<input id="expenseDesc"></label>
+			<label>Monto<input id="expenseAmount" type="number" min="0" step="0.01"></label>
+			<button id="addExpenseBtn">Agregar</button>
+			<div id="budgetSummary" class="result"></div>
+			<ul id="expenseList" class="list"></ul>
+		</section>
+	</main>
+
+	<footer class="site-footer"><small>Comprobación automática de presupuesto</small></footer>
+	<script src="./public/js/main.js"></script>
+	<script>
+		document.addEventListener('DOMContentLoaded', () => {
+			window.app.populateTripSelect('budgetTripSelect');
+			document.getElementById('saveBudgetBtn').addEventListener('click', () => {
+				const tripId = document.getElementById('budgetTripSelect').value;
+				const amount = parseFloat(document.getElementById('tripBudget').value) || 0;
+				window.app.saveBudget(tripId, amount);
+				window.app.renderBudget(tripId);
+			});
+			document.getElementById('addExpenseBtn').addEventListener('click', () => {
+				const tripId = document.getElementById('budgetTripSelect').value;
+				const desc = document.getElementById('expenseDesc').value;
+				const amt = parseFloat(document.getElementById('expenseAmount').value) || 0;
+				window.app.addExpense(tripId, { desc, amt });
+				window.app.renderBudget(tripId);
+			});
+			document.getElementById('budgetTripSelect').addEventListener('change', (e) => {
+				window.app.renderBudget(e.target.value);
+			});
+		});
+	</script>
+</body>
+</html>

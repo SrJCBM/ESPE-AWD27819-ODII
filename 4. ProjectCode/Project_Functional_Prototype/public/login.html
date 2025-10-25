@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Travel Planner</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/auth.css">
+</head>
+<body class="auth-page">
+    <main class="auth-container">
+        <div class="auth-left">
+            <img src="./img/logo.png" alt="Logo" class="auth-logo">
+            <h2>Intelligent Travel Planner</h2>
+            <p>Planifica tus viajes de manera inteligente y organizada</p>
+        </div>
+        
+        <div class="auth-form-container">
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <input type="text" id="l_username" placeholder="Correo electrónico o usuario" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="l_password" placeholder="Contraseña" required>
+                </div>
+                <button type="submit" class="btn-auth">Iniciar sesión</button>
+                
+                <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
+                
+                <div class="divider">
+                    <span></span>
+                </div>
+                
+                <a href="./register.html" class="btn-create-account">
+                    Crear cuenta nueva
+                </a>
+            </form>
+        </div>
+    </main>
+
+    <footer class="auth-footer">
+        <p>© 2024 Intelligent Travel Planner</p>
+    </footer>
+
+    <div id="errorModal" class="error-modal">
+        <div class="error-content">
+            <span class="close-error">&times;</span>
+            <p id="errorMessage"></p>
+        </div>
+    </div>
+
+    <script src="./js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm = document.getElementById('loginForm');
+            const errorModal = document.getElementById('errorModal');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            // Cerrar modal de error
+            document.querySelector('.close-error').onclick = () => {
+                errorModal.style.display = 'none';
+            }
+
+            // Mostrar error estilizado
+            function showError(msg) {
+                errorMessage.textContent = msg;
+                errorModal.style.display = 'block';
+            }
+
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const username = document.getElementById('l_username').value.trim();
+                const password = document.getElementById('l_password').value.trim();
+                
+                const res = window.Auth.login({ username, password });
+                if(!res.ok) {
+                    showError(res.msg || 'Error de autenticación');
+                    return;
+                }
+                
+                window.Auth.renderUserArea();
+                location.href = '../index.html';
+            });
+        });
+    </script>
+</body>
+</html>

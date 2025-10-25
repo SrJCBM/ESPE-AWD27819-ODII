@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>Rutas - Prototipo</title>
+	<link rel="stylesheet" href="./public/css/style.css">
+</head>
+<body>
+	<header class="site-header">
+		<h1>Rutas y tiempos</h1>
+		<nav>
+			<a href="./index.html">Inicio</a>
+			<a href="./destinations.html">Destinos</a>
+			<a href="./trips.html">Viajes</a>
+			<a href="./route.html">Rutas</a>
+			<a href="./weather.html">Clima</a>
+			<a href="./budget.html">Presupuesto</a>
+			<a href="./itinerary.html">Itinerario</a>
+		</nav>
+	</header>
+
+	<main class="container">
+		<section class="card">
+			<h2>Calcular distancia</h2>
+			<label>Origen
+				<select id="originSelect"></select>
+			</label>
+			<label>Destino
+				<select id="destSelect"></select>
+			</label>
+			<button id="calcRouteBtn">Calcular</button>
+			<div id="routeResult" class="result"></div>
+			<p class="muted">Si lat/lng no están definidos, se usará distancia aproximada.</p>
+		</section>
+	</main>
+
+	<footer class="site-footer"><small>Simulación sin API externa</small></footer>
+	<script src="./public/js/main.js"></script>
+	<script>
+		document.addEventListener('DOMContentLoaded', () => {
+			window.app.populateDestinationSelect('originSelect', true);
+			window.app.populateDestinationSelect('destSelect', true);
+			document.getElementById('calcRouteBtn').addEventListener('click', () => {
+				const o = document.getElementById('originSelect').value;
+				const d = document.getElementById('destSelect').value;
+				const res = window.app.calculateRoute(o, d);
+				document.getElementById('routeResult').innerText = res;
+			});
+		});
+	</script>
+</body>
+</html>

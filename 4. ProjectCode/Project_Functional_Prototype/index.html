@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="es">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>Intelligent Travel Planner - Prototipo</title>
+	<link rel="stylesheet" href="./public/css/style.css">
+</head>
+<body>
+	<header class="site-header">
+		<h1>Intelligent Travel Planner</h1>
+		<nav>
+			<a href="./index.html">Inicio</a>
+			<a href="./destinations.html">Destinos</a>
+			<a href="./trips.html">Viajes</a>
+			<a href="./route.html">Rutas</a>
+			<a href="./weather.html">Clima</a>
+			<a href="./budget.html">Presupuesto</a>
+			<a href="./itinerary.html">Itinerario</a>
+			<!-- area para mostrar usuario / cerrar sesión -->
+			<span id="userArea" style="margin-left:12px;"></span>
+		</nav>
+	</header>
+
+	<main class="container">
+		<section>
+			<h2>Resumen del prototipo</h2>
+			<p>Prototipo frontend que simula las funcionalidades del SRS: CRUD de destinos y viajes, cálculo de rutas, visualización de clima, gestión de presupuesto e itinerarios automáticos. Los datos se almacenan en localStorage.</p>
+			<ul>
+				<li>CRUD Destinos (imagen, país, descripción)</li>
+				<li>Gestión de Viajes (vincular destinos)</li>
+				<li>Cálculo de distancia (Haversine, simulado)</li>
+				<li>Clima simulado por destino</li>
+				<li>Presupuesto y gastos con comprobación</li>
+				<li>Generador de itinerario y exportar (imprimir)</li>
+			</ul>
+		</section>
+	</main>
+
+	<footer class="site-footer">
+		<small>Prototipo funcional frontend — datos en localStorage</small>
+	</footer>
+
+	<!-- scripts: auth primero para chequear sesión y mostrar usuario -->
+	<script src="./public/js/auth.js"></script>
+	<script src="./public/js/main.js"></script>
+</body>
+</html>
