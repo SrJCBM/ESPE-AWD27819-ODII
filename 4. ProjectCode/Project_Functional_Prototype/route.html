@@ -21,18 +21,27 @@
 	</header>
 
 	<main class="container">
-		<section class="card">
-			<h2>Calcular distancia</h2>
-			<label>Origen
-				<select id="originSelect"></select>
-			</label>
-			<label>Destino
-				<select id="destSelect"></select>
-			</label>
-			<button id="calcRouteBtn">Calcular</button>
-			<div id="routeResult" class="result"></div>
-			<p class="muted">Si lat/lng no están definidos, se usará distancia aproximada.</p>
-		</section>
+		<div class="row">
+			<div class="col-md-6">
+				<div class="card">
+					<h3>Mapa Ruta</h3>
+				</div>
+			</div>
+			<div class="col-md-6">
+				<section class="card">
+					<h2>Calcular distancia</h2>
+					<label>Origen
+						<select id="originSelect"></select>
+					</label>
+					<label>Destino
+						<select id="destSelect"></select>
+					</label>
+					<button id="calcRouteBtn">Calcular</button>
+					<div id="routeResult" class="result"></div>
+					<p class="muted">Si lat/lng no están definidos, se usará distancia aproximada.</p>
+				</section>
+			</div>
+		</div>
 	</main>
 
 	<footer class="site-footer"><small>Simulación sin API externa</small></footer>
