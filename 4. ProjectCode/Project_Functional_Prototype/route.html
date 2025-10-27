@@ -5,6 +5,11 @@
 	<meta name="viewport" content="width=device-width,initial-scale=1" />
 	<title>Rutas - Prototipo</title>
 	<link rel="stylesheet" href="./public/css/style.css">
+	<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.css" >
+	<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.1/mapbox-gl-geocoder.css">
+	<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.1/mapbox-gl-geocoder.min.js"></script>
+	<script src="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.js"></script>
+
 </head>
 <body>
 	<header class="site-header">
@@ -21,22 +26,33 @@
 	</header>
 
 	<main class="container">
-		<section class="card">
-			<h2>Calcular distancia</h2>
-			<label>Origen
-				<select id="originSelect"></select>
-			</label>
-			<label>Destino
-				<select id="destSelect"></select>
-			</label>
-			<button id="calcRouteBtn">Calcular</button>
-			<div id="routeResult" class="result"></div>
-			<p class="muted">Si lat/lng no están definidos, se usará distancia aproximada.</p>
-		</section>
+		<div class="row">
+			<div class="col-md-6">
+				<div class="card">
+					<h3>Mapa Ruta</h3>
+						<div id="map" style="height: 420px; width: 100%;"></div>
+				</div>
+			</div>
+			<div class="col-md-6">
+				<section class="card">
+					<h2>Calcular distancia</h2>
+					<label>Origen
+						<select id="originSelect"></select>
+					</label>
+					<label>Destino
+						<select id="destSelect"></select>
+					</label>
+					<button id="calcRouteBtn">Calcular</button>
+					<div id="routeResult" class="result"></div>
+					<p class="muted">Si lat/lng no están definidos, se usará distancia aproximada.</p>
+				</section>
+			</div>
+		</div>
 	</main>
 
 	<footer class="site-footer"><small>Simulación sin API externa</small></footer>
 	<script src="./public/js/main.js"></script>
+
 	<script>
 		document.addEventListener('DOMContentLoaded', () => {
 			window.app.populateDestinationSelect('originSelect', true);
@@ -49,5 +65,34 @@
 			});
 		});
 	</script>
+
+  <script>
+		// Token
+		localStorage.setItem('mb_token', 'pk.eyJ1Ijoic3JqY2JtIiwiYSI6ImNtZ3g0eGV5NDAwZzYya3BvdmFveWU2dnEifQ.yYCrLmlo9lW-AJf56akVCw');
+		mapboxgl.accessToken = localStorage.getItem('mb_token');
+
+		// Mapa básico
+		new mapboxgl.Map({
+		container: 'map',
+		style: 'mapbox://styles/mapbox/streets-v12',
+		center: [-76, 0],
+		zoom: 4.3
+		});
+	</script>
+
+
+  <style>
+    .container { max-width: 1100px; margin: 0 auto; padding: 1rem; }
+    .row { display: flex; flex-wrap: wrap; gap: 1rem; }
+    .col-md-6 { flex: 1 1 100%; }
+
+    @media (min-width: 768px) {
+      .col-md-6 { flex: 0 0 calc(50% - 0.5rem); }
+    }
+
+    .card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 1rem; }
+  </style>
+
+  
 </body>
 </html>
