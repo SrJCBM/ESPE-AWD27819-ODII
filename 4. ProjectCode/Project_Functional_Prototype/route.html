@@ -1,98 +1,178 @@
 <!doctype html>
 <html lang="es">
 <head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width,initial-scale=1" />
-	<title>Rutas - Prototipo</title>
-	<link rel="stylesheet" href="./public/css/style.css">
-	<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.css" >
-	<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.1/mapbox-gl-geocoder.css">
-	<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.1/mapbox-gl-geocoder.min.js"></script>
-	<script src="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.js"></script>
-
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Rutas - Prototipo</title>
+    <link rel="stylesheet" href="./public/css/style.css">
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.css">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.js"></script>
 </head>
 <body>
-	<header class="site-header">
-		<h1>Rutas y tiempos</h1>
-		<nav>
-			<a href="./index.html">Inicio</a>
-			<a href="./destinations.html">Destinos</a>
-			<a href="./trips.html">Viajes</a>
-			<a href="./route.html">Rutas</a>
-			<a href="./weather.html">Clima</a>
-			<a href="./budget.html">Presupuesto</a>
-			<a href="./itinerary.html">Itinerario</a>
-		</nav>
-	</header>
+    <header class="site-header">
+        <h1>Rutas y tiempos</h1>
+        <nav>
+            <a href="./index.html">Inicio</a>
+            <a href="./destinations.html">Destinos</a>
+            <a href="./trips.html">Viajes</a>
+            <a href="./route.html">Rutas</a>
+            <a href="./weather.html">Clima</a>
+            <a href="./budget.html">Presupuesto</a>
+            <a href="./itinerary.html">Itinerario</a>
+        </nav>
+    </header>
 
-	<main class="container">
-		<div class="row">
-			<div class="col-md-6">
-				<div class="card">
-					<h3>Mapa Ruta</h3>
-						<div id="map" style="height: 420px; width: 100%;"></div>
-				</div>
-			</div>
-			<div class="col-md-6">
-				<section class="card">
-					<h2>Calcular distancia</h2>
-					<label>Origen
-						<select id="originSelect"></select>
-					</label>
-					<label>Destino
-						<select id="destSelect"></select>
-					</label>
-					<button id="calcRouteBtn">Calcular</button>
-					<div id="routeResult" class="result"></div>
-					<p class="muted">Si lat/lng no están definidos, se usará distancia aproximada.</p>
-				</section>
-			</div>
-		</div>
-	</main>
+    <main class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <h3>Mapa Ruta</h3>
+                    <div id="map" style="height: 420px; width: 100%;"></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <section class="card">
+                    <h2>Calcular distancia</h2>
+                    <label>Origen
+                        <select id="originSelect">
+                            <option value="">-- seleccionar --</option>
+                            <option value="Quito, Ecuador">Quito, Ecuador</option>
+                            <option value="Guayaquil, Ecuador">Guayaquil, Ecuador</option>
+                            <option value="Cuenca, Ecuador">Cuenca, Ecuador</option>
+                            <option value="Sangolquí, Ecuador">Sangolquí, Ecuador</option>
+                            <option value="Bogotá, Colombia">Bogotá, Colombia</option>
+                            <option value="Medellín, Colombia">Medellín, Colombia</option>
+                            <option value="Cali, Colombia">Cali, Colombia</option>
+                            <option value="Cartagena, Colombia">Cartagena, Colombia</option>
+                        </select>
+                    </label>
+                    <label>Destino
+                        <select id="destSelect">
+                            <option value="">-- seleccionar --</option>
+                            <option value="Quito, Ecuador">Quito, Ecuador</option>
+                            <option value="Guayaquil, Ecuador">Guayaquil, Ecuador</option>
+                            <option value="Cuenca, Ecuador">Cuenca, Ecuador</option>
+                            <option value="Sangolquí, Ecuador">Sangolquí, Ecuador</option>
+                            <option value="Bogotá, Colombia">Bogotá, Colombia</option>
+                            <option value="Medellín, Colombia">Medellín, Colombia</option>
+                            <option value="Cali, Colombia">Cali, Colombia</option>
+                            <option value="Cartagena, Colombia">Cartagena, Colombia</option>
+                        </select>
+                    </label>
+                    <button id="calcRouteBtn">Calcular</button>
+                    <div id="routeResult" class="result"></div>
+                    <p class="muted">Distancia y tiempo estimados entre ciudades seleccionadas.</p>
+                </section>
+            </div>
+        </div>
+    </main>
 
-	<footer class="site-footer"><small>Simulación sin API externa</small></footer>
-	<script src="./public/js/main.js"></script>
+    <footer class="site-footer"><small>Simulación sin API externa</small></footer>
 
-	<script>
-		document.addEventListener('DOMContentLoaded', () => {
-			window.app.populateDestinationSelect('originSelect', true);
-			window.app.populateDestinationSelect('destSelect', true);
-			document.getElementById('calcRouteBtn').addEventListener('click', () => {
-				const o = document.getElementById('originSelect').value;
-				const d = document.getElementById('destSelect').value;
-				const res = window.app.calculateRoute(o, d);
-				document.getElementById('routeResult').innerText = res;
-			});
-		});
-	</script>
+    <script>
+        localStorage.setItem('mb_token', 'pk.eyJ1Ijoic3JqY2JtIiwiYSI6ImNtZ3g0eGV5NDAwZzYya3BvdmFveWU2dnEifQ.yYCrLmlo9lW-AJf56akVCw');
+        mapboxgl.accessToken = localStorage.getItem('mb_token');
 
-  <script>
-		// Token
-		localStorage.setItem('mb_token', 'pk.eyJ1Ijoic3JqY2JtIiwiYSI6ImNtZ3g0eGV5NDAwZzYya3BvdmFveWU2dnEifQ.yYCrLmlo9lW-AJf56akVCw');
-		mapboxgl.accessToken = localStorage.getItem('mb_token');
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v12',
+            center: [-76, 0],
+            zoom: 4.3
+        });
+        map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-		// Mapa básico
-		new mapboxgl.Map({
-		container: 'map',
-		style: 'mapbox://styles/mapbox/streets-v12',
-		center: [-76, 0],
-		zoom: 4.3
-		});
-	</script>
+        const MB_TOKEN = mapboxgl.accessToken;
 
+        async function ensureStyleReady(m) {
+            if (m.isStyleLoaded()) return;
+            await new Promise(res => m.once('style.load', res));
+        }
 
-  <style>
-    .container { max-width: 1100px; margin: 0 auto; padding: 1rem; }
-    .row { display: flex; flex-wrap: wrap; gap: 1rem; }
-    .col-md-6 { flex: 1 1 100%; }
+        async function geocodePlace(query) {
+            const params = new URLSearchParams({
+                access_token: MB_TOKEN,
+                limit: '1',
+                language: 'es',
+                routing: 'true',
+                country: 'ec,co'
+            });
+            const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?` + params;
+            const res = await fetch(url);
+            const data = await res.json();
+            const feat = data.features?.[0];
+            if (!feat) throw new Error('No se encontró: ' + query);
+            return feat.routable_points?.points?.[0]?.coordinates || feat.center;
+        }
 
-    @media (min-width: 768px) {
-      .col-md-6 { flex: 0 0 calc(50% - 0.5rem); }
-    }
+        async function getRoute(origin, dest, profile = 'mapbox/driving') {
+            const params = new URLSearchParams({
+                geometries: 'geojson',
+                overview: 'simplified',
+                access_token: MB_TOKEN
+            });
+            const coordStr = `${origin[0]},${origin[1]};${dest[0]},${dest[1]}`;
+            const url = `https://api.mapbox.com/directions/v5/${profile}/${coordStr}?` + params;
+            const res = await fetch(url);
+            const json = await res.json();
+            const route = json.routes?.[0];
+            if (!route) throw new Error('No se obtuvo ruta');
+            return { distance: route.distance, duration: route.duration, geometry: route.geometry };
+        }
 
-    .card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 1rem; }
-  </style>
+        function drawRoute(m, lineString) {
+            const fc = { type: 'FeatureCollection', features: [{ type: 'Feature', properties: {}, geometry: lineString }] };
+            if (m.getSource('route')) {
+                m.getSource('route').setData(fc);
+            } else {
+                m.addSource('route', { type: 'geojson', data: fc });
+                m.addLayer({
+                    id: 'route-line',
+                    type: 'line',
+                    source: 'route',
+                    paint: { 'line-color': '#1a73e8', 'line-width': 4 }
+                });
+            }
+        }
 
-  
+        document.getElementById('calcRouteBtn').addEventListener('click', async () => {
+            const oText = document.getElementById('originSelect').value?.trim();
+            const dText = document.getElementById('destSelect').value?.trim();
+            const out = document.getElementById('routeResult');
+
+            if (!oText || !dText) {
+                out.textContent = 'Selecciona origen y destino.';
+                return;
+            }
+
+            out.textContent = 'Calculando...';
+            try {
+                await ensureStyleReady(map);
+                const [oCoord, dCoord] = await Promise.all([geocodePlace(oText), geocodePlace(dText)]);
+                const route = await getRoute(oCoord, dCoord, 'mapbox/driving');
+                const km = (route.distance / 1000).toFixed(1);
+                const min = Math.round(route.duration / 60);
+                out.textContent = `${km} km • ${min} min`;
+                drawRoute(map, route.geometry);
+                const coords = route.geometry.coordinates;
+                const bounds = coords.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(coords[0], coords[0]));
+                map.fitBounds(bounds, { padding: 40 });
+            } catch (e) {
+                out.textContent = 'No fue posible calcular la ruta.';
+                console.error(e);
+            }
+        });
+    </script>
+
+    <style>
+        .container { max-width: 1100px; margin: 0 auto; padding: 1rem; }
+        .row { display: flex; flex-wrap: wrap; gap: 1rem; }
+        .col-md-6 { flex: 1 1 100%; }
+
+        @media (min-width: 768px) {
+            .col-md-6 { flex: 0 0 calc(50% - 0.5rem); }
+        }
+
+        .card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 1rem; }
+    </style>
 </body>
 </html>
