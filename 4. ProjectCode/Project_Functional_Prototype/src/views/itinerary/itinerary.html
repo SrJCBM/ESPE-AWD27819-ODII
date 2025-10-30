@@ -24,9 +24,9 @@
 		<section class="card">
 			<h2>Generar itinerario</h2>
 			<label>Seleccionar viaje
-				<select id="itTripSelect"></select>
+				<select id="itTripSelect" name="trip" required></select>
 			</label>
-			<label>Días del viaje<input id="itDays" type="number" min="1" value="3"></label>
+			<label>Días del viaje<input id="itDays" name="days" type="number" min="1" value="3" required></label>
 			<button id="genItBtn">Generar</button>
 			<button id="saveItBtn" style="display:none">Guardar itinerario</button>
 			<button id="exportItBtn" style="display:none">Exportar (Imprimir)</button>
@@ -39,6 +39,8 @@
 	</main>
 
 	<footer class="site-footer"><small>Generación básica organizada por días</small></footer>
+	<script src="/assets/js/layout.js"></script>
+	<script src="/assets/js/auth-api.js"></script>
 	<script src="/assets/js/main.js"></script>
  	<script src="/assets/js/itinerary.js"></script>
 	

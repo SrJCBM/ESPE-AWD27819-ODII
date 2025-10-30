@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/assets/css/style.css">
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.css">
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.js"></script>
+    <script src="/config.js"></script>
 </head>
 <body>
     <header class="site-header">
@@ -34,34 +35,16 @@
                 <section class="card">
                     <h2>Calcular distancia</h2>
                     <label>Origen
-                        <select id="originSelect">
-                            <option value="">-- seleccionar --</option>
-                            <option value="Quito, Ecuador">Quito, Ecuador</option>
-                            <option value="Guayaquil, Ecuador">Guayaquil, Ecuador</option>
-                            <option value="Cuenca, Ecuador">Cuenca, Ecuador</option>
-                            <option value="Sangolquí, Ecuador">Sangolquí, Ecuador</option>
-                            <option value="Bogotá, Colombia">Bogotá, Colombia</option>
-                            <option value="Medellín, Colombia">Medellín, Colombia</option>
-                            <option value="Cali, Colombia">Cali, Colombia</option>
-                            <option value="Cartagena, Colombia">Cartagena, Colombia</option>
-                        </select>
+                        <input id="originInput" list="originList" placeholder="Ciudad, país" autocomplete="off" />
+                        <datalist id="originList"></datalist>
                     </label>
                     <label>Destino
-                        <select id="destSelect">
-                            <option value="">-- seleccionar --</option>
-                            <option value="Quito, Ecuador">Quito, Ecuador</option>
-                            <option value="Guayaquil, Ecuador">Guayaquil, Ecuador</option>
-                            <option value="Cuenca, Ecuador">Cuenca, Ecuador</option>
-                            <option value="Sangolquí, Ecuador">Sangolquí, Ecuador</option>
-                            <option value="Bogotá, Colombia">Bogotá, Colombia</option>
-                            <option value="Medellín, Colombia">Medellín, Colombia</option>
-                            <option value="Cali, Colombia">Cali, Colombia</option>
-                            <option value="Cartagena, Colombia">Cartagena, Colombia</option>
-                        </select>
+                        <input id="destInput" list="destList" placeholder="Ciudad, país" autocomplete="off" />
+                        <datalist id="destList"></datalist>
                     </label>
                     <button id="calcRouteBtn">Calcular</button>
                     <div id="routeResult" class="result"></div>
-                    <p class="muted">Distancia y tiempo estimados entre ciudades seleccionadas.</p>
+                    <p class="muted">Escribe cualquier ciudad del mundo. Sugerencias por Mapbox Geocoding.</p>
                 </section>
             </div>
         </div>
@@ -69,6 +52,8 @@
 
     <footer class="site-footer"><small>Simulación sin API externa</small></footer>
 
+    <script src="/assets/js/layout.js"></script>
+    <script src="/assets/js/auth-api.js"></script>
     <script src="/assets/js/map.js"></script>
 </body>
 </html>

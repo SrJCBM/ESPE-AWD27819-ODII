@@ -3,7 +3,7 @@
     const form = document.getElementById('registerForm');
     if (!form) return;
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const data = {
@@ -20,17 +20,13 @@
         return;
       }
 
-      const res = window.Auth?.register
-        ? window.Auth.register(data)
-        : { ok: false, msg: 'Auth no cargado' };
-
-      if (!res.ok) {
-        alert(res.msg || 'Error en el registro');
-        return;
+      try {
+        const res = await window.Auth.register(data);
+        if (!res.ok) throw new Error(res.msg || 'Error en el registro');
+        location.href = '/auth/login?registered=1';
+      } catch (err) {
+        alert(err.message || 'Error en el registro');
       }
-
-      // Redirección con ruta absoluta para funcionar en cualquier nivel
-      location.href = '/auth/login?registered=1';
     });
   });
 })();

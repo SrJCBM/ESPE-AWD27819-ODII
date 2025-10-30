@@ -24,18 +24,18 @@
     <section class="card">
       <h2>Configurar presupuesto del viaje</h2>
       <label>Seleccionar viaje
-        <select id="budgetTripSelect"></select>
+        <select id="budgetTripSelect" name="trip" required></select>
       </label>
       <label>Presupuesto total
-        <input id="tripBudget" type="number" min="0" />
+        <input id="tripBudget" name="budget" type="number" min="0" step="0.01" required />
       </label>
       <button id="saveBudgetBtn">Guardar presupuesto</button>
     </section>
 
     <section class="card">
       <h2>Agregar gasto</h2>
-      <label>Descripción <input id="expenseDesc" /></label>
-      <label>Monto <input id="expenseAmount" type="number" min="0" step="0.01" /></label>
+  <label>Descripción <input id="expenseDesc" name="expenseDesc" required minlength="2" /></label>
+  <label>Monto <input id="expenseAmount" name="expenseAmount" type="number" min="0" step="0.01" required /></label>
       <button id="addExpenseBtn">Agregar</button>
       <div id="budgetSummary" class="result"></div>
       <ul id="expenseList" class="list"></ul>
@@ -44,6 +44,8 @@
 
   <footer class="site-footer"><small>Comprobación automática de presupuesto</small></footer>
 
+  <script src="/assets/js/layout.js"></script>
+  <script src="/assets/js/auth-api.js"></script>
   <script src="/assets/js/main.js"></script>
   <script src="/assets/js/budget.js"></script>
 </body>

@@ -1,5 +1,10 @@
-localStorage.setItem('mb_token', 'pk.eyJ1Ijoic3JqY2JtIiwiYSI6ImNtZ3g0eGV5NDAwZzYya3BvdmFveWU2dnEifQ.yYCrLmlo9lW-AJf56akVCw');
-        mapboxgl.accessToken = localStorage.getItem('mb_token');
+        // Token de Mapbox: primero intenta desde config pública, si no, desde localStorage
+        mapboxgl.accessToken = (globalThis.__CONFIG__?.MAPBOX_TOKEN)
+            ? globalThis.__CONFIG__.MAPBOX_TOKEN
+            : localStorage.getItem('mb_token');
+        if (!mapboxgl.accessToken) {
+            console.warn('MAPBOX_TOKEN no configurado. Define MAPBOX_TOKEN en el servidor o guarda "mb_token" en localStorage.');
+        }
 
         const map = new mapboxgl.Map({
             container: 'map',
@@ -22,7 +27,7 @@ localStorage.setItem('mb_token', 'pk.eyJ1Ijoic3JqY2JtIiwiYSI6ImNtZ3g0eGV5NDAwZzY
                 limit: '1',
                 language: 'es',
                 routing: 'true',
-                country: 'ec,co'
+                // sin restricción de país para búsquedas globales
             });
             const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?` + params;
             const res = await fetch(url);
@@ -30,6 +35,45 @@ localStorage.setItem('mb_token', 'pk.eyJ1Ijoic3JqY2JtIiwiYSI6ImNtZ3g0eGV5NDAwZzY
             const feat = data.features?.[0];
             if (!feat) throw new Error('No se encontró: ' + query);
             return feat.routable_points?.points?.[0]?.coordinates || feat.center;
+        }
+
+        async function suggestPlaces(query) {
+            if (!query || query.length < 3) { return []; }
+            const params = new URLSearchParams({
+                access_token: MB_TOKEN,
+                limit: '5',
+                language: 'es',
+                autocomplete: 'true',
+                types: 'place,locality,region'
+            });
+            const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?` + params;
+            const res = await fetch(url);
+            const data = await res.json();
+            const out = [];
+            for (const f of (data.features || [])) {
+                if (f?.place_name) { out.push(f.place_name); }
+            }
+            return out;
+        }
+
+        function wireAutocomplete(inputId, listId) {
+            const input = document.getElementById(inputId);
+            const list = document.getElementById(listId);
+            if (!input || !list) { return; }
+            let lastQ = '';
+            input.addEventListener('input', async () => {
+                const q = input.value.trim();
+                if (q === lastQ) { return; }
+                lastQ = q;
+                const suggestions = await suggestPlaces(q);
+                // limpiar datalist
+                while (list.firstChild) { list.firstChild.remove(); }
+                for (const s of suggestions) {
+                    const opt = document.createElement('option');
+                    opt.value = s;
+                    list.appendChild(opt);
+                }
+            });
         }
 
         async function getRoute(origin, dest, profile = 'mapbox/driving') {
@@ -62,9 +106,13 @@ localStorage.setItem('mb_token', 'pk.eyJ1Ijoic3JqY2JtIiwiYSI6ImNtZ3g0eGV5NDAwZzY
             }
         }
 
+        // habilitar autocompletado global
+        wireAutocomplete('originInput','originList');
+        wireAutocomplete('destInput','destList');
+
         document.getElementById('calcRouteBtn').addEventListener('click', async () => {
-            const oText = document.getElementById('originSelect').value?.trim();
-            const dText = document.getElementById('destSelect').value?.trim();
+            const oText = document.getElementById('originInput').value?.trim();
+            const dText = document.getElementById('destInput').value?.trim();
             const out = document.getElementById('routeResult');
 
             if (!oText || !dText) {

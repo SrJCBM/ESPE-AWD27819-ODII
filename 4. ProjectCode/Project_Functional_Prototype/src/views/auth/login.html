@@ -19,10 +19,10 @@
     <div class="auth-form-container">
       <form id="loginForm" class="auth-form">
         <div class="form-group">
-          <input type="text" id="l_username" placeholder="Correo electrónico o usuario" required />
+          <input type="text" id="l_username" name="username" placeholder="Correo electrónico o usuario" required autocomplete="username" minlength="3" />
         </div>
         <div class="form-group">
-          <input type="password" id="l_password" placeholder="Contraseña" required />
+          <input type="password" id="l_password" name="password" placeholder="Contraseña" required autocomplete="current-password" minlength="6" />
         </div>
 
         <button type="submit" class="btn-auth">Iniciar sesión</button>
@@ -49,7 +49,8 @@
     </div>
   </div>
 
-  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/layout.js"></script>
+  <script src="/assets/js/auth-api.js"></script>
   <script src="/assets/js/auth-login.js"></script>
 </body>
 </html>

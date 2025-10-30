@@ -18,7 +18,7 @@
 				<a href="/trips">Viajes</a>
 				<a href="/routes">Rutas</a>
 				<a href="/weather">Clima</a>
-				<a href="/trips/budget">Presupuesto</a>
+				<a href="/budget">Presupuesto</a>
 				<a href="/itinerary">Itinerario</a>
 				<!-- area para mostrar usuario / cerrar sesión -->
 				<a href="/auth/login">Login</a>
@@ -34,8 +34,8 @@
 			<h2 class="text-gradient">Planifica tu Aventura Perfecta</h2>
 			<p>Descubre el mundo con nuestra plataforma inteligente de planificación de viajes. Gestiona destinos, calcula rutas, controla presupuestos y crea itinerarios únicos para tus aventuras.</p>
 			<div class="d-flex justify-content-center gap-3 flex-wrap">
-				<a href="../destinations/destinations.html" class="btn btn-primary">🌍 Explorar Destinos</a>
-				<a href="../trips/trips.html" class="btn btn-outline">🎒 Crear Viaje</a>
+				<a href="/destinations" class="btn btn-primary">🌍 Explorar Destinos</a>
+				<a href="/trips" class="btn btn-outline">🎒 Crear Viaje</a>
 			</div>
 		</section>
 
@@ -88,28 +88,28 @@
 				<div class="row g-3">
 					<div class="col-md-6">
 						<div class="d-grid">
-							<a href="../weather/weather.html" class="btn btn-warning">
+							<a href="/weather" class="btn btn-warning">
 								🌤️ Ver Clima
 							</a>
 						</div>
 					</div>
 					<div class="col-md-6">
 						<div class="d-grid">
-							<a href="../routes/route.html" class="btn btn-success">
+							<a href="/routes" class="btn btn-success">
 								🗺️ Calcular Ruta
 							</a>
 						</div>
 					</div>
 					<div class="col-md-6">
 						<div class="d-grid">
-							<a href="../trips/budget.html" class="btn btn-secondary">
+							<a href="/budget" class="btn btn-secondary">
 								💰 Gestionar Presupuesto
 							</a>
 						</div>
 					</div>
 					<div class="col-md-6">
 						<div class="d-grid">
-							<a href="../itinerary/itinerary.html" class="btn btn-primary">
+							<a href="/itinerary" class="btn btn-primary">
 								📋 Crear Itinerario
 							</a>
 						</div>
@@ -125,7 +125,7 @@
 				<div class="row">
 					<div class="col-md-6">
 						<h5>💾 Almacenamiento</h5>
-						<p class="text-secondary">Datos persistentes en localStorage del navegador</p>
+						<p class="text-secondary">Datos persistentes en MongoDB de desarrollo</p>
 					</div>
 					<div class="col-md-6">
 						<h5>🎨 Tecnologías</h5>
@@ -160,39 +160,12 @@
 	<!-- Bootstrap JS para componentes interactivos -->
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 	
+	<!-- layout primero para inyectar header; luego auth para toggle de sesión -->
+	<script src="/assets/js/layout.js"></script>
 	<!-- scripts: auth primero para chequear sesión y mostrar usuario -->
-	<script src="../../../public/assets/js/auth.js"></script>
-	<script src="../../../public/assets/js/main.js"></script>
+	<script src="/assets/js/auth-api.js"></script>
+	<script src="/assets/js/main.js"></script>
+	<script src="/assets/js/landing-animations.js"></script>
 	
-	<!-- Script para animaciones de entrada -->
-	<script>
-		document.addEventListener('DOMContentLoaded', function() {
-			// Activar animaciones progresivas
-			const observerOptions = {
-				threshold: 0.1,
-				rootMargin: '0px 0px -50px 0px'
-			};
-
-			const observer = new IntersectionObserver((entries) => {
-				entries.forEach(entry => {
-					if (entry.isIntersecting) {
-						entry.target.style.animationDelay = '0s';
-						entry.target.style.opacity = '1';
-					}
-				});
-			}, observerOptions);
-
-			// Observar elementos con animación
-			document.querySelectorAll('.fade-in, .slide-in-left, .slide-in-right').forEach(el => {
-				el.style.opacity = '0';
-				observer.observe(el);
-			});
-
-			// Animación escalonada para feature items
-			document.querySelectorAll('.feature-item').forEach((item, index) => {
-				item.style.animationDelay = `${index * 0.1}s`;
-			});
-		});
-	</script>
 </body>
 </html>
