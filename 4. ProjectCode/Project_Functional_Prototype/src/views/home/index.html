@@ -4,20 +4,22 @@
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width,initial-scale=1" />
 	<title>Intelligent Travel Planner - Prototipo</title>
-	<link rel="stylesheet" href="../../../public/assets/css/style.css">
+	<link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
 	<header class="site-header">
 		<h1>Intelligent Travel Planner</h1>
 		<nav>
-			<a href="./index.html">Inicio</a>
-			<a href="../destinations/destinations.html">Destinos</a>
-			<a href="../trips/trips.html">Viajes</a>
-			<a href="../routes/route.html">Rutas</a>
-			<a href="../weather/weather.html">Clima</a>
-			<a href="../trips/budget.html">Presupuesto</a>
-			<a href="../itinerary/itinerary.html">Itinerario</a>
+			<a href="/">Inicio</a>
+			<a href="/destinations">Destinos</a>
+			<a href="/trips">Viajes</a>
+			<a href="/routes">Rutas</a>
+			<a href="/weather">Clima</a>
+			<a href="/trips/budget">Presupuesto</a>
+			<a href="/itinerary">Itinerario</a>
 			<!-- area para mostrar usuario / cerrar sesión -->
+			<a href="/auth/login">Login</a>
+      		<a href="/auth/register">Registro</a>
 			<span id="userArea" style="margin-left:12px;"></span>
 		</nav>
 	</header>
@@ -41,8 +43,7 @@
 		<small>Prototipo funcional frontend — datos en localStorage</small>
 	</footer>
 
-	<!-- scripts: auth primero para chequear sesión y mostrar usuario -->
-	<script src="../../public/assets/js/auth.js"></script>
-	<script src="../../public/assets/js/main.js"></script>
+	<script src="/assets/js/auth.js"></script>
+	<script src="/assets/js/main.js"></script>
 </body>
 </html>
