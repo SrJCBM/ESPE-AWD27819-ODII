@@ -3,6 +3,7 @@ namespace App\Features\Users;
 
 use App\Core\Http\Response;
 use App\Core\Http\Request;
+use App\Core\Auth\AuthMiddleware;
 
 final class UserController {
   private UserService $service;
@@ -13,11 +14,22 @@ final class UserController {
   }
 
   public function index(): void {
-    $users = $this->service->list();
-    Response::json($users);
+    // Requiere admin
+    if (!AuthMiddleware::isAdmin()) {
+      Response::error('Acceso denegado. Se requiere rol ADMIN', 403);
+      return;
+    }
+    $page = max(1, (int)Request::get('page', 1));
+    $size = max(1, min(100, (int)Request::get('size', 20)));
+    $items = $this->service->list($page, $size);
+    Response::json(['ok' => true, 'items' => $items, 'page' => $page, 'size' => $size]);
   }
 
   public function show(string $id): void {
+    if (!AuthMiddleware::isAdmin()) {
+      Response::error('Acceso denegado. Se requiere rol ADMIN', 403);
+      return;
+    }
     $user = $this->service->get($id);
     
     if (!$user) {
@@ -25,7 +37,7 @@ final class UserController {
       return;
     }
 
-    Response::json($user);
+    Response::json(['ok' => true, 'user' => $user]);
   }
 
   public function store(): void {
@@ -42,17 +54,25 @@ final class UserController {
 
   public function update(string $id, bool $asAdmin = false): void {
     try {
+      if (!AuthMiddleware::isAdmin() && $asAdmin) {
+        Response::error('Acceso denegado. Se requiere rol ADMIN', 403);
+        return;
+      }
       $body = Request::body();
       $success = $this->service->update($id, $body, $asAdmin);
       
-      Response::json(['updated' => $success]);
+      Response::json(['ok' => true, 'updated' => $success]);
     } catch (\Throwable $exception) {
       Response::error($exception->getMessage(), 400);
     }
   }
 
   public function destroy(string $id): void {
+    if (!AuthMiddleware::isAdmin()) {
+      Response::error('Acceso denegado. Se requiere rol ADMIN', 403);
+      return;
+    }
     $deleted = $this->service->delete($id);
-    Response::json(['deleted' => $deleted]);
+    Response::json(['ok' => true, 'deleted' => $deleted]);
   }
 }

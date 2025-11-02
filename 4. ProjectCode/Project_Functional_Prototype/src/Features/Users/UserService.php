@@ -12,11 +12,13 @@ final class UserService {
   }
 
   public function list(int $page=1,int $size=20): array {
-    return $this->repo->findAll($page,$size);
+    $items = $this->repo->findAll($page,$size);
+    return array_map(fn($u) => $this->sanitize($u), $items);
   }
 
   public function get(string $id): ?array {
-    return $this->repo->findById($id);
+    $u = $this->repo->findById($id);
+    return $u ? $this->sanitize($u) : null;
   }
 
   public function create(array $input, ?string $sessionId=null): string {
@@ -64,5 +66,21 @@ final class UserService {
   public function delete(string $id, bool $hard=false): bool {
     if ($hard) return $this->repo->delete($id);
     return $this->repo->update($id, ['status'=>'DEACTIVATED']);
+  }
+
+  private function sanitize(array $u): array {
+    // Nunca exponer passwordHash
+    unset($u['passwordHash']);
+    // _id como string
+    if (isset($u['_id']) && (is_object($u['_id']) || is_array($u['_id']))) {
+      try { $u['_id'] = (string)$u['_id']; } catch (\Throwable $e) {}
+    }
+    // Fechas Mongo -> ISO-8601
+    foreach (['createdAt','lastLogin','updatedAt'] as $k) {
+      if (isset($u[$k]) && $u[$k] instanceof \MongoDB\BSON\UTCDateTime) {
+        $u[$k] = $u[$k]->toDateTime()->format(DATE_ATOM);
+      }
+    }
+    return $u;
   }
 }

@@ -5,6 +5,7 @@ use App\Core\Contracts\DestinationRepositoryInterface;
 use App\Core\Database\MongoConnection;
 use MongoDB\BSON\ObjectId;
 use MongoDB\BSON\UTCDateTime;
+use MongoDB\BSON\Regex;
 
 final class DestinationRepositoryMongo implements DestinationRepositoryInterface {
   private $col;
@@ -24,9 +25,11 @@ final class DestinationRepositoryMongo implements DestinationRepositoryInterface
     
     // Búsqueda por nombre o país
     if ($search) {
+      $pattern = preg_quote($search, '/');
+        $regex = new Regex($pattern, 'i');
       $query['$or'] = [
-        ['name' => ['$regex' => $search, '$options' => 'i']],
-        ['country' => ['$regex' => $search, '$options' => 'i']]
+        ['name' => $regex],
+        ['country' => $regex]
       ];
     }
 
@@ -46,8 +49,8 @@ final class DestinationRepositoryMongo implements DestinationRepositoryInterface
 
   public function findById(string $id): ?array {
     try {
-      $doc = $this->col->findOne(['_id' => new ObjectId($id)]);
-      if (!$doc) return null;
+  $doc = $this->col->findOne(['_id' => new ObjectId($id)]);
+  if (!$doc) { return null; }
       
       $arr = (array)$doc;
       $arr['_id'] = (string)$arr['_id'];
