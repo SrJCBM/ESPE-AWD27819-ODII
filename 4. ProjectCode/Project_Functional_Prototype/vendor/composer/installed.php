@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'travelbrain/project-functional-prototype',
-        'pretty_version' => 'dev-main',
-        'version' => 'dev-main',
-        'reference' => '9562263860500877e4e854231f7fb5f4e480827b',
+        'pretty_version' => '1.0.0+no-version-set',
+        'version' => '1.0.0.0',
+        'reference' => null,
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -47,9 +47,9 @@
             'dev_requirement' => false,
         ),
         'travelbrain/project-functional-prototype' => array(
-            'pretty_version' => 'dev-main',
-            'version' => 'dev-main',
-            'reference' => '9562263860500877e4e854231f7fb5f4e480827b',
+            'pretty_version' => '1.0.0+no-version-set',
+            'version' => '1.0.0.0',
+            'reference' => null,
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

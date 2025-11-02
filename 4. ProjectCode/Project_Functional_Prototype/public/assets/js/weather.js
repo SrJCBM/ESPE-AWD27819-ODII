@@ -27,13 +27,40 @@
       const id = destSelect.value;
       if (!id) { alert('Selecciona un destino'); return; }
       const data = window.app?.getSimulatedWeather ? await window.app.getSimulatedWeather(id) : { error: 'Simulador no disponible' };
+
       // Si es opción demo y el nombre quedó 'Desconocido', usar el texto del select
       if (String(id).startsWith('guest:') && data && (!data.destName || data.destName === 'Desconocido')) {
         const selText = destSelect.options[destSelect.selectedIndex]?.text || 'Destino';
         data.destName = selText;
         data.destId = id;
       }
-      result.textContent = JSON.stringify(data, null, 2);
+
+      // Actualizar la UI con los datos del clima
+      const weatherLocation = document.getElementById('weatherLocation');
+      const weatherDate = document.getElementById('weatherDate');
+      const weatherMain = document.getElementById('weatherMain');
+      const weatherDetails = document.getElementById('weatherDetails');
+
+      weatherLocation.textContent = data.destName || 'Ubicación desconocida';
+      weatherDate.textContent = new Date().toLocaleDateString();
+
+      weatherMain.innerHTML = `
+        <div class="temp-main">
+          <span class="temp">${data.temp}°C</span>
+          <span class="condition">${data.condition}</span>
+        </div>
+      `;
+
+      weatherDetails.innerHTML = `
+        <ul class="weather-list">
+          <li>Humedad: ${data.humidity}%</li>
+          <li>Viento: ${data.windSpeed} km/h</li>
+          <li>Precipitación: ${data.precipitation}%</li>
+          <li>Presión: ${data.pressure} hPa</li>
+        </ul>
+      `;
+
+      result.style.display = 'block';
       // Mostrar guardar solo para usuarios logueados
       if (saveBtn.dataset.logged === '1') {
         saveBtn.style.display = 'inline-block';

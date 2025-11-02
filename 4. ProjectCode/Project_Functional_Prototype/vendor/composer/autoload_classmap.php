@@ -6,10 +6,22 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'App\\Core\\Auth\\AuthMiddleware' => $baseDir . '/src/Core/Auth/AuthMiddleware.php',
+    'App\\Core\\Constants\\UserRoles' => $baseDir . '/src/Core/Constants/UserRoles.php',
+    'App\\Core\\Constants\\UserStatus' => $baseDir . '/src/Core/Constants/UserStatus.php',
+    'App\\Core\\Constants\\ValidationRules' => $baseDir . '/src/Core/Constants/ValidationRules.php',
+    'App\\Core\\Contracts\\DestinationRepositoryInterface' => $baseDir . '/src/Core/Contracts/DestinationRepositoryInterface.php',
     'App\\Core\\Contracts\\UserRepositoryInterface' => $baseDir . '/src/Core/Contracts/UserRepositoryInterface.php',
     'App\\Core\\Database\\MongoConnection' => $baseDir . '/src/Core/Database/MongoConnection.php',
+    'App\\Core\\Http\\Request' => $baseDir . '/src/Core/Http/Request.php',
     'App\\Core\\Http\\Response' => $baseDir . '/src/Core/Http/Response.php',
     'App\\Core\\Http\\Router' => $baseDir . '/src/Core/Http/Router.php',
+    'App\\Features\\Auth\\AuthController' => $baseDir . '/src/Features/Auth/AuthController.php',
+    'App\\Features\\Destinations\\Destination' => $baseDir . '/src/Features/Destinations/Destination.php',
+    'App\\Features\\Destinations\\DestinationController' => $baseDir . '/src/Features/Destinations/DestinationController.php',
+    'App\\Features\\Destinations\\DestinationRepositoryMongo' => $baseDir . '/src/Features/Destinations/DestinationRepositoryMongo.php',
+    'App\\Features\\Destinations\\DestinationService' => $baseDir . '/src/Features/Destinations/DestinationService.php',
+    'App\\Features\\Destinations\\DestinationValidator' => $baseDir . '/src/Features/Destinations/DestinationValidator.php',
     'App\\Features\\Users\\User' => $baseDir . '/src/Features/Users/User.php',
     'App\\Features\\Users\\UserController' => $baseDir . '/src/Features/Users/UserController.php',
     'App\\Features\\Users\\UserRepositoryMongo' => $baseDir . '/src/Features/Users/UserRepositoryMongo.php',
