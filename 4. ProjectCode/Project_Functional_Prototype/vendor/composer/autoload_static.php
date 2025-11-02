@@ -61,10 +61,22 @@ class ComposerStaticInitf0383283b6a8f5788d0c71513b91f368
     );
 
     public static $classMap = array (
+        'App\\Core\\Auth\\AuthMiddleware' => __DIR__ . '/../..' . '/src/Core/Auth/AuthMiddleware.php',
+        'App\\Core\\Constants\\UserRoles' => __DIR__ . '/../..' . '/src/Core/Constants/UserRoles.php',
+        'App\\Core\\Constants\\UserStatus' => __DIR__ . '/../..' . '/src/Core/Constants/UserStatus.php',
+        'App\\Core\\Constants\\ValidationRules' => __DIR__ . '/../..' . '/src/Core/Constants/ValidationRules.php',
+        'App\\Core\\Contracts\\DestinationRepositoryInterface' => __DIR__ . '/../..' . '/src/Core/Contracts/DestinationRepositoryInterface.php',
         'App\\Core\\Contracts\\UserRepositoryInterface' => __DIR__ . '/../..' . '/src/Core/Contracts/UserRepositoryInterface.php',
         'App\\Core\\Database\\MongoConnection' => __DIR__ . '/../..' . '/src/Core/Database/MongoConnection.php',
+        'App\\Core\\Http\\Request' => __DIR__ . '/../..' . '/src/Core/Http/Request.php',
         'App\\Core\\Http\\Response' => __DIR__ . '/../..' . '/src/Core/Http/Response.php',
         'App\\Core\\Http\\Router' => __DIR__ . '/../..' . '/src/Core/Http/Router.php',
+        'App\\Features\\Auth\\AuthController' => __DIR__ . '/../..' . '/src/Features/Auth/AuthController.php',
+        'App\\Features\\Destinations\\Destination' => __DIR__ . '/../..' . '/src/Features/Destinations/Destination.php',
+        'App\\Features\\Destinations\\DestinationController' => __DIR__ . '/../..' . '/src/Features/Destinations/DestinationController.php',
+        'App\\Features\\Destinations\\DestinationRepositoryMongo' => __DIR__ . '/../..' . '/src/Features/Destinations/DestinationRepositoryMongo.php',
+        'App\\Features\\Destinations\\DestinationService' => __DIR__ . '/../..' . '/src/Features/Destinations/DestinationService.php',
+        'App\\Features\\Destinations\\DestinationValidator' => __DIR__ . '/../..' . '/src/Features/Destinations/DestinationValidator.php',
         'App\\Features\\Users\\User' => __DIR__ . '/../..' . '/src/Features/Users/User.php',
         'App\\Features\\Users\\UserController' => __DIR__ . '/../..' . '/src/Features/Users/UserController.php',
         'App\\Features\\Users\\UserRepositoryMongo' => __DIR__ . '/../..' . '/src/Features/Users/UserRepositoryMongo.php',
