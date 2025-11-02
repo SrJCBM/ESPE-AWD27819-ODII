@@ -9,7 +9,7 @@ use MongoDB\BSON\UTCDateTime;
 final class UserRepositoryMongo implements UserRepositoryInterface {
   private $col;
   public function __construct() {
-    $db = MongoConnection::client()->selectDatabase(getenv('MONGO_DB') ?: 'travel_planner');
+    $db = MongoConnection::client()->selectDatabase(getenv('MONGO_DB') ?: 'travel_brain');
     $this->col = $db->selectCollection('users');
   }
 
@@ -28,8 +28,14 @@ final class UserRepositoryMongo implements UserRepositoryInterface {
     return $doc ? (array)$doc : null;
   }
 
+  public function findByUsername(string $username): ?array {
+    $doc = $this->col->findOne(['username'=>$username]);
+    return $doc ? (array)$doc : null;
+  }
+
   public function create(array $data): string {
     $payload = [
+      'username'     => $data['username'] ?? '',
       'email'        => $data['email'],
       'passwordHash' => $data['passwordHash'],
       'name'         => $data['name'],

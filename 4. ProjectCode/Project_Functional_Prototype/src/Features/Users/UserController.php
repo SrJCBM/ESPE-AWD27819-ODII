@@ -1,26 +1,58 @@
 <?php
 namespace App\Features\Users;
+
 use App\Core\Http\Response;
+use App\Core\Http\Request;
 
 final class UserController {
   private UserService $service;
+
   public function __construct() {
-    $repo = new UserRepositoryMongo(); // o factoría por env
-    $this->service = new UserService($repo);
+    $repository = new UserRepositoryMongo();
+    $this->service = new UserService($repository);
   }
-  public function index(): void { Response::json($this->service->list()); }
+
+  public function index(): void {
+    $users = $this->service->list();
+    Response::json($users);
+  }
+
   public function show(string $id): void {
-    $u = $this->service->get($id); $u ? Response::json($u) : Response::error('No encontrado',404);
+    $user = $this->service->get($id);
+    
+    if (!$user) {
+      Response::error('Usuario no encontrado', 404);
+      return;
+    }
+
+    Response::json($user);
   }
+
   public function store(): void {
-    $body=json_decode(file_get_contents('php://input'),true);
-    try { $id=$this->service->create($body, $_COOKIE['sid']??null); Response::json(['id'=>$id],201); }
-    catch(\Throwable $e){ Response::error($e->getMessage(),400); }
+    try {
+      $body = Request::body();
+      $sessionId = $_COOKIE['sid'] ?? null;
+      
+      $userId = $this->service->create($body, $sessionId);
+      Response::json(['id' => $userId], 201);
+    } catch (\Throwable $exception) {
+      Response::error($exception->getMessage(), 400);
+    }
   }
-  public function update(string $id, bool $asAdmin=false): void {
-    $body=json_decode(file_get_contents('php://input'),true);
-    try { $ok=$this->service->update($id,$body,$asAdmin); Response::json(['updated'=>$ok]); }
-    catch(\Throwable $e){ Response::error($e->getMessage(),400); }
+
+  public function update(string $id, bool $asAdmin = false): void {
+    try {
+      $body = Request::body();
+      $success = $this->service->update($id, $body, $asAdmin);
+      
+      Response::json(['updated' => $success]);
+    } catch (\Throwable $exception) {
+      Response::error($exception->getMessage(), 400);
+    }
   }
-  public function destroy(string $id): void { Response::json(['deleted'=>$this->service->delete($id)]); }
+
+  public function destroy(string $id): void {
+    $deleted = $this->service->delete($id);
+    Response::json(['deleted' => $deleted]);
+  }
 }

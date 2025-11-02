@@ -8,4 +8,5 @@ interface UserRepositoryInterface {
   public function update(string $id, array $data): bool;
   public function delete(string $id): bool; // recomendado: borrado lógico en servicio
   public function findByEmail(string $email): ?array;
+  public function findByUsername(string $username): ?array;
 }

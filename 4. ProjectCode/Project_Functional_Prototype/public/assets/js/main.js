@@ -11,23 +11,14 @@ window.app = (function(){
 	function read(key){ try{ return JSON.parse(localStorage.getItem(key) || '[]'); }catch(e){return []} }
 	function write(key, v){ localStorage.setItem(key, JSON.stringify(v)); }
 
-	// Destinations CRUD
-	function getDestinations(){ return read(ls.destKey); }
-	function saveDestination(d){
-		const all = getDestinations();
-		if(!d.id){ d.id = uid('dest_'); all.push(d); }
-		else{
-			const idx = all.findIndex(x=>x.id===d.id);
-			if(idx>=0) all[idx] = d;
-			else all.push(d);
+	// Destinations - ahora usa API, estas funciones son stubs para compatibilidad
+	async function getDestinations(){ 
+		try {
+			const res = await window.DestinationsAPI?.list() || { items: [] };
+			return res.items || [];
+		} catch(e) {
+			return [];
 		}
-		write(ls.destKey, all);
-		renderDestinations();
-	}
-	function deleteDestination(id){
-		let all = getDestinations().filter(x=>x.id!==id);
-		write(ls.destKey, all);
-		renderDestinations();
 	}
 
 	// Trips CRUD
@@ -74,10 +65,11 @@ window.app = (function(){
 	function getBudget(tripId){ return read(ls.budgetKey).find(b=>b.tripId===tripId) || { tripId, amount:0, expenses:[] }; }
 
 	// Itinerary
-	function generateItinerary(tripId, days){
+	async function generateItinerary(tripId, days){
 		const trip = getTrips().find(t=>t.id===tripId);
 		if(!trip) return { html: '<p>Viaje no encontrado</p>', data: null };
-		const dests = getDestinations().filter(d => trip.destinations.includes(d.id));
+		const allDests = await getDestinations();
+		const dests = allDests.filter(d => trip.destinations.includes(d._id || d.id));
 		const perDay = Math.max(1, Math.ceil(dests.length / days));
 		let html = `<h3>${trip.name}</h3><p>${trip.description || ''}</p>`;
 		let data = { tripId, days, items: [] };
@@ -87,8 +79,8 @@ window.app = (function(){
 				const idx = d*perDay + i;
 				if(!dests[idx]) break;
 				const dest = dests[idx];
-				html += `<li><strong>${dest.name}</strong> - ${dest.country}<br>${dest.description||''}</li>`;
-				data.items.push({ day: d+1, destId: dest.id });
+				html += `<li><strong>${dest.name||''}</strong> - ${dest.country||''}<br>${dest.description||''}</li>`;
+				data.items.push({ day: d+1, destId: dest._id || dest.id });
 			}
 			html += `</ul>`;
 		}
@@ -107,28 +99,34 @@ window.app = (function(){
 		const c = 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 		return R * c;
 	}
-	function calculateRoute(originId, destId){
-		const dests = getDestinations();
-		const o = dests.find(x=>x.id===originId);
-		const d = dests.find(x=>x.id===destId);
+	async function calculateRoute(originId, destId){
+		const dests = await getDestinations();
+		const o = dests.find(x=>(x._id||x.id)===originId);
+		const d = dests.find(x=>(x._id||x.id)===destId);
 		if(!o || !d) return 'Origen o destino no encontrado.';
 		let dist = haversine(o.lat, o.lng, d.lat, d.lng);
 		if(dist==null){
 			// distancia estimada por caracteres del nombre (simulación)
-			dist = Math.abs(o.name.length - d.name.length) * 50 + 100;
+			dist = Math.abs((o.name||'').length - (d.name||'').length) * 50 + 100;
 			return `Distancia estimada: ${Math.round(dist)} km. Tiempo aproximado: ${Math.ceil(dist/60)} h (simulado).`;
 		}
 		const timeHours = dist / 60; // asumiendo 60 km/h media
 		return `Distancia: ${dist.toFixed(1)} km. Tiempo estimado: ${timeHours.toFixed(1)} h.`;
 	}
 
-	function getSimulatedWeather(destId){
-		const d = getDestinations().find(x=>x.id===destId) || { name: 'Desconocido' };
+	async function getSimulatedWeather(destId){
+		let d = { name: 'Desconocido' };
+		try {
+			const dests = await getDestinations();
+			d = dests.find(x=>(x._id||x.id)===destId) || d;
+		} catch(e) {
+			console.error('Error obteniendo destino:', e);
+		}
 		const temps = [18,20,22,24,26,28,15,10];
 		const conditions = ['Soleado','Nublado','Lluvioso','Tormenta','Parcialmente nublado'];
 		const data = {
 			destId,
-			destName: d.name,
+			destName: d.name || 'Desconocido',
 			temp: temps[Math.floor(Math.random()*temps.length)],
 			condition: conditions[Math.floor(Math.random()*conditions.length)]
 		};
@@ -136,38 +134,11 @@ window.app = (function(){
 	}
 
 	// Renderers y populators
-	function renderDestinations(filter=''){
-		const list = document.getElementById('destList');
-		if(!list) return;
-		const all = getDestinations().filter(d => (d.name||'').toLowerCase().includes(filter.toLowerCase()) || (d.country||'').toLowerCase().includes(filter.toLowerCase()));
-		list.innerHTML = '';
-		all.forEach(d=>{
-			const li = document.createElement('li');
-			li.innerHTML = `<div>
-				<strong>${d.name}</strong> <small>${d.country||''}</small><br>
-				<small>${d.description||''}</small>
-			</div>
-			<div>
-				<button data-id="${d.id}" class="editDest">Editar</button>
-				<button data-id="${d.id}" class="delDest">Eliminar</button>
-			</div>`;
-			list.appendChild(li);
-		});
-		// bind events
-		list.querySelectorAll('.delDest').forEach(b=>b.addEventListener('click', (e)=>{ deleteDestination(e.target.dataset.id); }));
-		list.querySelectorAll('.editDest').forEach(b=>b.addEventListener('click', (e)=>{
-			const id = e.target.dataset.id;
-			const d = getDestinations().find(x=>x.id===id);
-			if(!d) return;
-			document.getElementById('destId').value = d.id;
-			document.getElementById('destName').value = d.name;
-			document.getElementById('destCountry').value = d.country;
-			document.getElementById('destDesc').value = d.description;
-			document.getElementById('destLat').value = d.lat || '';
-			document.getElementById('destLng').value = d.lng || '';
-			document.getElementById('destImg').value = d.img || '';
-			window.scrollTo(0,0);
-		}));
+	// renderDestinations ahora está en destinations.js usando API
+	async function renderDestinations(filter=''){
+		// Esta función ya no se usa aquí, pero se mantiene por compatibilidad
+		// La implementación real está en destinations.js
+		console.warn('renderDestinations desde main.js está deprecated, usar destinations.js');
 	}
 
 	function renderTrips(filter=''){
@@ -175,7 +146,7 @@ window.app = (function(){
 		if(!list) return;
 		const all = getTrips().filter(t => (t.name||'').toLowerCase().includes(filter.toLowerCase()));
 		list.innerHTML = '';
-		all.forEach(t=>{
+		for (const t of all) {
 			const names = (t.destinations||[]).map(id => (getDestinations().find(d=>d.id===id)||{name:'?' }).name).join(', ');
 			const li = document.createElement('li');
 			li.innerHTML = `<div><strong>${t.name}</strong><br><small>${names}</small></div>
@@ -184,9 +155,9 @@ window.app = (function(){
 				<button data-id="${t.id}" class="delTrip">Eliminar</button>
 			</div>`;
 			list.appendChild(li);
-		});
-		list.querySelectorAll('.delTrip').forEach(b=>b.addEventListener('click', (e)=>{ deleteTrip(e.target.dataset.id); }));
-		list.querySelectorAll('.editTrip').forEach(b=>b.addEventListener('click', (e)=>{
+		}
+		for (const b of list.querySelectorAll('.delTrip')) { b.addEventListener('click', (e)=>{ deleteTrip(e.target.dataset.id); }); }
+		for (const b of list.querySelectorAll('.editTrip')) { b.addEventListener('click', (e)=>{
 			const id = e.target.dataset.id;
 			const t = getTrips().find(x=>x.id===id);
 			if(!t) return;
@@ -194,24 +165,32 @@ window.app = (function(){
 			document.getElementById('tripName').value = t.name;
 			document.getElementById('tripDesc').value = t.description;
 			const sel = document.getElementById('tripDestinations');
-			Array.from(sel.options).forEach(opt => opt.selected = t.destinations.includes(opt.value));
+			for (const opt of sel.options) { opt.selected = t.destinations.includes(opt.value); }
 			window.scrollTo(0,0);
-		}));
+		}); }
 	}
 
-	function populateDestinationSelect(selectId, includePlaceholder=false){
+	async function populateDestinationSelect(selectId, includePlaceholder=false){
 		const el = document.getElementById(selectId);
 		if(!el) return;
 		el.innerHTML = '';
 		if(includePlaceholder) el.appendChild(new Option('-- seleccionar --',''));
-		getDestinations().forEach(d => el.appendChild(new Option(`${d.name} (${d.country||''})`, d.id)));
+		
+		try {
+			const destinations = await getDestinations();
+			for (const d of destinations) { 
+				el.appendChild(new Option(`${d.name} (${d.country||''})`, d._id || d.id)); 
+			}
+		} catch(e) {
+			console.error('Error cargando destinos para select:', e);
+		}
 	}
 
 	function populateTripSelect(selectId){
 		const el = document.getElementById(selectId);
 		if(!el) return;
 		el.innerHTML = '';
-		getTrips().forEach(t => el.appendChild(new Option(t.name, t.id)));
+		for (const t of getTrips()) { el.appendChild(new Option(t.name, t.id)); }
 	}
 
 	function renderWeatherRecords(){
@@ -219,11 +198,11 @@ window.app = (function(){
 		if(!ul) return;
 		const arr = read(ls.weatherKey);
 		ul.innerHTML = '';
-		arr.forEach(r => {
+		for (const r of arr) {
 			const li = document.createElement('li');
 			li.innerHTML = `<div><strong>${r.destName}</strong> ${r.temp}°C - ${r.condition}<br><small>${r.date}</small></div>`;
 			ul.appendChild(li);
-		});
+		}
 	}
 
 	function renderBudget(tripId){
@@ -235,31 +214,30 @@ window.app = (function(){
 		const state = totalExp <= (b.amount||0) ? 'Dentro del presupuesto' : 'Sobre presupuesto';
 		summary.innerText = `Presupuesto: ${b.amount.toFixed(2)} | Gastos: ${totalExp.toFixed(2)} | Estado: ${state}`;
 		list.innerHTML = '';
-		(b.expenses||[]).forEach(e => {
+		for (const e of (b.expenses||[])) {
 			const li = document.createElement('li');
 			li.innerHTML = `<div>${e.desc} — ${e.amt.toFixed(2)}</div>`;
 			list.appendChild(li);
-		});
+		}
 	}
 
 	// API público
 	return {
-		renderDestinations,
-		saveDestination,
-		getDestinations,
+		renderDestinations, // Deprecated: usar destinations.js
+		getDestinations, // Ahora async, retorna Promise
 		renderTrips,
 		saveTrip,
-		populateDestinationSelect,
+		populateDestinationSelect, // Ahora async
 		populateTripSelect,
 		populateDestinationSelectAll: populateDestinationSelect,
-		calculateRoute,
-		getSimulatedWeather,
+		calculateRoute, // Ahora async
+		getSimulatedWeather, // Ahora async
 		saveWeather,
 		renderWeatherRecords,
 		saveBudget,
 		addExpense,
 		renderBudget,
-		generateItinerary,
+		generateItinerary, // Ahora async
 		saveItinerary,
 		populateTripSelect
 	};

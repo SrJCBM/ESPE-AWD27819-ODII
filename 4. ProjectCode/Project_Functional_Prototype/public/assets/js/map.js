@@ -85,10 +85,48 @@
             const coordStr = `${origin[0]},${origin[1]};${dest[0]},${dest[1]}`;
             const url = `https://api.mapbox.com/directions/v5/${profile}/${coordStr}?` + params;
             const res = await fetch(url);
+            if (!res.ok) {
+                const txt = await res.text().catch(()=>String(res.status));
+                throw new Error(`HTTP ${res.status}: ${txt}`);
+            }
             const json = await res.json();
             const route = json.routes?.[0];
-            if (!route) throw new Error('No se obtuvo ruta');
+            if (!route || json.code && String(json.code) !== 'Ok') {
+                const err = new Error('No se obtuvo ruta');
+                err.code = json.code || 'NoRoute';
+                throw err;
+            }
             return { distance: route.distance, duration: route.duration, geometry: route.geometry };
+        }
+
+        // Distancia en línea recta (haversine) como último recurso
+        function lineDistanceKm(a, b) {
+            const [lon1, lat1] = a, [lon2, lat2] = b;
+            const toRad = (v) => v * Math.PI / 180;
+            const R = 6371; // km
+            const dLat = toRad(lat2 - lat1);
+            const dLon = toRad(lon2 - lon1);
+            const la1 = toRad(lat1), la2 = toRad(lat2);
+            const h = Math.sin(dLat/2)**2 + Math.cos(la1)*Math.cos(la2)*Math.sin(dLon/2)**2;
+            return 2 * R * Math.atan2(Math.sqrt(h), Math.sqrt(1-h));
+        }
+
+        async function getRouteWithFallback(origin, dest) {
+            // 1) Intentar driving
+            try { return await getRoute(origin, dest, 'mapbox/driving'); } catch(error_) { console.debug('driving failed:', error_?.message || error_); }
+            // 2) Intentar walking
+            try { return await getRoute(origin, dest, 'mapbox/walking'); } catch(error_) { console.debug('walking failed:', error_?.message || error_); }
+            // 3) Intentar cycling
+            try { return await getRoute(origin, dest, 'mapbox/cycling'); } catch(error_) { console.debug('cycling failed:', error_?.message || error_); }
+            // 4) Fallback: línea recta con velocidad promedio 700km/día (~29km/h)
+            const km = lineDistanceKm(origin, dest);
+            const durationSec = (km / 29) * 3600; // aproximación burda
+            return {
+                distance: km * 1000,
+                duration: durationSec,
+                geometry: { type: 'LineString', coordinates: [origin, dest] },
+                fallback: true
+            };
         }
 
         function drawRoute(m, lineString) {
@@ -124,10 +162,12 @@
             try {
                 await ensureStyleReady(map);
                 const [oCoord, dCoord] = await Promise.all([geocodePlace(oText), geocodePlace(dText)]);
-                const route = await getRoute(oCoord, dCoord, 'mapbox/driving');
+                const route = await getRouteWithFallback(oCoord, dCoord);
                 const km = (route.distance / 1000).toFixed(1);
                 const min = Math.round(route.duration / 60);
-                out.textContent = `${km} km • ${min} min`;
+                out.textContent = route.fallback
+                    ? `${km} km (línea recta) • ~${min} min (estimado)`
+                    : `${km} km • ${min} min`;
                 drawRoute(map, route.geometry);
                 const coords = route.geometry.coordinates;
                 const bounds = coords.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(coords[0], coords[0]));

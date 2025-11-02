@@ -15,18 +15,18 @@
           'Quito, Ecuador', 'Guayaquil, Ecuador', 'Cuenca, Ecuador', 'Sangolquí, Ecuador',
           'Bogotá, Colombia', 'Medellín, Colombia', 'Cali, Colombia', 'Cartagena, Colombia'
         ];
-        demo.forEach(name => {
+        for (const name of demo) {
           const opt = new Option(name, `guest:${name}`);
           destSelect.appendChild(opt);
-        });
+        }
       }
     }, 0);
 
     // Obtener clima simulado
-    getBtn.addEventListener('click', () => {
+    getBtn.addEventListener('click', async () => {
       const id = destSelect.value;
       if (!id) { alert('Selecciona un destino'); return; }
-      const data = window.app?.getSimulatedWeather ? window.app.getSimulatedWeather(id) : { error: 'Simulador no disponible' };
+      const data = window.app?.getSimulatedWeather ? await window.app.getSimulatedWeather(id) : { error: 'Simulador no disponible' };
       // Si es opción demo y el nombre quedó 'Desconocido', usar el texto del select
       if (String(id).startsWith('guest:') && data && (!data.destName || data.destName === 'Desconocido')) {
         const selText = destSelect.options[destSelect.selectedIndex]?.text || 'Destino';

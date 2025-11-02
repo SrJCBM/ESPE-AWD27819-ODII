@@ -3,7 +3,7 @@ require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/../config/env.php';
 
 $client = new MongoDB\Client(getenv('MONGO_URI') ?: 'mongodb://localhost:27017');
-$db = $client->selectDatabase(getenv('MONGO_DB') ?: 'travel_planner');
+$db = $client->selectDatabase(getenv('MONGO_DB') ?: 'travel_brain');
 $users = $db->selectCollection('users');
 
 // Verifica si ya existe un admin

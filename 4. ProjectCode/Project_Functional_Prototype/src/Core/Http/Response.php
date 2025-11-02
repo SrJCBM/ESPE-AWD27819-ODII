@@ -9,6 +9,7 @@ final class Response {
     exit;
   }
   public static function error(string $message, int $status = 400): void {
-    self::json(['error'=>$message], $status);
+    // Mantener compatibilidad: el frontend espera 'msg' en lugar de 'error'
+    self::json(['ok' => false, 'msg' => $message], $status);
   }
 }

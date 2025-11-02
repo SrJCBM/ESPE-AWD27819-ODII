@@ -11,13 +11,13 @@
     const exportBtn = document.getElementById('exportItBtn');
     const view = document.getElementById('itineraryView');
 
-    genBtn.addEventListener('click', () => {
+    genBtn.addEventListener('click', async () => {
       const tripId = document.getElementById('itTripSelect').value;
       const days = parseInt(document.getElementById('itDays').value || '1', 10);
       if (!tripId) { alert('Selecciona un viaje'); return; }
 
       const it = window.app?.generateItinerary
-        ? window.app.generateItinerary(tripId, days)
+        ? await window.app.generateItinerary(tripId, days)
         : { html: '<p>No hay generador disponible.</p>', data: null };
 
       view.innerHTML = it.html;

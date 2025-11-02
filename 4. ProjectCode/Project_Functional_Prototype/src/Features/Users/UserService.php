@@ -20,15 +20,35 @@ final class UserService {
   }
 
   public function create(array $input, ?string $sessionId=null): string {
+    // Normalizar nombre antes de validar: si vienen firstname y lastname, combinarlos
+    if (empty($input['name'] ?? '') && isset($input['firstname'], $input['lastname'])) {
+      $input['name'] = trim(($input['firstname'] ?? '') . ' ' . ($input['lastname'] ?? ''));
+    }
+
     $this->validator->validateForCreate($input);
-    if ($this->repo->findByEmail($input['email'])) throw new \DomainException('Email ya existe');
+    
+    // Verificar unicidad de email
+    if ($this->repo->findByEmail($input['email'])) {
+      throw new \DomainException('Email ya existe');
+    }
+    
+    // Verificar unicidad de username
+    if (!empty($input['username']) && $this->repo->findByUsername($input['username'])) {
+      throw new \DomainException('Usuario ya existe');
+    }
+    
+    // Nombre ya normalizado arriba; si sigue vacío, dejar string vacío (validator ya lo habría bloqueado)
+    $name = $input['name'] ?? '';
+    
     $data = [
+      'username'     => $input['username'] ?? '',
       'email'        => $input['email'],
-      'name'         => $input['name'],
-      'role'         => 'REGISTERED',
-      'status'       => 'ACTIVE',
+      'name'        => $name,
+      'role'         => \App\Core\Constants\UserRoles::REGISTERED,
+      'status'       => \App\Core\Constants\UserStatus::ACTIVE,
       'passwordHash' => password_hash($input['password'], PASSWORD_BCRYPT)
     ];
+    
     $id = $this->repo->create((new User($data))->toArray());
     // Migración guest→registered: aquí moverías favoritos/rutas de sessionId al nuevo userId
     // SessionService::promoteGuest($sessionId, $id);
