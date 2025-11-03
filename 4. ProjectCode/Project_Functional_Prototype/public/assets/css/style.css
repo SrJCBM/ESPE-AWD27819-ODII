@@ -814,3 +814,275 @@ button:active, .btn:active {
 ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(135deg, var(--primary-dark), var(--accent-dark));
 }
+
+/* Estilos para Itinerarios con IA */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.button-group {
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.primary-btn {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+    border: none;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow);
+}
+
+.primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.secondary-btn {
+    background: var(--surface);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.secondary-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    transform: translateY(-1px);
+}
+
+/* Estilos para el plan de viaje generado */
+.travel-plan {
+    background: var(--surface);
+    padding: var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    margin-top: var(--spacing-lg);
+}
+
+.travel-plan h3 {
+    color: var(--primary);
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 2px solid var(--accent);
+}
+
+.itinerary-section, .weather-section, .budget-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.itinerary-section h4, .weather-section h4, .budget-section h4 {
+    color: var(--primary-dark);
+    margin-bottom: var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.itinerary-section h4::before {
+    content: "📅";
+}
+
+.weather-section h4::before {
+    content: "🌤️";
+}
+
+.budget-section h4::before {
+    content: "💰";
+}
+
+.day-plan {
+    background: var(--surface-alt);
+    margin-bottom: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+}
+
+.day-plan h5 {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+    margin: 0;
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-weight: 600;
+}
+
+.activities-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.activity-item {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    transition: background-color 0.2s ease;
+}
+
+.activity-item:hover {
+    background-color: var(--background-light);
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-item .time {
+    background: var(--accent);
+    color: white;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    min-width: 60px;
+    text-align: center;
+    font-size: 0.875rem;
+}
+
+.activity-item .description {
+    flex: 1;
+    color: var(--text-primary);
+}
+
+/* Tipos de actividad con colores distintivos */
+.activity-dining .time {
+    background: var(--warning);
+    color: var(--text-primary);
+}
+
+.activity-activity .time {
+    background: var(--accent);
+}
+
+.activity-travel .time {
+    background: var(--secondary);
+}
+
+.activity-accommodation .time {
+    background: var(--primary);
+}
+
+.activity-other .time {
+    background: var(--text-secondary);
+}
+
+/* Sección del clima */
+.weather-forecast {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.weather-item {
+    background: var(--surface-alt);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    text-align: center;
+    border: 1px solid var(--border-light);
+}
+
+.weather-item strong {
+    color: var(--primary);
+    display: block;
+    margin-bottom: var(--spacing-xs);
+}
+
+/* Sección del presupuesto */
+.budget-breakdown {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.budget-item {
+    background: var(--surface-alt);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    border-left: 4px solid var(--accent);
+}
+
+.budget-item strong {
+    color: var(--primary-dark);
+    display: block;
+    margin-bottom: var(--spacing-xs);
+}
+
+/* Estados de carga y error */
+.loading {
+    text-align: center;
+    padding: var(--spacing-2xl);
+    color: var(--text-secondary);
+}
+
+.loading p:first-child {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.error {
+    text-align: center;
+    padding: var(--spacing-2xl);
+    color: var(--danger);
+    background: #fff5f5;
+    border-radius: var(--radius-md);
+    border: 1px solid #fed7d7;
+}
+
+.error p:first-child {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+/* Itinerario básico fallback */
+.basic-itinerary {
+    background: var(--surface-alt);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    border-left: 4px solid var(--warning);
+}
+
+.basic-itinerary em {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+/* Responsive design para móviles */
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .button-group {
+        justify-content: center;
+    }
+    
+    .weather-forecast, .budget-breakdown {
+        grid-template-columns: 1fr;
+    }
+    
+    .activity-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+    }
+    
+    .activity-item .time {
+        align-self: flex-start;
+    }
+}

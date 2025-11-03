@@ -64,26 +64,74 @@ window.app = (function(){
 	}
 	function getBudget(tripId){ return read(ls.budgetKey).find(b=>b.tripId===tripId) || { tripId, amount:0, expenses:[] }; }
 
-	// Itinerary
-	async function generateItinerary(tripId, days){
+	// Itinerary - Ahora usa API de Gemini para generación inteligente
+	async function generateItinerary(tripId, days, interests = 'cultura', budgetStyle = 'medio'){
 		const trip = getTrips().find(t=>t.id===tripId);
 		if(!trip) return { html: '<p>Viaje no encontrado</p>', data: null };
+		
 		const allDests = await getDestinations();
 		const dests = allDests.filter(d => trip.destinations.includes(d._id || d.id));
+		
+		if(dests.length === 0) {
+			return { html: '<p>No hay destinos seleccionados para este viaje</p>', data: null };
+		}
+
+		// Crear descripción del destino principal para Gemini
+		const mainDestination = dests[0];
+		const destinationName = `${mainDestination.name || 'Destino desconocido'}, ${mainDestination.country || ''}`;
+		const destinationDescription = dests.map(d => d.name).join(', ');
+
+		try {
+			// Usar API de Gemini si está disponible
+			if(window.GeminiTravelAPI) {
+				const travelPlan = await window.GeminiTravelAPI.generateTravelPlan(
+					destinationName, 
+					days, 
+					interests, 
+					budgetStyle
+				);
+				
+				// Renderizar usando la función especializada
+				const html = window.GeminiTravelAPI.renderTravelPlan(travelPlan);
+				const data = {
+					tripId,
+					days,
+					destinations: destinationDescription,
+					travelPlan,
+					generatedBy: 'gemini'
+				};
+				
+				return { html, data };
+			}
+		} catch(error) {
+			console.error('Error usando Gemini API, fallback a generación básica:', error);
+		}
+
+		// Fallback: generación básica original
 		const perDay = Math.max(1, Math.ceil(dests.length / days));
-		let html = `<h3>${trip.name}</h3><p>${trip.description || ''}</p>`;
-		let data = { tripId, days, items: [] };
+		let html = `<div class="basic-itinerary">
+			<h3>${trip.name}</h3>
+			<p>${trip.description || destinationDescription}</p>
+			<p><em>Itinerario básico generado automáticamente</em></p>`;
+		
+		let data = { tripId, days, items: [], generatedBy: 'basic' };
+		
 		for(let d=0; d<days; d++){
-			html += `<h4>Día ${d+1}</h4><ul>`;
+			html += `<div class="day-plan"><h4>Día ${d+1}</h4><ul class="activities-list">`;
 			for(let i=0;i<perDay;i++){
 				const idx = d*perDay + i;
 				if(!dests[idx]) break;
 				const dest = dests[idx];
-				html += `<li><strong>${dest.name||''}</strong> - ${dest.country||''}<br>${dest.description||''}</li>`;
+				html += `<li class="activity-item">
+					<strong>${dest.name||''}</strong> - ${dest.country||''}
+					<br><small>${dest.description||''}</small>
+				</li>`;
 				data.items.push({ day: d+1, destId: dest._id || dest.id });
 			}
-			html += `</ul>`;
+			html += `</ul></div>`;
 		}
+		html += `</div>`;
+		
 		return { html, data };
 	}
 	function saveItinerary(it){ const arr = read(ls.itKey); arr.push({ id: uid('it_'), created: new Date().toISOString(), it }); write(ls.itKey, arr); }
