@@ -5,10 +5,6 @@ window.AppConfig = {
     
     // Configurar API key de Gemini
     setGeminiApiKey: function(key) {
-        if (!key || typeof key !== 'string' || key.trim().length < 10) {
-            throw new Error('API key inválida');
-        }
-        
         this.geminiApiKey = key;
         localStorage.setItem('gemini_api_key', key);
         
@@ -16,8 +12,6 @@ window.AppConfig = {
         if (window.GeminiTravelAPI) {
             window.GeminiTravelAPI.reinitialize(key);
         }
-
-        return true;
     },
     
     // Obtener API key de Gemini

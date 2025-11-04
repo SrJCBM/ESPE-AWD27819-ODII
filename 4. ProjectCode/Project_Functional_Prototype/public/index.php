@@ -19,6 +19,7 @@ $router = new Router();
 // 3) Registrar rutas por feature
 require __DIR__ . '/../src/Features/Users/UserRoutes.php';
 require __DIR__ . '/../src/Features/Destinations/DestinationRoutes.php';
+require __DIR__ . '/../src/Features/Trips/TripRoutes.php';
 
 // ============ HELPERS ============
 function requireAuth(): void {
@@ -74,7 +75,7 @@ $router->get('/destinations', function () {
 
 $router->get('/trips', function () {
   requireAuth();
-  readfile(__DIR__ . '/../src/views/trips/trips.html');
+  readfile(__DIR__ . '/../src/views/trips/trips-form.html');
 });
 
 $router->get('/budget', function () {

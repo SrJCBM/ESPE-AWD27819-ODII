@@ -11,48 +11,25 @@ function initializeGeminiAI() {
     return false;
   }
 
-  // Verificación mejorada del SDK
-  const waitForSDK = (retries = 0, maxRetries = 3) => {
-    if (typeof window.GoogleGenerativeAI === 'undefined') {
-      if (retries < maxRetries) {
-        console.log(`Esperando SDK (${retries + 1}/${maxRetries})...`);
-        return new Promise(resolve => {
-          setTimeout(() => {
-            resolve(waitForSDK(retries + 1, maxRetries));
-          }, 1000);
-        });
-      }
-      return Promise.reject(new Error('SDK no disponible después de reintentos'));
-    }
-    return Promise.resolve();
-  };
-
-  return waitForSDK()
-    .then(() => {
-      try {
-        ai = new window.GoogleGenerativeAI.GoogleGenerativeAI(API_KEY);
-        console.log("Google Generative AI inicializado correctamente");
-        return true;
-      } catch (error) {
-        console.error("Error inicializando Google Generative AI:", error);
-        return false;
-      }
-    })
-    .catch(error => {
-      console.warn(error.message);
+  try {
+    if (window.GoogleGenerativeAI) {
+      ai = new window.GoogleGenerativeAI.GoogleGenerativeAI(API_KEY);
+      console.log("Google Generative AI inicializado correctamente");
+      return true;
+    } else {
+      console.warn("SDK de Google Generative AI no disponible");
       return false;
-    });
+    }
+  } catch (error) {
+    console.warn("Error inicializando Google Generative AI:", error);
+    return false;
+  }
 }
 
-// Modificar el evento de inicialización
+// Inicializar al cargar
 document.addEventListener('DOMContentLoaded', function() {
-  // Dar más tiempo para que el SDK se cargue
-  setTimeout(async () => {
-    const initialized = await initializeGeminiAI();
-    if (!initialized) {
-      console.warn('No se pudo inicializar Gemini AI, modo simulado activo');
-    }
-  }, 1000);
+  // Esperar un poco para que AppConfig esté disponible
+  setTimeout(initializeGeminiAI, 100);
 });
 
 const travelPlanSchema = {
