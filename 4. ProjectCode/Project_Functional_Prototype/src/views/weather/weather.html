@@ -24,10 +24,15 @@
   <main class="container">
     <section class="card">
       <h2>Ver clima por destino</h2>
-      <label>Destino
-        <select id="weatherDest"></select>
-      </label>
-      <button id="getWeatherBtn">Obtener clima (simulado)</button>
+      <div class="form-row" style="gap:12px;align-items:flex-end;flex-wrap:wrap">
+        <label style="flex:1 1 420px">Buscar lugar (Mapbox)
+          <input id="weatherPlaceInput" list="weatherPlaceList" placeholder="Ciudad, país" autocomplete="off" />
+          <datalist id="weatherPlaceList"></datalist>
+        </label>
+        <input type="hidden" id="weatherLat" />
+        <input type="hidden" id="weatherLon" />
+      </div>
+      <button id="getWeatherBtn">Obtener clima</button>
       <div id="weatherResult" class="weather-card">
         <div class="weather-header">
           <h3 id="weatherLocation"></h3>
@@ -38,7 +43,9 @@
           <div id="weatherDetails"></div>
         </div>
       </div>
-      <button id="saveWeatherBtn" style="display:none">Guardar registro</button>
+      <div class="card" style="margin-top:12px">
+        <div id="weatherMap" style="height:320px;width:100%"></div>
+      </div>
     </section>
 
     <section class="card">
@@ -50,8 +57,41 @@
   <footer class="site-footer"><small>Clima simulado para el prototipo</small></footer>
 
   <script src="/assets/js/layout.js"></script>
+  <!-- Usa ruta relativa para que funcione si la app corre en subcarpetas -->
+  <script src="/config.js"></script>
+  <script>
+    // Si por alguna razón /config.js no cargó (hosting en subcarpeta), intenta ruta relativa
+    if (!globalThis.__CONFIG__) {
+      var s=document.createElement('script'); s.src='config.js'; document.head.appendChild(s);
+    }
+  </script>
+  <script src="/assets/js/places-autocomplete.js"></script>
   <script src="/assets/js/auth-api.js"></script>
+  <!-- Mapbox GL para mostrar el mapa del lugar seleccionado -->
+  <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.css">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.js"></script>
   <script src="/assets/js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      const input = document.getElementById('weatherPlaceInput');
+      const latEl = document.getElementById('weatherLat');
+      const lonEl = document.getElementById('weatherLon');
+      if (globalThis.PlacesAutocomplete && input){
+        globalThis.PlacesAutocomplete.wire('weatherPlaceInput','weatherPlaceList', function(f){
+          const country = (globalThis.PlacesAutocomplete.countryFromFeature ? globalThis.PlacesAutocomplete.countryFromFeature(f) : '') || '';
+          const shortLabel = (f && f.text ? f.text : (f.place_name || '')).split(',')[0] + (country ? `, ${country}` : '');
+          const center = Array.isArray(f.center) ? f.center : null; // [lon, lat]
+          input.value = shortLabel;
+          if (center && center.length === 2){
+            latEl.value = String(center[1]);
+            lonEl.value = String(center[0]);
+            input.dataset.lat = String(center[1]);
+            input.dataset.lon = String(center[0]);
+          }
+        });
+      }
+    });
+  </script>
   <script src="/assets/js/weather.js"></script>
 </body>
 </html>

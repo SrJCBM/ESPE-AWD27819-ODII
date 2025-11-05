@@ -17,7 +17,7 @@ async function loadTrips() {
   tripListContainer.innerHTML = '<div class="empty-message">Cargando viajes...</div>';
 
   try {
-    const response = await fetch('/api/trips?page=1&size=50');
+    const response = await fetch('/api/trips?page=1&size=50', { credentials: 'include' });
 
     // Si la API está disponible y responde OK, usarla
     if (response.ok) {
@@ -87,7 +87,8 @@ async function deleteTrip(id) {
   }
   try {
     const response = await fetch(`/api/trips/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      credentials: 'include'
     });
 
     if (response.ok) {

@@ -20,6 +20,7 @@ form.addEventListener("submit", async (e) => {
       headers: {
         'Content-Type': 'application/json'
       },
+      credentials: 'include',
       body: JSON.stringify({
         title,
         destination,
@@ -33,6 +34,11 @@ form.addEventListener("submit", async (e) => {
     const data = await response.json();
 
     if (!response.ok) {
+      if (response.status === 401) {
+        showMessage('Debes iniciar sesión para crear viajes.', 'error');
+        resetButton();
+        return;
+      }
       // Si la API rechaza (p. ej. requiere API_KEY) usamos modo local
       console.warn('API trips no disponible o denegada, guardando localmente:', data.error || response.status);
       saveLocalTrip({

@@ -20,6 +20,7 @@ $router = new Router();
 require __DIR__ . '/../src/Features/Users/UserRoutes.php';
 require __DIR__ . '/../src/Features/Destinations/DestinationRoutes.php';
 require __DIR__ . '/../src/Features/Trips/TripRoutes.php';
+require_once __DIR__ . '/../src/Features/Weather/WeatherRoutes.php';
 
 // ============ HELPERS ============
 function requireAuth(): void {
@@ -274,6 +275,7 @@ $router->get('/config.js', function () {
   }
   exit;
 });
+
 
 // ============ DESPACHAR ============
 try {

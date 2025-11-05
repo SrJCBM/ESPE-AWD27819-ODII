@@ -40,7 +40,8 @@
 
               <div class="form-group">
                 <label for="destination">Destino</label>
-                <input type="text" id="destination" placeholder="ej. París, Francia" required />
+                <input type="text" id="destination" list="tripPlaceList" placeholder="Busca y selecciona un lugar (Mapbox)" required />
+                <datalist id="tripPlaceList"></datalist>
               </div>
 
               <div class="form-row">
@@ -86,6 +87,21 @@
   </main>
 
   <!-- Scripts -->
+  <script src="/assets/js/layout.js"></script>
+  <script src="/assets/js/auth-api.js"></script>
+  <script src="/config.js"></script>
+  <script src="/assets/js/places-autocomplete.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      if (globalThis.PlacesAutocomplete) {
+        globalThis.PlacesAutocomplete.wire('destination','tripPlaceList', function(f){
+          // keep input value as selected place_name
+          const input = document.getElementById('destination');
+          if (input) input.value = f.place_name;
+        });
+      }
+    });
+  </script>
   <script src="/assets/js/trip-form.js"></script>
   <script src="/assets/js/trip-list.js"></script>
 </body>
