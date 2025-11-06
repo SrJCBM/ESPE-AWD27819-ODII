@@ -9,56 +9,26 @@ form.addEventListener("submit", async (e) => {
 
   const title = document.getElementById("title").value;
   const destination = document.getElementById("destination").value;
-  const start_date = document.getElementById("start_date").value;
-  const end_date = document.getElementById("end_date").value;
+  const startDate = document.getElementById("start_date").value;
+  const endDate = document.getElementById("end_date").value;
   const budget = document.getElementById("budget").value;
   const description = document.getElementById("description").value;
 
   try {
-    const response = await fetch('/api/trips', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include',
-      body: JSON.stringify({
-        title,
-        destination,
-        start_date,
-        end_date,
-        budget: budget ? parseFloat(budget) : null,
-        description: description || null
-      })
+    // Use centralized API wrapper and normalized field names
+    if (!globalThis.TripsAPI) throw new Error('TripsAPI not loaded');
+    await globalThis.TripsAPI.create({
+      title,
+      destination,
+      startDate,
+      endDate,
+      budget: budget ? parseFloat(budget) : null,
+      description: description || ''
     });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        showMessage('Debes iniciar sesión para crear viajes.', 'error');
-        resetButton();
-        return;
-      }
-      // Si la API rechaza (p. ej. requiere API_KEY) usamos modo local
-      console.warn('API trips no disponible o denegada, guardando localmente:', data.error || response.status);
-      saveLocalTrip({
-        _id: Date.now().toString(),
-        title,
-        destination,
-        startDate: start_date,
-        endDate: end_date,
-        budget: budget ? parseFloat(budget) : null,
-        description: description || ''
-      });
-      showMessage('Guardado en modo local (sin API): ' + (data.error || 'Operación local'), 'success');
-    } else {
-      showMessage("¡Viaje creado exitosamente!", "success");
-      form.reset();
-      
-      // Recargar la lista de viajes si existe
-      if (typeof loadTrips === 'function') {
-        setTimeout(() => loadTrips(), 500);
-      }
+    showMessage("¡Viaje creado exitosamente!", "success");
+    form.reset();
+    if (typeof loadTrips === 'function') {
+      setTimeout(() => loadTrips(), 500);
     }
   } catch (err) {
     // Error de red: fallback a localStorage
@@ -67,8 +37,8 @@ form.addEventListener("submit", async (e) => {
       _id: Date.now().toString(),
       title,
       destination,
-      startDate: start_date,
-      endDate: end_date,
+      startDate,
+      endDate,
       budget: budget ? parseFloat(budget) : null,
       description: description || ''
     });
