@@ -12,6 +12,7 @@
       { href: '/routes', label: 'Rutas' },
       { href: '/weather', label: 'Clima' },
       { href: '/budget', label: 'Presupuesto' },
+      { href: '/currency', label: 'Conversor' },
       { href: '/itinerary', label: 'Itinerario' }
     ];
 

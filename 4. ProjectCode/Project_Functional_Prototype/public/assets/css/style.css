@@ -210,6 +210,7 @@ nav a[href*="trips"]:before { content: '🎒 '; }
 nav a[href*="route"]:before { content: '🗺️ '; }
 nav a[href*="weather"]:before { content: '🌤️ '; }
 nav a[href*="budget"]:before { content: '💰 '; }
+nav a[href*="currency"]:before { content: '💱 '; }
 nav a[href*="itinerary"]:before { content: '📋 '; }
 
 /* Contenedor principal mejorado */
@@ -409,6 +410,16 @@ button:active, .btn:active {
 .btn-warning {
     background: linear-gradient(135deg, var(--warning) 0%, #ffec8b 100%);
     color: var(--text-primary);
+}
+
+.btn-info {
+    background: linear-gradient(135deg, #4fc3f7 0%, #0288d1 100%);
+    color: #fff;
+}
+
+.btn-info:hover {
+    background: linear-gradient(135deg, #0288d1 0%, #4fc3f7 100%);
+    color: #fff;
 }
 
 .btn-outline {
@@ -1093,5 +1104,85 @@ select { color: var(--text-primary); }
     
     .activity-item .time {
         align-self: flex-start;
+    }
+}
+
+/* Conversor de moneda */
+.currency-container {
+    display: grid;
+    gap: var(--spacing-xl);
+    margin-top: var(--spacing-xl);
+}
+
+.currency-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--spacing-lg);
+    align-items: end;
+}
+
+.currency-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.currency-form button {
+    grid-column: 1 / -1;
+    justify-self: flex-start;
+}
+
+.conversion-result {
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.conversion-result.highlight {
+    box-shadow: 0 0 25px rgba(74, 144, 226, 0.35);
+    transform: translateY(-3px);
+}
+
+.conversion-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.currency-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.currency-table th,
+.currency-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.currency-table tbody tr:hover {
+    background: rgba(74, 144, 226, 0.08);
+}
+
+.alert {
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-lg);
+    margin-bottom: 1rem;
+}
+
+.alert-error {
+    background: rgba(244, 67, 54, 0.12);
+    border: 1px solid rgba(244, 67, 54, 0.25);
+    color: #c62828;
+}
+
+@media (max-width: 768px) {
+    .currency-form {
+        grid-template-columns: 1fr;
+    }
+
+    .currency-form button {
+        justify-self: stretch;
     }
 }
