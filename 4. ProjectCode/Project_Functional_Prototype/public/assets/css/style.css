@@ -204,6 +204,28 @@ nav a:active {
     transform: translateY(0);
 }
 
+nav a.nav-link--hidden {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+
+nav a.nav-link--locked {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+nav a.nav-link--locked::after {
+    content: ' 🔒';
+    font-size: 0.85em;
+}
+
+nav a.nav-link--locked:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: none;
+    box-shadow: none;
+}
+
 /* Iconos para navegación */
 nav a[href*="destinations"]:before { content: '🏝️ '; }
 nav a[href*="trips"]:before { content: '🎒 '; }

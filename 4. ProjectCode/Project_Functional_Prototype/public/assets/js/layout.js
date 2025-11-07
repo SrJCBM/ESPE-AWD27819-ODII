@@ -36,7 +36,8 @@
       const aReg = document.createElement('a');
       aReg.href = '/auth/register'; aReg.textContent = 'Registro'; nav.appendChild(aReg);
       const span = document.createElement('span');
-      span.id = 'userArea'; span.style.marginLeft = '12px'; nav.appendChild(span);
+      span.id = 'userArea';
+      nav.appendChild(span);
       return h;
     }
 
@@ -46,28 +47,38 @@
       if (body.firstChild) body.insertBefore(header, body.firstChild);
       else body.appendChild(header);
     } else {
-      // Normalize existing nav: ensure links, login/register and #userArea exist
       let nav = header.querySelector('nav');
       if (!nav){
         nav = document.createElement('nav');
         header.appendChild(nav);
       }
-      const existingHrefs = new Set(Array.from(nav.querySelectorAll('a')).map(a => a.getAttribute('href')));
+
+      const existingUserArea = nav.querySelector('#userArea');
+      const userAreaContent = existingUserArea ? existingUserArea.innerHTML : '';
+
+      nav.innerHTML = '';
+
       for (const l of links) {
-        if (!existingHrefs.has(l.href)){
-          const a = document.createElement('a');
-          a.href = l.href; a.textContent = l.label; nav.appendChild(a);
-        }
+        const a = document.createElement('a');
+        a.href = l.href;
+        a.textContent = l.label;
+        nav.appendChild(a);
       }
-      if (!nav.querySelector('a[href="/auth/login"]')){
-        const a = document.createElement('a'); a.href = '/auth/login'; a.textContent = 'Login'; nav.appendChild(a);
-      }
-      if (!nav.querySelector('a[href="/auth/register"]')){
-        const a = document.createElement('a'); a.href = '/auth/register'; a.textContent = 'Registro'; nav.appendChild(a);
-      }
-      if (!document.getElementById('userArea')){
-        const span = document.createElement('span'); span.id = 'userArea'; span.style.marginLeft = '12px'; nav.appendChild(span);
-      }
+
+      const loginLink = document.createElement('a');
+      loginLink.href = '/auth/login';
+      loginLink.textContent = 'Login';
+      nav.appendChild(loginLink);
+
+      const registerLink = document.createElement('a');
+      registerLink.href = '/auth/register';
+      registerLink.textContent = 'Registro';
+      nav.appendChild(registerLink);
+
+      const userArea = document.createElement('span');
+      userArea.id = 'userArea';
+      userArea.innerHTML = userAreaContent;
+      nav.appendChild(userArea);
     }
   }
 
