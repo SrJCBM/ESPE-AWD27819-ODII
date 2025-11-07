@@ -10,7 +10,6 @@ use App\Features\Destinations\DestinationRepositoryMongo;
 
 final class DestinationController {
   private DestinationService $service;
-  private const NOT_FOUND_MSG = 'Destino no encontrado';
 
   public function __construct() {
     $repo = new DestinationRepositoryMongo();
@@ -23,11 +22,6 @@ final class DestinationController {
       $size = max(1, min(ValidationRules::MAX_PAGE_SIZE, (int)Request::get('size', ValidationRules::DEFAULT_PAGE_SIZE)));
       $search = Request::get('search');
       $userId = AuthMiddleware::getUserId();
-
-      if (!$userId) {
-        Response::error('No autenticado', 401);
-        return;
-      }
       
       $destinations = $this->service->list($page, $size, $userId, $search);
       Response::json([
@@ -76,18 +70,14 @@ final class DestinationController {
   public function update(string $id): void {
     try {
       $body = Request::body();
-      $requestUserId = AuthMiddleware::getUserId();
-      $isAdmin = AuthMiddleware::isAdmin();
-      $success = $this->service->update($id, $body, $requestUserId, $isAdmin);
+      $success = $this->service->update($id, $body);
       
       if (!$success) {
-        Response::error(self::NOT_FOUND_MSG, 404);
+        Response::error('Destino no encontrado', 404);
         return;
       }
       
       Response::json(['ok' => true]);
-    } catch (\DomainException $exception) {
-      Response::error($exception->getMessage(), 403);
     } catch (\InvalidArgumentException $exception) {
       Response::error($exception->getMessage(), 400);
     } catch (\Throwable $exception) {
@@ -98,18 +88,14 @@ final class DestinationController {
 
   public function destroy(string $id): void {
     try {
-      $requestUserId = AuthMiddleware::getUserId();
-      $isAdmin = AuthMiddleware::isAdmin();
-      $success = $this->service->delete($id, $requestUserId, $isAdmin);
+      $success = $this->service->delete($id);
       
       if (!$success) {
-        Response::error(self::NOT_FOUND_MSG, 404);
+        Response::error('Destino no encontrado', 404);
         return;
       }
       
       Response::json(['ok' => true]);
-    } catch (\DomainException $exception) {
-      Response::error($exception->getMessage(), 403);
     } catch (\Throwable $exception) {
       error_log('Error en destroy destination: ' . $exception->getMessage());
       Response::error('Error al eliminar destino', 500);

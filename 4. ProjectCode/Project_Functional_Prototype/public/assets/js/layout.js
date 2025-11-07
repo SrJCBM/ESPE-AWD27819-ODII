@@ -18,15 +18,13 @@
     function buildHeader(){
       const h = document.createElement('header');
       h.className = 'site-header';
-      const cf = document.createElement('div');
-      cf.className = 'container-fluid';
-      const h1 = document.createElement('h1');
-      h1.textContent = 'Intelligent Travel Planner';
-      const nav = document.createElement('nav');
-      cf.appendChild(h1);
-      cf.appendChild(nav);
-      h.appendChild(cf);
-      // Fill nav
+      h.innerHTML = `
+        <div class="container-fluid">
+          <h1>Intelligent Travel Planner</h1>
+          <nav></nav>
+        </div>
+      `;
+      const nav = h.querySelector('nav');
       for (const l of links) {
         const a = document.createElement('a');
         a.href = l.href; a.textContent = l.label; nav.appendChild(a);
@@ -47,23 +45,12 @@
       if (body.firstChild) body.insertBefore(header, body.firstChild);
       else body.appendChild(header);
     } else {
-      // Rebuild header content to a consistent structure
-      // Extract existing title and nav if present
-      let existingH1 = header.querySelector('h1');
-      let existingNav = header.querySelector('nav');
-
-      // Create new consistent container
-      const cf = document.createElement('div');
-      cf.className = 'container-fluid';
-
-      // Ensure h1
-      const h1 = existingH1 ? existingH1 : document.createElement('h1');
-      if (!existingH1) h1.textContent = 'Intelligent Travel Planner';
-
-      // Ensure nav element
-      const nav = existingNav ? existingNav : document.createElement('nav');
-
-      // Normalize nav contents: ensure standard links
+      // Normalize existing nav: ensure links, login/register and #userArea exist
+      let nav = header.querySelector('nav');
+      if (!nav){
+        nav = document.createElement('nav');
+        header.appendChild(nav);
+      }
       const existingHrefs = new Set(Array.from(nav.querySelectorAll('a')).map(a => a.getAttribute('href')));
       for (const l of links) {
         if (!existingHrefs.has(l.href)){
@@ -77,30 +64,10 @@
       if (!nav.querySelector('a[href="/auth/register"]')){
         const a = document.createElement('a'); a.href = '/auth/register'; a.textContent = 'Registro'; nav.appendChild(a);
       }
-      if (!nav.querySelector('#userArea')){
+      if (!document.getElementById('userArea')){
         const span = document.createElement('span'); span.id = 'userArea'; span.style.marginLeft = '12px'; nav.appendChild(span);
       }
-
-      // Replace header children with consistent structure
-      header.innerHTML = '';
-      cf.appendChild(h1);
-      cf.appendChild(nav);
-      header.appendChild(cf);
     }
-
-    // Highlight active link
-    const currentPath = window.location.pathname.replace(/\/$/, '');
-    const anchors = header.querySelectorAll('nav a[href]');
-    anchors.forEach(a => {
-      const href = a.getAttribute('href');
-      if(!href) return;
-      const normalized = href.replace(/\/$/, '');
-      if(normalized === currentPath){
-        a.classList.add('active');
-      } else {
-        a.classList.remove('active');
-      }
-    });
   }
 
   if (document.readyState === 'loading'){

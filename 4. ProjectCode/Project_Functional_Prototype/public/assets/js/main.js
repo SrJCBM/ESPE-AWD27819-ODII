@@ -21,31 +21,8 @@ window.app = (function(){
 		}
 	}
 
-	// Trips CRUD (legacy local) + API helpers
-	function getTrips(){
-		const a = read(ls.tripKey);
-		if(a && a.length) return a;
-		// Compatibilidad con otros scripts que usan 'trips'
-		try{ return JSON.parse(localStorage.getItem('trips')||'[]'); }catch(_){ return []; }
-	}
-
-	async function fetchTripsApiList(page=1, size=100){
-		try{
-			const res = await fetch(`/api/trips?page=${page}&size=${size}`, { credentials: 'include' });
-			if(!res.ok) throw new Error(String(res.status));
-			const json = await res.json();
-			return Array.isArray(json.items) ? json.items : [];
-		}catch(e){ return []; }
-	}
-
-	async function fetchTripByIdApi(id){
-		try{
-			const res = await fetch(`/api/trips/${id}`, { credentials: 'include' });
-			if(!res.ok) throw new Error(String(res.status));
-			const json = await res.json();
-			return json.trip || null;
-		}catch(e){ return null; }
-	}
+	// Trips CRUD
+	function getTrips(){ return read(ls.tripKey); }
 	function saveTrip(t){
 		const all = getTrips();
 		if(!t.id){ t.id = uid('trip_'); all.push(t); }
@@ -87,50 +64,22 @@ window.app = (function(){
 	}
 	function getBudget(tripId){ return read(ls.budgetKey).find(b=>b.tripId===tripId) || { tripId, amount:0, expenses:[] }; }
 
-	// Simple HTML escaper for safe rendering
-	function escapeHtml(text){
-		const div = document.createElement('div');
-		div.textContent = text == null ? '' : String(text);
-		return div.innerHTML;
-	}
-
 	// Itinerary - Ahora usa API de Gemini para generación inteligente
 	async function generateItinerary(tripId, days, interests = 'cultura', budgetStyle = 'medio'){
-		// 1) Intentar cargar viaje desde API
-		let trip = await fetchTripByIdApi(tripId);
-		let destinationName = '';
-		let destinationDescription = '';
-		let dests = [];
-
-		if(trip){
-			// Estructura de API: { _id, title, destination, startDate, endDate, ... }
-			destinationName = trip.destination || trip.title || 'Destino';
-			destinationDescription = trip.description || trip.destination || trip.title || '';
-			// Intentar cruzar con destinations API para información extra (opcional)
-			try{
-				const allDests = await getDestinations();
-				const match = allDests.find(d => (d.name||'').toLowerCase() === (trip.destination||'').toLowerCase());
-				if(match){ dests = [match]; }
-			}catch(_){}
-		} else {
-			// 2) Fallback a localStorage (estructura legacy)
-			const localTrip = getTrips().find(t=> (t.id===tripId) || (t._id===tripId));
-			if(!localTrip) return { html: '<p>Viaje no encontrado</p>', data: null };
-			trip = localTrip;
-			destinationName = trip.destination || trip.name || 'Destino';
-			destinationDescription = trip.description || trip.destination || trip.name || '';
-			try{
-				const allDests = await getDestinations();
-				if(Array.isArray(trip.destinations) && trip.destinations.length){
-					dests = allDests.filter(d => trip.destinations.includes(d._id || d.id));
-				}
-			}catch(_){}
+		const trip = getTrips().find(t=>t.id===tripId);
+		if(!trip) return { html: '<p>Viaje no encontrado</p>', data: null };
+		
+		const allDests = await getDestinations();
+		const dests = allDests.filter(d => trip.destinations.includes(d._id || d.id));
+		
+		if(dests.length === 0) {
+			return { html: '<p>No hay destinos seleccionados para este viaje</p>', data: null };
 		}
 
-		// Si no hay lista de destinos cruzados, al menos construir uno sintético
-		if(dests.length === 0){
-			dests = [{ name: destinationName, country: '', description: destinationDescription }];
-		}
+		// Crear descripción del destino principal para Gemini
+		const mainDestination = dests[0];
+		const destinationName = `${mainDestination.name || 'Destino desconocido'}, ${mainDestination.country || ''}`;
+		const destinationDescription = dests.map(d => d.name).join(', ');
 
 		try {
 			// Usar API de Gemini si está disponible
@@ -158,11 +107,11 @@ window.app = (function(){
 			console.error('Error usando Gemini API, fallback a generación básica:', error);
 		}
 
-		// Fallback: generación básica
+		// Fallback: generación básica original
 		const perDay = Math.max(1, Math.ceil(dests.length / days));
 		let html = `<div class="basic-itinerary">
-			<h3>${escapeHtml(trip.title || trip.name || destinationName)}</h3>
-			<p>${escapeHtml(trip.description || destinationDescription || '')}</p>
+			<h3>${trip.name}</h3>
+			<p>${trip.description || destinationDescription}</p>
 			<p><em>Itinerario básico generado automáticamente</em></p>`;
 		
 		let data = { tripId, days, items: [], generatedBy: 'basic' };
@@ -174,10 +123,10 @@ window.app = (function(){
 				if(!dests[idx]) break;
 				const dest = dests[idx];
 				html += `<li class="activity-item">
-					<strong>${escapeHtml(dest.name||'')}</strong> ${dest.country?(' - '+escapeHtml(dest.country)) : ''}
-					<br><small>${escapeHtml(dest.description||'')}</small>
+					<strong>${dest.name||''}</strong> - ${dest.country||''}
+					<br><small>${dest.description||''}</small>
 				</li>`;
-				data.items.push({ day: d+1, destId: dest._id || dest.id || null });
+				data.items.push({ day: d+1, destId: dest._id || dest.id });
 			}
 			html += `</ul></div>`;
 		}
@@ -285,24 +234,11 @@ window.app = (function(){
 		}
 	}
 
-	async function populateTripSelect(selectId){
+	function populateTripSelect(selectId){
 		const el = document.getElementById(selectId);
 		if(!el) return;
 		el.innerHTML = '';
-		// Intentar API
-		const apiTrips = await fetchTripsApiList(1, 100);
-		if(Array.isArray(apiTrips) && apiTrips.length){
-			for(const t of apiTrips){
-				const label = `${t.title || 'Viaje'}${t.destination ? ' — ' + t.destination : ''}`;
-				el.appendChild(new Option(label, t._id));
-			}
-			return;
-		}
-		// Fallback local
-		for (const t of getTrips()) {
-			const label = `${t.name || t.title || 'Viaje'}${t.destination ? ' — ' + t.destination : ''}`;
-			el.appendChild(new Option(label, t.id || t._id));
-		}
+		for (const t of getTrips()) { el.appendChild(new Option(t.name, t.id)); }
 	}
 
 	function renderWeatherRecords(){

@@ -76,7 +76,7 @@
             });
         }
 
-        async function getRoute(origin, dest, profile = 'mapbox/driving') {
+    async function getRoute(origin, dest, profile = 'mapbox/driving') {
             const params = new URLSearchParams({
                 geometries: 'geojson',
                 overview: 'simplified',
@@ -96,7 +96,7 @@
                 err.code = json.code || 'NoRoute';
                 throw err;
             }
-            return { distance: route.distance, duration: route.duration, geometry: route.geometry };
+            return { distance: route.distance, duration: route.duration, geometry: route.geometry, mode: profile.split('/')[1] };
         }
 
         // Distancia en línea recta (haversine) como último recurso
@@ -111,7 +111,7 @@
             return 2 * R * Math.atan2(Math.sqrt(h), Math.sqrt(1-h));
         }
 
-        async function getRouteWithFallback(origin, dest) {
+    async function getRouteWithFallback(origin, dest) {
             // 1) Intentar driving
             try { return await getRoute(origin, dest, 'mapbox/driving'); } catch(error_) { console.debug('driving failed:', error_?.message || error_); }
             // 2) Intentar walking
@@ -125,7 +125,8 @@
                 distance: km * 1000,
                 duration: durationSec,
                 geometry: { type: 'LineString', coordinates: [origin, dest] },
-                fallback: true
+                fallback: true,
+                mode: 'fallback'
             };
         }
 
@@ -151,6 +152,8 @@
         document.getElementById('calcRouteBtn').addEventListener('click', async () => {
             const oText = document.getElementById('originInput').value?.trim();
             const dText = document.getElementById('destInput').value?.trim();
+            const modeSel = document.getElementById('routeModeSelect');
+            const selectedMode = modeSel?.value || 'auto';
             const out = document.getElementById('routeResult');
 
             if (!oText || !dText) {
@@ -162,16 +165,52 @@
             try {
                 await ensureStyleReady(map);
                 const [oCoord, dCoord] = await Promise.all([geocodePlace(oText), geocodePlace(dText)]);
-                const route = await getRouteWithFallback(oCoord, dCoord);
-                const km = (route.distance / 1000).toFixed(1);
-                const min = Math.round(route.duration / 60);
-                out.textContent = route.fallback
-                    ? `${km} km (línea recta) • ~${min} min (estimado)`
-                    : `${km} km • ${min} min`;
+                let route;
+                if (selectedMode === 'auto') {
+                    // Auto: probar perfiles con fallback interno
+                    route = await getRouteWithFallback(oCoord, dCoord);
+                } else {
+                    // Modo explícito seleccionado por el usuario: intentar ese perfil y si falla, fallback completo
+                    try {
+                        route = await getRoute(oCoord, dCoord, `mapbox/${selectedMode}`);
+                    } catch (e) {
+                        console.debug(`Perfil seleccionado ${selectedMode} falló, usando fallback`, e?.message || e);
+                        route = await getRouteWithFallback(oCoord, dCoord);
+                    }
+                }
+
+                const kmNum = route.distance / 1000;
+                const km = kmNum.toFixed(1);
+                const fmtDuration = (sec) => {
+                    if (sec == null || Number.isNaN(sec)) return null;
+                    const m = Math.round(sec / 60);
+                    if (m < 60) return `${m} min`;
+                    const h = Math.floor(m / 60);
+                    const mm = m % 60;
+                    return mm ? `${h} h ${mm} min` : `${h} h`;
+                };
+                const durStr = fmtDuration(route.duration);
+                const modeStr = route.mode && route.mode !== 'fallback' ? ` • ${route.mode}` : '';
+                out.textContent = (route.fallback
+                    ? `${km} km (línea recta)${durStr ? ` • ~${durStr} (estimado)` : ''}${modeStr}`
+                    : `${km} km${durStr ? ` • ${durStr}` : ''}${modeStr}`
+                ).trim();
+
                 drawRoute(map, route.geometry);
                 const coords = route.geometry.coordinates;
                 const bounds = coords.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(coords[0], coords[0]));
                 map.fitBounds(bounds, { padding: 40 });
+
+                // Exponer última ruta para guardado de favoritos
+                globalThis.LastRoute = {
+                    origin: { lon: oCoord[0], lat: oCoord[1], label: oText },
+                    destination: { lon: dCoord[0], lat: dCoord[1], label: dText },
+                    distanceKm: Number.parseFloat(km),
+                    durationSec: route.duration || null,
+                    geometry: route.geometry,
+                    mode: route.mode || (route.fallback ? 'fallback' : selectedMode || 'unknown')
+                };
+                document.dispatchEvent(new CustomEvent('route:calculated', { detail: globalThis.LastRoute }));
             } catch (e) {
                 out.textContent = 'No fue posible calcular la ruta.';
                 console.error(e);

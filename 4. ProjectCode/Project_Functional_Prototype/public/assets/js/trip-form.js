@@ -9,26 +9,50 @@ form.addEventListener("submit", async (e) => {
 
   const title = document.getElementById("title").value;
   const destination = document.getElementById("destination").value;
-  const startDate = document.getElementById("start_date").value;
-  const endDate = document.getElementById("end_date").value;
+  const start_date = document.getElementById("start_date").value;
+  const end_date = document.getElementById("end_date").value;
   const budget = document.getElementById("budget").value;
   const description = document.getElementById("description").value;
 
   try {
-    // Use centralized API wrapper and normalized field names
-    if (!globalThis.TripsAPI) throw new Error('TripsAPI not loaded');
-    await globalThis.TripsAPI.create({
-      title,
-      destination,
-      startDate,
-      endDate,
-      budget: budget ? parseFloat(budget) : null,
-      description: description || ''
+    const response = await fetch('/api/trips', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        title,
+        destination,
+        start_date,
+        end_date,
+        budget: budget ? parseFloat(budget) : null,
+        description: description || null
+      })
     });
-    showMessage("¡Viaje creado exitosamente!", "success");
-    form.reset();
-    if (typeof loadTrips === 'function') {
-      setTimeout(() => loadTrips(), 500);
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      // Si la API rechaza (p. ej. requiere API_KEY) usamos modo local
+      console.warn('API trips no disponible o denegada, guardando localmente:', data.error || response.status);
+      saveLocalTrip({
+        _id: Date.now().toString(),
+        title,
+        destination,
+        startDate: start_date,
+        endDate: end_date,
+        budget: budget ? parseFloat(budget) : null,
+        description: description || ''
+      });
+      showMessage('Guardado en modo local (sin API): ' + (data.error || 'Operación local'), 'success');
+    } else {
+      showMessage("¡Viaje creado exitosamente!", "success");
+      form.reset();
+      
+      // Recargar la lista de viajes si existe
+      if (typeof loadTrips === 'function') {
+        setTimeout(() => loadTrips(), 500);
+      }
     }
   } catch (err) {
     // Error de red: fallback a localStorage
@@ -37,8 +61,8 @@ form.addEventListener("submit", async (e) => {
       _id: Date.now().toString(),
       title,
       destination,
-      startDate,
-      endDate,
+      startDate: start_date,
+      endDate: end_date,
       budget: budget ? parseFloat(budget) : null,
       description: description || ''
     });

@@ -17,17 +17,25 @@ async function loadTrips() {
   tripListContainer.innerHTML = '<div class="empty-message">Cargando viajes...</div>';
 
   try {
-    if (!globalThis.TripsAPI) throw new Error('TripsAPI not loaded');
-    const items = await globalThis.TripsAPI.list(1, 50);
-    // Si la llamada devolvió datos locales, igual renderizamos
-    renderTrips(items || []);
-    return;
-  } catch (err) {
-    // Error de red o 401 -> mostrar mensaje o fallback local
-    if (err?.status === 401) {
+    const response = await fetch('/api/trips?page=1&size=50');
+
+    // Si la API está disponible y responde OK, usarla
+    if (response.ok) {
+      const data = await response.json();
+      renderTrips(data.items || []);
+      return;
+    }
+
+    // Si la API devuelve 401 o 403, indicar necesidad de login
+    if (response.status === 401 || response.status === 403) {
       tripListContainer.innerHTML = '<div class="empty-message">Debes iniciar sesión para ver tus viajes.</div>';
       return;
     }
+
+    // Si la API responde pero no está OK (p. ej. requiere API_KEY o devuelve 500), caemos al modo local
+    console.warn('API trips no disponible, usando modo local. Código:', response.status);
+  } catch (err) {
+    // Error de red -> modo local
     console.warn('Error conectando a API trips, usando modo local:', err.message);
   }
 
@@ -48,7 +56,7 @@ function renderTrips(trips) {
     return;
   }
 
-  for (const trip of trips) {
+  trips.forEach(trip => {
     const card = document.createElement("div");
     card.classList.add("card");
     
@@ -70,7 +78,7 @@ function renderTrips(trips) {
       </div>
     `;
     tripListContainer.appendChild(card);
-  }
+  });
 }
 
 async function deleteTrip(id) {
@@ -78,10 +86,21 @@ async function deleteTrip(id) {
     return;
   }
   try {
-    if (!globalThis.TripsAPI) throw new Error('TripsAPI not loaded');
-    const ok = await globalThis.TripsAPI.remove(id);
-    if (ok) alert('Viaje eliminado correctamente.');
-    else alert('Viaje eliminado (modo local).');
+    const response = await fetch(`/api/trips/${id}`, {
+      method: 'DELETE'
+    });
+
+    if (response.ok) {
+      alert('Viaje eliminado correctamente.');
+      loadTrips();
+      return;
+    }
+
+    // Si la API no está disponible o devuelve error, eliminar en localStorage
+    console.warn('No se pudo eliminar en la API, eliminando localmente. Código:', response.status);
+    const trips = getLocalTrips().filter(t => t._id !== id);
+    saveLocalTrips(trips);
+    alert('Viaje eliminado (modo local).');
     loadTrips();
   } catch (err) {
     console.warn('Error conectando a la API, eliminando localmente:', err.message);

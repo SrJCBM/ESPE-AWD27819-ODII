@@ -41,21 +41,9 @@ final class DestinationService {
     return $this->repo->create((new Destination($data))->toArray());
   }
 
-  public function update(string $id, array $input, ?string $requestUserId = null, bool $isAdmin = false): bool {
+  public function update(string $id, array $input): bool {
     $this->validator->validateForUpdate($input);
-
-    $existing = $this->repo->findById($id);
-    if (!$existing) {
-      return false;
-    }
-
-    if (!$isAdmin) {
-      $owner = $existing['userId'] ?? null;
-      if (!$requestUserId || !$owner || $owner !== $requestUserId) {
-        throw new \DomainException('No autorizado');
-      }
-    }
-
+    
     $data = $this->extractUpdateData($input);
     return $this->repo->update($id, $data);
   }
@@ -90,17 +78,7 @@ final class DestinationService {
     return $data;
   }
 
-  public function delete(string $id, ?string $requestUserId = null, bool $isAdmin = false): bool {
-    $existing = $this->repo->findById($id);
-    if (!$existing) {
-      return false;
-    }
-    if (!$isAdmin) {
-      $owner = $existing['userId'] ?? null;
-      if (!$requestUserId || !$owner || $owner !== $requestUserId) {
-        throw new \DomainException('No autorizado');
-      }
-    }
+  public function delete(string $id): bool {
     return $this->repo->delete($id);
   }
 }

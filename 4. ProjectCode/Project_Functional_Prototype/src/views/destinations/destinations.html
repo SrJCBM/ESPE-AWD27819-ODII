@@ -25,10 +25,7 @@
       <h2>Registrar destino</h2>
       <form id="destForm">
         <input type="hidden" id="destId" />
-  <label>Nombre
-    <input id="destName" name="name" required minlength="2" list="destPlaceList" placeholder="Busca y selecciona un lugar (Mapbox)" />
-    <datalist id="destPlaceList"></datalist>
-  </label>
+  <label>Nombre <input id="destName" name="name" required minlength="2" /></label>
   <label>País <input id="destCountry" name="country" required minlength="2" /></label>
   <label>Descripción <textarea id="destDesc" name="description"></textarea></label>
   <label>Latitud <input id="destLat" name="lat" type="number" step="any" min="-90" max="90" placeholder="opcional" /></label>
@@ -50,7 +47,6 @@
   <script src="/assets/js/layout.js"></script>
   <script src="/assets/js/auth-api.js"></script>
   <script src="/assets/js/destinations-api.js"></script>
-  <script src="/assets/js/destinations-autocomplete.js"></script>
   <script src="/assets/js/destinations.js"></script>
 </body>
 </html>

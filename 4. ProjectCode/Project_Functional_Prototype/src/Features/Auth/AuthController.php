@@ -6,8 +6,6 @@ use App\Core\Http\Request;
 use App\Core\Auth\AuthMiddleware;
 use App\Features\Users\UserService;
 use App\Features\Users\UserRepositoryMongo;
-use MongoDB\BSON\ObjectId;
-use MongoDB\BSON\UTCDateTime;
 
 final class AuthController {
   private UserService $userService;
@@ -115,28 +113,52 @@ final class AuthController {
         ['email' => $identifier]
       ]
     ]);
-    return $doc ? (array)$doc : null;
+    if (!$doc) { return null; }
+    return $this->docToArray($doc);
   }
 
   private function findUserById(string $userId): ?array {
     $doc = $this->usersCollection->findOne(
-      ['_id' => new ObjectId($userId)],
+      ['_id' => new \MongoDB\BSON\ObjectId($userId)],
       ['projection' => ['passwordHash' => 0]]
     );
-    return $doc ? (array)$doc : null;
+    if (!$doc) { return null; }
+    return $this->docToArray($doc);
+  }
+
+  /** @param mixed $doc */
+  private function docToArray($doc): array {
+    if ($doc instanceof \MongoDB\Model\BSONDocument) {
+      return $doc->getArrayCopy();
+    }
+    if ($doc instanceof \MongoDB\Model\BSONArray) {
+      return $doc->getArrayCopy();
+    }
+    if ($doc instanceof \ArrayObject) {
+      return $doc->getArrayCopy();
+    }
+    if (is_array($doc)) {
+      return $doc;
+    }
+    return (array)$doc;
   }
 
   private function isValidCredentials(?array $user, string $password): bool {
     if (!$user) {
       return false;
     }
-    return password_verify($password, $user['passwordHash']);
+
+    $hash = $user['passwordHash'] ?? null;
+    if (!is_string($hash) || $hash === '') {
+      return false;
+    }
+    return password_verify($password, $hash);
   }
 
-  private function updateLastLogin(ObjectId $userId): void {
+  private function updateLastLogin(\MongoDB\BSON\ObjectId $userId): void {
     $this->usersCollection->updateOne(
       ['_id' => $userId],
-      ['$set' => ['lastLogin' => new UTCDateTime()]]
+      ['$set' => ['lastLogin' => new \MongoDB\BSON\UTCDateTime()]]
     );
   }
 }

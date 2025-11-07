@@ -54,6 +54,7 @@ final class Router {
     }
 
     foreach ($this->routes[$method] as $pattern => $handler) {
+      $matches = [];
       if (!$this->matchesPattern($pattern, $uriPath, $matches)) {
         continue;
       }
@@ -68,9 +69,48 @@ final class Router {
     return false;
   }
 
-  private function matchesPattern(string $pattern, string $uriPath, array &$matches): bool {
-    $regex = '#^' . preg_replace('#\{(\w+)\}#', '([^/]+)', preg_quote($pattern, '#')) . '$#';
-    return (bool)preg_match($regex, $uriPath, $matches);
+  // Build a safe regex from a route pattern like "/api/users/{id}" supporting dynamic segments.
+  private function buildRegex(string $pattern): string {
+    $regex = '';
+    $len = strlen($pattern);
+    for ($i = 0; $i < $len; $i++) {
+      $ch = $pattern[$i];
+      if ($ch === '{') {
+        $end = strpos($pattern, '}', $i);
+        if ($end === false) {
+          // unmatched '{', escape it
+          $regex .= '\\{';
+        } else {
+          // parameter name (optional, we don't use the name here)
+          // $name = substr($pattern, $i + 1, $end - $i - 1);
+          $regex .= '([^/]+)';
+          $i = $end; // jump after '}'
+        }
+      } else {
+        // Escape regex special characters
+        if (preg_match('#[.\\+*?\[\]^$(){}=!<>|:\-]#', $ch)) {
+          $regex .= '\\' . $ch;
+        } else if ($ch === '#') {
+          $regex .= '\\#';
+        } else {
+          $regex .= $ch;
+        }
+      }
+    }
+    return '#^' . $regex . '$#';
+  }
+
+  private function matchesPattern(string $pattern, string $uriPath, ?array &$matches = null): bool {
+    $regex = $this->buildRegex($pattern);
+    $local = [];
+    $ok = (bool)preg_match($regex, $uriPath, $local);
+    // Ensure $matches is always an array reference for callers
+    if ($matches === null) {
+      $matches = $local;
+    } else {
+      $matches = $local;
+    }
+    return $ok;
   }
 
   private function notFound(): void {
