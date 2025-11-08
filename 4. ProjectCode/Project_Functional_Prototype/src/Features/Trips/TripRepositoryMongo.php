@@ -53,10 +53,18 @@ final class TripRepositoryMongo {
 
   public function create(array $data): string {
     try {
+      // Debug log of payload (no passwords or sensitive data here)
+      error_log('TripRepositoryMongo.create inserting: ' . json_encode([
+        'userId' => $data['userId'] ?? null,
+        'title' => $data['title'] ?? null,
+        'destination' => $data['destination'] ?? null,
+        'startDateType' => isset($data['startDate']) ? get_class($data['startDate']) : null,
+        'endDateType' => isset($data['endDate']) ? get_class($data['endDate']) : null,
+      ]));
       $result = $this->collection->insertOne($data);
       return (string)$result->getInsertedId();
     } catch (\Exception $e) {
-      error_log('Error creating trip: ' . $e->getMessage());
+      error_log('Error creating trip: ' . $e->getMessage() . ' TRACE: ' . $e->getTraceAsString());
       throw new \RuntimeException('Error al crear el viaje');
     }
   }

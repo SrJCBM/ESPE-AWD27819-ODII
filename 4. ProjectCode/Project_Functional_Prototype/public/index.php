@@ -21,7 +21,6 @@ require __DIR__ . '/../src/Features/Users/UserRoutes.php';
 require __DIR__ . '/../src/Features/Destinations/DestinationRoutes.php';
 require __DIR__ . '/../src/Features/Trips/TripRoutes.php';
 require __DIR__ . '/../src/Features/Routes/RouteFavoritesRoutes.php';
-require __DIR__ . '/../src/Features/Currency/CurrencyRoutes.php';
 
 // ============ HELPERS ============
 function requireAuth(): void {
@@ -98,10 +97,6 @@ $router->get('/weather', function () {
 $router->get('/itinerary', function () {
   requireAuth();
   readfile(__DIR__ . '/../src/views/itinerary/itinerary.html');
-});
-
-$router->get('/currency', function () {
-  readfile(__DIR__ . '/../src/views/currency/currency.html');
 });
 
 // ============ VISTA ADMIN ============
@@ -272,49 +267,8 @@ $router->get('/health', function () use ($mongoDb) {
 $router->get('/config.js', function () {
   try {
     header('Content-Type: application/javascript');
-
-    // Token robustamente saneado y con valor por defecto
-    $defaultToken = 'pk.eyJ1Ijoic3JqY2JtIiwiYSI6ImNtZ3g0eGV5NDAwZzYya3BvdmFveWU2dnEifQ.yYCrLmlo9lW-AJf56akVCw';
-    $mapboxToken = getenv('MAPBOX_TOKEN');
-
-    if (!is_string($mapboxToken)) {
-      $mapboxToken = $defaultToken;
-    } else {
-      $mapboxToken = trim($mapboxToken);
-      $lower = strtolower($mapboxToken);
-      if ($mapboxToken === '' || $lower === 'undefined' || $lower === 'null') {
-        $mapboxToken = $defaultToken;
-      }
-    }
-
-    $jsonToken = json_encode($mapboxToken, JSON_UNESCAPED_SLASHES);
-
-    // Emitimos JS que coloca MAPBOX_TOKEN en globalThis.__CONFIG__
-    // y lo sincroniza con localStorage (mb_token)
-    echo <<<JS
-(function(){
-  const rawToken = {$jsonToken};
-  const token = (typeof rawToken === 'string') ? rawToken.trim() : '';
-  if (!token || token === 'undefined' || token === 'null') {
-    console.warn('Token de Mapbox no disponible en configuración pública.');
-    return;
-  }
-
-  globalThis.__CONFIG__ = Object.assign(globalThis.__CONFIG__ || {}, { MAPBOX_TOKEN: token });
-  try {
-    if (typeof localStorage !== 'undefined') {
-      const stored = localStorage.getItem('mb_token');
-      const normalized = typeof stored === 'string' ? stored.trim() : '';
-      if (!normalized || normalized === 'undefined' || normalized === 'null' || normalized !== token) {
-        localStorage.setItem('mb_token', token);
-      }
-    }
-  } catch (err) {
-    console.warn('No se pudo sincronizar el token de Mapbox en localStorage:', err);
-  }
-})();
-JS;
-
+    $mapboxToken = getenv('MAPBOX_TOKEN') ?: '';
+    echo 'globalThis.__CONFIG__ = Object.assign(globalThis.__CONFIG__||{}, { MAPBOX_TOKEN: ' . json_encode($mapboxToken) . ' });';
   } catch (Exception $e) {
     http_response_code(500);
     echo 'console.error("Error loading config");';

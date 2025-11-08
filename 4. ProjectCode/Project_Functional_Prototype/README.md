@@ -29,15 +29,34 @@ The main objective of this project is to demonstrate:
 
 - **OpenWeather API** – Provides current weather and forecast data  
 - **Google Maps API** or **Mapbox** – Used for distance calculation, routing, and map rendering  
-- **Currency Exchange API** – Retrieves up-to-date currency exchange rates. El servicio se
-  consulta por defecto contra [Frankfurter](https://www.frankfurter.app/), el cual no requiere
-  clave de acceso para peticiones básicas.
+- **Currency Exchange API** – Retrieves up-to-date currency exchange rates  
 - **Unsplash API** – Supplies high-quality images of destinations
 
-### ¿Cómo probar la API de divisas?
+---
 
-Puedes verificar que la integración funciona realizando una solicitud directa a Frankfurter
-con `curl` u otra herramienta HTTP:
+## CRUD Operations
 
-```bash
-curl "https://api.frankfurter.app/latest?from=USD&to=EUR,GBP"
+The application implements basic CRUD functionality for managing travel itineraries:
+
+- **Create** – Add new travel plans or destinations  
+- **Read** – View saved itineraries in a dashboard  
+- **Update** – Modify trip details such as destination, budget, or dates  
+- **Delete** – Remove itineraries from storage
+
+---
+
+## Project Goals
+
+- Demonstrate API integration and asynchronous data handling  
+- Apply RESTful design principles  
+- Implement dynamic and responsive front-end components  
+- Provide a smooth and interactive user experience  
+
+---
+
+## Future Improvements
+
+- Add authentication and user profiles  
+- Enable collaborative itinerary planning  
+- Integrate AI-based travel recommendations  
+- Include support for multi-language interfaces  

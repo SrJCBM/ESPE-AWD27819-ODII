@@ -12,7 +12,6 @@
       { href: '/routes', label: 'Rutas' },
       { href: '/weather', label: 'Clima' },
       { href: '/budget', label: 'Presupuesto' },
-      { href: '/currency', label: 'Conversor' },
       { href: '/itinerary', label: 'Itinerario' }
     ];
 
@@ -36,8 +35,7 @@
       const aReg = document.createElement('a');
       aReg.href = '/auth/register'; aReg.textContent = 'Registro'; nav.appendChild(aReg);
       const span = document.createElement('span');
-      span.id = 'userArea';
-      nav.appendChild(span);
+      span.id = 'userArea'; span.style.marginLeft = '12px'; nav.appendChild(span);
       return h;
     }
 
@@ -47,38 +45,28 @@
       if (body.firstChild) body.insertBefore(header, body.firstChild);
       else body.appendChild(header);
     } else {
+      // Normalize existing nav: ensure links, login/register and #userArea exist
       let nav = header.querySelector('nav');
       if (!nav){
         nav = document.createElement('nav');
         header.appendChild(nav);
       }
-
-      const existingUserArea = nav.querySelector('#userArea');
-      const userAreaContent = existingUserArea ? existingUserArea.innerHTML : '';
-
-      nav.innerHTML = '';
-
+      const existingHrefs = new Set(Array.from(nav.querySelectorAll('a')).map(a => a.getAttribute('href')));
       for (const l of links) {
-        const a = document.createElement('a');
-        a.href = l.href;
-        a.textContent = l.label;
-        nav.appendChild(a);
+        if (!existingHrefs.has(l.href)){
+          const a = document.createElement('a');
+          a.href = l.href; a.textContent = l.label; nav.appendChild(a);
+        }
       }
-
-      const loginLink = document.createElement('a');
-      loginLink.href = '/auth/login';
-      loginLink.textContent = 'Login';
-      nav.appendChild(loginLink);
-
-      const registerLink = document.createElement('a');
-      registerLink.href = '/auth/register';
-      registerLink.textContent = 'Registro';
-      nav.appendChild(registerLink);
-
-      const userArea = document.createElement('span');
-      userArea.id = 'userArea';
-      userArea.innerHTML = userAreaContent;
-      nav.appendChild(userArea);
+      if (!nav.querySelector('a[href="/auth/login"]')){
+        const a = document.createElement('a'); a.href = '/auth/login'; a.textContent = 'Login'; nav.appendChild(a);
+      }
+      if (!nav.querySelector('a[href="/auth/register"]')){
+        const a = document.createElement('a'); a.href = '/auth/register'; a.textContent = 'Registro'; nav.appendChild(a);
+      }
+      if (!document.getElementById('userArea')){
+        const span = document.createElement('span'); span.id = 'userArea'; span.style.marginLeft = '12px'; nav.appendChild(span);
+      }
     }
   }
 

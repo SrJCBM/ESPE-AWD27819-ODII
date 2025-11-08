@@ -23,5 +23,12 @@ final class ValidationRules {
   public const DEFAULT_PAGE_SIZE = 20;
   public const MAX_PAGE_SIZE = 100;
   public const DEFAULT_PAGE = 1;
+
+  // Trips: texto y límites
+  public const MIN_TITLE_LENGTH = 3;
+  public const MAX_TITLE_LENGTH = 120;
+  public const MIN_NAME_LENGTH = 2;
+  public const MAX_NAME_LENGTH = 120;
+  public const MAX_DESCRIPTION_LENGTH = 1000;
 }
 

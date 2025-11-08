@@ -39,15 +39,16 @@ final class TripService {
   public function create(array $input, string $userId): string {
     $this->validator->validateForCreate($input);
     
-    $startDate = \DateTime::createFromFormat('Y-m-d', $input['start_date']);
-    $endDate = \DateTime::createFromFormat('Y-m-d', $input['end_date']);
+  $startDate = \DateTime::createFromFormat('Y-m-d', $input['start_date']);
+  $endDate = \DateTime::createFromFormat('Y-m-d', $input['end_date']);
     
     $data = [
       'userId' => $userId,
       'title' => trim($input['title']),
       'destination' => trim($input['destination']),
-      'startDate' => new UTCDateTime($startDate->getTimestamp() * 1000),
-      'endDate' => new UTCDateTime($endDate->getTimestamp() * 1000),
+  // Guardar como BSON UTCDateTime (milisegundos desde epoch)
+  'startDate' => new UTCDateTime(((int)$startDate->format('U')) * 1000),
+  'endDate' => new UTCDateTime(((int)$endDate->format('U')) * 1000),
       'budget' => isset($input['budget']) && $input['budget'] !== '' ? (float)$input['budget'] : null,
       'description' => isset($input['description']) ? trim($input['description']) : null,
       'createdAt' => new UTCDateTime(),
@@ -83,12 +84,12 @@ final class TripService {
     
     if (isset($input['start_date'])) {
       $startDate = \DateTime::createFromFormat('Y-m-d', $input['start_date']);
-      $updateData['startDate'] = new UTCDateTime($startDate->getTimestamp() * 1000);
+      $updateData['startDate'] = new UTCDateTime(((int)$startDate->format('U')) * 1000);
     }
     
     if (isset($input['end_date'])) {
       $endDate = \DateTime::createFromFormat('Y-m-d', $input['end_date']);
-      $updateData['endDate'] = new UTCDateTime($endDate->getTimestamp() * 1000);
+      $updateData['endDate'] = new UTCDateTime(((int)$endDate->format('U')) * 1000);
     }
     
     if (isset($input['budget'])) {

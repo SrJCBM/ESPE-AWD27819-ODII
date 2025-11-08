@@ -20,53 +20,6 @@ window.Auth = {
 // UI helpers to reflect auth state in header
 (function(){
   function q(sel){ return document.querySelector(sel); }
-  const HIDDEN_CLASS = 'nav-link--hidden';
-  const LOCKED_CLASS = 'nav-link--locked';
-
-  function setLinkHidden(link, hidden){
-    if (!link) return;
-    link.classList.toggle(HIDDEN_CLASS, hidden);
-    if (hidden) {
-      link.setAttribute('aria-hidden', 'true');
-    } else {
-      link.removeAttribute('aria-hidden');
-    }
-  }
-
-  function setProtectedState(nav, hrefs, isAuthenticated){
-    if (!nav) return;
-    for (const href of hrefs){
-      const el = nav.querySelector(`a[href="${href}"]`);
-      if (!el) continue;
-      el.classList.toggle(LOCKED_CLASS, !isAuthenticated);
-      if (!isAuthenticated){
-        if (!el.__lockHandler){
-          el.__lockHandler = (ev) => {
-            ev.preventDefault();
-            window.location.href = '/auth/login';
-          };
-        }
-        el.addEventListener('click', el.__lockHandler);
-        el.setAttribute('aria-disabled', 'true');
-        if (!el.dataset.lockedTitle){
-          el.dataset.lockedTitle = el.getAttribute('title') || '';
-        }
-        el.setAttribute('title', 'Inicia sesión para acceder');
-      } else if (el.__lockHandler){
-        el.removeEventListener('click', el.__lockHandler);
-        delete el.__lockHandler;
-        el.removeAttribute('aria-disabled');
-        if (el.dataset.lockedTitle !== undefined){
-          if (el.dataset.lockedTitle) {
-            el.setAttribute('title', el.dataset.lockedTitle);
-          } else {
-            el.removeAttribute('title');
-          }
-          delete el.dataset.lockedTitle;
-        }
-      }
-    }
-  }
 
   async function renderUserArea(){
     const slot = document.getElementById('userArea');
@@ -75,8 +28,13 @@ window.Auth = {
     const nav = document.querySelector('header.site-header nav');
     if (!slot) return;
     const protectedHrefs = ['/destinations','/trips','/budget','/itinerary'];
-
-    const updateProtectedLinks = (loggedIn) => setProtectedState(nav, protectedHrefs, loggedIn);
+    const setProtectedVisibility = (visible) => {
+      if (!nav) return;
+      for (const h of protectedHrefs) {
+        const el = nav.querySelector(`a[href="${h}"]`);
+        if (el) el.style.display = visible ? '' : 'none';
+      }
+    };
 
     try{
       const res = await (globalThis.Auth ? globalThis.Auth.me() : Promise.reject(new Error('Auth not available')));
@@ -84,9 +42,11 @@ window.Auth = {
         const user = res.user || {};
         const displayName = user.name || user.username || 'Usuario';
         slot.innerHTML = ` ${displayName} · <a href="#" id="logoutLink">Salir</a>`;
-        setLinkHidden(loginLink, true);
-        setLinkHidden(registerLink, true);
-        updateProtectedLinks(true);
+        if (loginLink) loginLink.style.display = 'none';
+        if (registerLink) registerLink.style.display = 'none';
+        // Show protected links for logged users
+        setProtectedVisibility(true);
+        // Ensure admin link for ADMIN users
         if (nav){
           const adminHref = '/admin/users';
           let adminLink = nav.querySelector(`a[href="${adminHref}"]`);
@@ -94,6 +54,7 @@ window.Auth = {
             if (adminLink == null){
               adminLink = document.createElement('a');
               adminLink.href = adminHref; adminLink.textContent = 'Usuarios';
+              // insert before userArea span
               slot.before(adminLink);
             } else {
               adminLink.style.display = '';
@@ -108,15 +69,19 @@ window.Auth = {
             e.preventDefault();
             try { await globalThis.Auth.logout(); }
             catch(err){ console.warn('Logout error (ignored):', err); }
+            // Re-render header and go to home
             await renderUserArea();
             globalThis.location.href = '/';
           });
         }
       } else {
+        // not logged
         slot.innerHTML = '';
-        setLinkHidden(loginLink, false);
-        setLinkHidden(registerLink, false);
-        updateProtectedLinks(false);
+        if (loginLink) loginLink.style.display = '';
+        if (registerLink) registerLink.style.display = '';
+        // hide protected links for guests
+        setProtectedVisibility(false);
+        // hide admin link if present
         if (nav){
           const adminLink = nav.querySelector('a[href="/admin/users"]');
           if (adminLink) adminLink.style.display = 'none';
@@ -124,22 +89,26 @@ window.Auth = {
       }
     }catch(err){
       console.warn('Auth status check failed:', err);
+      // 401 or error -> treat as not logged
       slot.innerHTML = '';
-      setLinkHidden(loginLink, false);
-      setLinkHidden(registerLink, false);
-      const navElement = document.querySelector('header.site-header nav');
-      if (navElement){
-        const adminLink = navElement.querySelector('a[href="/admin/users"]');
+      if (loginLink) loginLink.style.display = '';
+      if (registerLink) registerLink.style.display = '';
+      const nav = document.querySelector('header.site-header nav');
+      if (nav){
+        const adminLink = nav.querySelector('a[href="/admin/users"]');
         if (adminLink) adminLink.style.display = 'none';
       }
-      updateProtectedLinks(false);
+      setProtectedVisibility(false);
     }
   }
 
+  // Expose for other scripts (e.g., after login)
   if (!globalThis.Auth) { globalThis.Auth = {}; }
   globalThis.Auth.renderUserArea = renderUserArea;
 
+  // Initialize on page load
   document.addEventListener('DOMContentLoaded', ()=>{
+    // Only run if header area exists on this page
     if (document.getElementById('userArea')){
       renderUserArea();
     }

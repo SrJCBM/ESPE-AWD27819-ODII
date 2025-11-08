@@ -20,6 +20,7 @@ form.addEventListener("submit", async (e) => {
       headers: {
         'Content-Type': 'application/json'
       },
+      credentials: 'include',
       body: JSON.stringify({
         title,
         destination,
@@ -33,8 +34,9 @@ form.addEventListener("submit", async (e) => {
     const data = await response.json();
 
     if (!response.ok) {
-      // Si la API rechaza (p. ej. requiere API_KEY) usamos modo local
-      console.warn('API trips no disponible o denegada, guardando localmente:', data.error || response.status);
+      // Si la API rechaza, usamos modo local (mostrar mensaje real si viene en 'msg')
+      const serverMsg = (data && (data.msg || data.error)) ? (data.msg || data.error) : '';
+      console.warn('API trips no disponible o denegada, guardando localmente:', serverMsg || response.status);
       saveLocalTrip({
         _id: Date.now().toString(),
         title,
@@ -44,7 +46,7 @@ form.addEventListener("submit", async (e) => {
         budget: budget ? parseFloat(budget) : null,
         description: description || ''
       });
-      showMessage('Guardado en modo local (sin API): ' + (data.error || 'Operación local'), 'success');
+  showMessage('Guardado en modo local (sin API): ' + (serverMsg || 'Operación local'), 'success');
     } else {
       showMessage("¡Viaje creado exitosamente!", "success");
       form.reset();

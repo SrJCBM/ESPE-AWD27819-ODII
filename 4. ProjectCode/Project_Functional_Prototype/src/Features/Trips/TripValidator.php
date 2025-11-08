@@ -10,7 +10,7 @@ final class TripValidator {
     $this->validateDestination($data['destination']);
     $this->validateDates($data['start_date'], $data['end_date']);
     
-    if (isset($data['budget'])) {
+    if (array_key_exists('budget', $data) && $data['budget'] !== null && $data['budget'] !== '') {
       $this->validateBudget($data['budget']);
     }
     
@@ -36,7 +36,7 @@ final class TripValidator {
       }
     }
     
-    if (isset($data['budget'])) {
+    if (array_key_exists('budget', $data) && $data['budget'] !== null && $data['budget'] !== '') {
       $this->validateBudget($data['budget']);
     }
     

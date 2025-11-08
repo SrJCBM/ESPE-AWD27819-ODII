@@ -89,22 +89,14 @@ final class AuthController {
   }
 
   private function normalizeRegistrationData(array $body): array {
-    $firstname = trim((string)($body['firstname'] ?? ''));
-    $lastname = trim((string)($body['lastname'] ?? ''));
-    $name = trim((string)($body['name'] ?? ''));
-
-    if ($name === '') {
-      $name = trim($firstname . ' ' . $lastname);
-    }
-
     return [
-      'username' => trim((string)($body['username'] ?? '')),
-      'email' => trim((string)($body['email'] ?? '')),
-      'password' => (string)($body['password'] ?? ''),
+      'username' => $body['username'] ?? '',
+      'email' => $body['email'] ?? '',
+      'password' => $body['password'] ?? '',
       'password_confirm' => $body['password2'] ?? $body['password_confirm'] ?? null,
-      'firstname' => $firstname,
-      'lastname' => $lastname,
-      'name' => $name
+      'firstname' => $body['firstname'] ?? '',
+      'lastname' => $body['lastname'] ?? '',
+      'name' => $body['name'] ?? ''
     ];
   }
 
