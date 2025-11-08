@@ -127,3 +127,4 @@ setDefaultEnv('DB_DRIVER', 'mongo');
 setDefaultEnv('MONGO_URI', 'mongodb+srv://SrJCBM:bdd2025@cluster0.tjvfmrk.mongodb.net/');
 setDefaultEnv('MONGO_DB', 'travel_brain');
 setDefaultEnv('OPENWEATHER_API_KEY', '51355211649b0894257fe06250faa40d');
+setDefaultEnv('CURRENCY_API_BASE_URL', 'https://api.frankfurter.app');
