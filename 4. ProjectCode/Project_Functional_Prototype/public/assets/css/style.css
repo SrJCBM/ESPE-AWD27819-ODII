@@ -158,18 +158,47 @@ nav a[href*="itinerary"]::before{content:'📋 '}
 .mode-toggle:focus-visible{outline:3px solid rgba(255,255,255,.65);outline-offset:3px}
 .mode-toggle.is-offline{background:linear-gradient(135deg,var(--accent-dark),var(--primary-dark))}
 
-/* Dashboard */
-.currency-dashboard{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);gap:var(--spacing-xl);align-items:start}
-.dashboard-column{display:grid;gap:var(--spacing-xl)}
-.dashboard-column--primary .card,.dashboard-column--insights .card{margin-bottom:0}
-.dashboard-column--insights{position:sticky;top:var(--spacing-xl);z-index:2}
+/* ======= LAYOUT FINAL (izquierda: conversor + monitor; derecha: resto) ======= */
+.currency-layout{
+  display:grid;
+  grid-template-columns: 360px minmax(0,1fr); /* columna izquierda fija, derecha flexible */
+  gap: var(--spacing-xl);
+  align-items:start;
+}
+.currency-layout__left{
+  display:grid;
+  grid-template-rows: auto auto; /* conversor arriba, monitor abajo */
+  gap: var(--spacing-xl);
+}
+.currency-layout__right{
+  display:grid;
+  grid-template-columns: 1fr;      /* pila vertical a la derecha */
+  gap: var(--spacing-xl);
+  align-content:start;
+}
+/* ancho mínimo agradable en pantallas grandes */
+.currency-layout__left .card,
+.currency-layout__right .card{margin-bottom:0}
 
-/* Analíticas */
+/* Responsivo */
+@media (max-width:1100px){
+  .currency-layout{
+    grid-template-columns: 1fr;   /* todo en una sola columna */
+  }
+  .currency-layout__left{
+    grid-template-rows:auto auto;
+  }
+  .currency-layout__right{
+    grid-template-columns:1fr;
+  }
+}
+
+/* Analíticas y tarjetas auxiliares */
 .analytics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--spacing-lg);margin-top:var(--spacing-xl);align-items:stretch}
 .card--monitor{background:linear-gradient(180deg,rgba(78,205,196,.12),rgba(255,255,255,.92))}
 .card--skinny{padding:var(--spacing-xl) var(--spacing-lg)}
 .card--medium{max-width:480px}
-.card--wide{grid-column:span 2;max-width:620px}
+.card--wide{grid-column:span 1;max-width:100%}
 .card-header{display:flex;flex-direction:column;gap:.25rem;margin-bottom:var(--spacing-md)}
 .card-header h3,.card-header p{margin:0}
 
@@ -341,7 +370,6 @@ button:active,.btn:active{transform:translateY(-1px);box-shadow:var(--shadow)}
 .loading{text-align:center;padding:var(--spacing-2xl);color:var(--text-secondary)}
 .loading p:first-child{font-size:1.25rem;font-weight:600;color:var(--primary)}
 .error{text-align:center;padding:var(--spacing-2xl);color:var(--danger);background:#fff5f5;border-radius:var(--radius-md);border:1px solid #fed7d7}
-.error p:first-child{font-size:1.25rem;font-weight:600}
 .basic-itinerary{background:var(--surface-alt);padding:var(--spacing-lg);border-radius:var(--radius-md);border-left:4px solid var(--warning)}
 .basic-itinerary em{color:var(--text-secondary);font-size:.875rem}
 
@@ -446,7 +474,8 @@ button:active,.btn:active{transform:translateY(-1px);box-shadow:var(--shadow)}
 /* =========================
    Animaciones utilitarias
    ========================= */
-@keyframes fadeIn{from{opacity:0;transform:translateY(20px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}
+}
 @keyframes slideInLeft{from{opacity:0;transform:translateX(-50px)}to{opacity:1;transform:translateX(0)}}
 @keyframes slideInRight{from{opacity:0;transform:translateX(50px)}to{opacity:1;transform:translateX(0)}}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
