@@ -93,6 +93,7 @@ async function deleteTrip(id) {
     if (response.ok) {
       alert('Viaje eliminado correctamente.');
       loadTrips();
+      updateTripSelectorsAfterDelete();
       return;
     }
 
@@ -102,12 +103,14 @@ async function deleteTrip(id) {
     saveLocalTrips(trips);
     alert('Viaje eliminado (modo local).');
     loadTrips();
+    updateTripSelectorsAfterDelete();
   } catch (err) {
     console.warn('Error conectando a la API, eliminando localmente:', err.message);
     const trips = getLocalTrips().filter(t => t._id !== id);
     saveLocalTrips(trips);
     alert('Viaje eliminado (modo local).');
     loadTrips();
+    updateTripSelectorsAfterDelete();
   }
 }
 
@@ -115,6 +118,17 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+// Función para actualizar selectores de viajes después de eliminar
+function updateTripSelectorsAfterDelete() {
+  const selectors = document.querySelectorAll('#itTripSelect, select[name="trip"]');
+  
+  selectors.forEach(async (select) => {
+    if (window.app && window.app.populateTripSelect) {
+      await window.app.populateTripSelect(select.id || select.name);
+    }
+  });
 }
 
 // Cargar viajes al cargar la página

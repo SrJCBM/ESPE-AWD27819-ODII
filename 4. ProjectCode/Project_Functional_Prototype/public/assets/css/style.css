@@ -372,6 +372,11 @@ button:active,.btn:active{transform:translateY(-1px);box-shadow:var(--shadow)}
 .error{text-align:center;padding:var(--spacing-2xl);color:var(--danger);background:#fff5f5;border-radius:var(--radius-md);border:1px solid #fed7d7}
 .basic-itinerary{background:var(--surface-alt);padding:var(--spacing-lg);border-radius:var(--radius-md);border-left:4px solid var(--warning)}
 .basic-itinerary em{color:var(--text-secondary);font-size:.875rem}
+.itinerary-footer{margin-top:var(--spacing-lg);padding-top:var(--spacing-md);border-top:1px solid var(--border-light)}
+.itinerary-footer small{color:var(--text-secondary);line-height:1.5}
+.loading{text-align:center;padding:var(--spacing-xl);color:var(--text-secondary)}
+.loading p{margin:var(--spacing-sm) 0}
+.error{text-align:center;padding:var(--spacing-xl);color:var(--danger);background:rgba(255,71,87,.1);border-radius:var(--radius-md);border:1px solid rgba(255,71,87,.2)}
 
 /* =========================
    Accesibilidad / Motion
@@ -407,7 +412,7 @@ button:active,.btn:active{transform:translateY(-1px);box-shadow:var(--shadow)}
 .itinerary-section h4::before{content:"📅"} .weather-section h4::before{content:"🌤️"} .budget-section h4::before{content:"💰"}
 
 .day-plan{background:var(--surface-alt);margin-bottom:var(--spacing-lg);border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--border-light)}
-.day-plan h5{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;margin:0;padding:var(--spacing-md) var(--spacing-lg);font-weight:600}
+.day-plan h4,.day-plan h5{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;margin:0;padding:var(--spacing-md) var(--spacing-lg);font-weight:600}
 .activities-list{list-style:none;margin:0;padding:0}
 .activity-item{padding:var(--spacing-md) var(--spacing-lg);border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:var(--spacing-md);transition:background-color .2s}
 .activity-item:hover{background:var(--background-light)}

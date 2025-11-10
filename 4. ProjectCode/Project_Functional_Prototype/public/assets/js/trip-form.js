@@ -55,6 +55,9 @@ form.addEventListener("submit", async (e) => {
       if (typeof loadTrips === 'function') {
         setTimeout(() => loadTrips(), 500);
       }
+      
+      // Actualizar selectores de viajes en otras páginas
+      updateTripSelectors();
     }
   } catch (err) {
     // Error de red: fallback a localStorage
@@ -69,6 +72,8 @@ form.addEventListener("submit", async (e) => {
       description: description || ''
     });
     showMessage('Guardado en modo local (sin conexión): ' + err.message, 'success');
+    // Actualizar selectores de viajes
+    updateTripSelectors();
   }
 
   resetButton();
@@ -97,4 +102,16 @@ function saveLocalTrip(trip) {
   } catch (e) {
     console.error('No se pudo guardar el viaje localmente:', e.message);
   }
+}
+
+// Función para actualizar selectores de viajes en otras páginas
+function updateTripSelectors() {
+  // Buscar selectores de viajes en la página actual
+  const selectors = document.querySelectorAll('#itTripSelect, select[name="trip"]');
+  
+  selectors.forEach(async (select) => {
+    if (window.app && window.app.populateTripSelect) {
+      await window.app.populateTripSelect(select.id || select.name);
+    }
+  });
 }

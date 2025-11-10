@@ -64,23 +64,42 @@ window.app = (function(){
 	}
 	function getBudget(tripId){ return read(ls.budgetKey).find(b=>b.tripId===tripId) || { tripId, amount:0, expenses:[] }; }
 
+	// Función para obtener todos los viajes (API + localStorage)
+	async function getAllTrips() {
+		try {
+			// Intentar desde API primero
+			const response = await fetch('/api/trips?page=1&size=50');
+			if (response.ok) {
+				const data = await response.json();
+				return data.items || [];
+			}
+		} catch (err) {
+			console.warn('Error cargando trips desde API, usando localStorage:', err.message);
+		}
+		
+		// Fallback: localStorage
+		try {
+			const localTrips = JSON.parse(localStorage.getItem('trips')) || [];
+			const oldTrips = getTrips(); // Trips del formato antiguo
+			return [...localTrips, ...oldTrips];
+		} catch (e) {
+			console.error('Error cargando trips:', e);
+			return [];
+		}
+	}
+
 	// Itinerary - Ahora usa API de Gemini para generación inteligente
 	async function generateItinerary(tripId, days, interests = 'cultura', budgetStyle = 'medio'){
-		const trip = getTrips().find(t=>t.id===tripId);
+		// Buscar el viaje en todas las fuentes
+		const allTrips = await getAllTrips();
+		const trip = allTrips.find(t => (t._id || t.id) === tripId);
+		
 		if(!trip) return { html: '<p>Viaje no encontrado</p>', data: null };
 		
-		const allDests = await getDestinations();
-		const dests = allDests.filter(d => trip.destinations.includes(d._id || d.id));
+		// Para viajes simples que solo tienen un destino como string
+		const destinationName = trip.destination || 'Destino desconocido';
+		const tripTitle = trip.title || trip.name || 'Viaje sin nombre';
 		
-		if(dests.length === 0) {
-			return { html: '<p>No hay destinos seleccionados para este viaje</p>', data: null };
-		}
-
-		// Crear descripción del destino principal para Gemini
-		const mainDestination = dests[0];
-		const destinationName = `${mainDestination.name || 'Destino desconocido'}, ${mainDestination.country || ''}`;
-		const destinationDescription = dests.map(d => d.name).join(', ');
-
 		try {
 			// Usar API de Gemini si está disponible
 			if(window.GeminiTravelAPI) {
@@ -96,7 +115,7 @@ window.app = (function(){
 				const data = {
 					tripId,
 					days,
-					destinations: destinationDescription,
+					destinations: destinationName,
 					travelPlan,
 					generatedBy: 'gemini'
 				};
@@ -107,30 +126,53 @@ window.app = (function(){
 			console.error('Error usando Gemini API, fallback a generación básica:', error);
 		}
 
-		// Fallback: generación básica original
-		const perDay = Math.max(1, Math.ceil(dests.length / days));
+		// Fallback: generación básica
 		let html = `<div class="basic-itinerary">
-			<h3>${trip.name}</h3>
-			<p>${trip.description || destinationDescription}</p>
+			<h3>${tripTitle}</h3>
+			<p><strong>Destino:</strong> ${destinationName}</p>
+			<p>${trip.description || 'Itinerario básico para tu viaje'}</p>
 			<p><em>Itinerario básico generado automáticamente</em></p>`;
 		
 		let data = { tripId, days, items: [], generatedBy: 'basic' };
 		
-		for(let d=0; d<days; d++){
+		// Generar actividades básicas por día
+		const activities = [
+			'Explorar el centro histórico y monumentos principales',
+			'Visitar museos y galerías de arte locales', 
+			'Disfrutar de la gastronomía tradicional',
+			'Recorrido por parques y espacios naturales',
+			'Compras en mercados y tiendas locales',
+			'Actividades culturales y entretenimiento nocturno'
+		];
+		
+		for(let d = 0; d < days; d++){
 			html += `<div class="day-plan"><h4>Día ${d+1}</h4><ul class="activities-list">`;
-			for(let i=0;i<perDay;i++){
-				const idx = d*perDay + i;
-				if(!dests[idx]) break;
-				const dest = dests[idx];
+			
+			// 2-3 actividades por día
+			const dailyActivities = Math.min(3, Math.max(2, Math.floor(activities.length / days) + 1));
+			
+			for(let i = 0; i < dailyActivities; i++){
+				const activityIndex = (d * dailyActivities + i) % activities.length;
+				const activity = activities[activityIndex];
+				
 				html += `<li class="activity-item">
-					<strong>${dest.name||''}</strong> - ${dest.country||''}
-					<br><small>${dest.description||''}</small>
+					<strong>${activity}</strong>
+					<br><small>Recomendado para ${interests} • Estilo ${budgetStyle}</small>
 				</li>`;
-				data.items.push({ day: d+1, destId: dest._id || dest.id });
+				
+				data.items.push({ 
+					day: d+1, 
+					activity: activity,
+					interests: interests,
+					budgetStyle: budgetStyle 
+				});
 			}
 			html += `</ul></div>`;
 		}
-		html += `</div>`;
+		
+		html += `<div class="itinerary-footer">
+			<p><small>💡 <strong>Tip:</strong> Este es un itinerario básico. Para obtener recomendaciones más personalizadas y detalladas, asegúrate de que la integración con Gemini AI esté configurada.</small></p>
+		</div></div>`;
 		
 		return { html, data };
 	}
@@ -234,11 +276,42 @@ window.app = (function(){
 		}
 	}
 
-	function populateTripSelect(selectId){
+	async function populateTripSelect(selectId){
 		const el = document.getElementById(selectId);
 		if(!el) return;
-		el.innerHTML = '';
-		for (const t of getTrips()) { el.appendChild(new Option(t.name, t.id)); }
+		el.innerHTML = '<option value="">-- Selecciona un viaje --</option>';
+		
+		try {
+			// Intentar cargar desde la API primero
+			const response = await fetch('/api/trips?page=1&size=50');
+			
+			if (response.ok) {
+				const data = await response.json();
+				const trips = data.items || [];
+				for (const t of trips) { 
+					el.appendChild(new Option(t.title || t.name, t._id || t.id)); 
+				}
+				return;
+			}
+		} catch (err) {
+			console.warn('Error cargando trips desde API para selector, usando localStorage:', err.message);
+		}
+		
+		// Fallback: usar localStorage con la clave correcta
+		try {
+			const localTrips = JSON.parse(localStorage.getItem('trips')) || [];
+			for (const t of localTrips) { 
+				el.appendChild(new Option(t.title || t.name, t._id || t.id)); 
+			}
+			
+			// También incluir trips del formato antiguo por compatibilidad
+			const oldTrips = getTrips();
+			for (const t of oldTrips) { 
+				el.appendChild(new Option(t.name, t.id)); 
+			}
+		} catch (e) {
+			console.error('Error cargando trips desde localStorage:', e);
+		}
 	}
 
 	function renderWeatherRecords(){
@@ -276,7 +349,7 @@ window.app = (function(){
 		renderTrips,
 		saveTrip,
 		populateDestinationSelect, // Ahora async
-		populateTripSelect,
+		populateTripSelect, // Ahora async
 		populateDestinationSelectAll: populateDestinationSelect,
 		calculateRoute, // Ahora async
 		getSimulatedWeather, // Ahora async
@@ -286,7 +359,6 @@ window.app = (function(){
 		addExpense,
 		renderBudget,
 		generateItinerary, // Ahora async
-		saveItinerary,
-		populateTripSelect
+		saveItinerary
 	};
 })();

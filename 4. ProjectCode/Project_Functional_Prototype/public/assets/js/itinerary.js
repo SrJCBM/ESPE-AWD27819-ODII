@@ -1,9 +1,9 @@
 // public/assets/js/itinerary.js
 (function () {
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
     // Poblado de viajes disponibles
     if (window.app?.populateTripSelect) {
-      window.app.populateTripSelect('itTripSelect');
+      await window.app.populateTripSelect('itTripSelect');
     }
 
     const genBtn = document.getElementById('genItBtn');
