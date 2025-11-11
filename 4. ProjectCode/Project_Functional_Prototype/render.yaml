@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: travelbrain-php
+    env: docker
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /
+    envVars:
+      - key: DB_DRIVER
+        value: mongo
+      - key: MONGO_DB
+        value: travel_brain
+      - key: MONGO_URI
+        fromSecret: mongo_uri
+      - key: OPENWEATHER_API_KEY
+        fromSecret: openweather_api_key
+      # Opcionales para currency
+      # - key: CURRENCY_PROVIDER
+      #   value: erapi
+      # - key: OPENEXCHANGERATES_APP_ID
+      #   fromSecret: openexchangerates_app_id
+
+secretFiles: []

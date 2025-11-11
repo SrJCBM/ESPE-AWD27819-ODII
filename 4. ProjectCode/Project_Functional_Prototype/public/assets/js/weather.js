@@ -1,38 +1,129 @@
 // public/assets/js/weather.js
 (function () {
   document.addEventListener('DOMContentLoaded', () => {
-    const destSelect = document.getElementById('weatherDest');
+  // const destSelect = document.getElementById('weatherDest'); // removed from UI
     const getBtn = document.getElementById('getWeatherBtn');
-    const saveBtn = document.getElementById('saveWeatherBtn');
     const result = document.getElementById('weatherResult');
+    const placeInput = document.getElementById('weatherPlaceInput');
+    const placeList = document.getElementById('weatherPlaceList');
+    const latEl = document.getElementById('weatherLat');
+    const lonEl = document.getElementById('weatherLon');
 
-    // Poblado de destinos
-    window.app?.populateDestinationSelect && window.app.populateDestinationSelect('weatherDest', true);
-    // Si no hay destinos (usuario invitado), poblar con opciones demo
-    setTimeout(() => {
-      if (destSelect && destSelect.options.length <= 1) { // solo placeholder
-        const demo = [
-          'Quito, Ecuador', 'Guayaquil, Ecuador', 'Cuenca, Ecuador', 'Sangolquí, Ecuador',
-          'Bogotá, Colombia', 'Medellín, Colombia', 'Cali, Colombia', 'Cartagena, Colombia'
-        ];
-        for (const name of demo) {
-          const opt = new Option(name, `guest:${name}`);
-          destSelect.appendChild(opt);
+    // Destino select removed: rely only on Mapbox place input
+
+    // Autocompletar básico con Mapbox (si hay token)
+    (function wireAutocomplete(){
+      if (!placeInput || !placeList) return;
+      const token = localStorage.getItem('mb_token') || (typeof mapboxgl!=='undefined' && mapboxgl.accessToken) || null;
+      if (!token) return; // sin token no autocompletamos
+      let lastQ = '';
+      placeInput.addEventListener('input', async () => {
+        const q = placeInput.value.trim();
+        if (q.length < 3 || q === lastQ) return;
+        lastQ = q;
+        try {
+          const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?access_token=${encodeURIComponent(token)}&limit=5&language=es`;
+          const res = await fetch(url);
+          const data = await res.json();
+          while (placeList.firstChild) placeList.firstChild.remove();
+          (data.features||[]).forEach(f => {
+            const opt = document.createElement('option');
+            opt.value = f.place_name;
+            placeList.appendChild(opt);
+          });
+        } catch(e){ /* silencioso */ }
+      });
+      // Al salir del input, si no hay coords, intentar geocodificar
+      placeInput.addEventListener('change', async () => {
+        if (latEl?.value && lonEl?.value) return;
+        const q = placeInput.value.trim();
+        if (!q) return;
+        try {
+          const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?access_token=${encodeURIComponent(token)}&limit=1&language=es`;
+          const res = await fetch(url);
+          const data = await res.json();
+          const feat = data.features?.[0];
+          const center = feat?.center;
+          if (Array.isArray(center) && center.length===2){
+            lonEl && (lonEl.value = String(center[0]));
+            latEl && (latEl.value = String(center[1]));
+          }
+        } catch(_){ }
+      });
+    })();
+
+    // Obtener clima real (OpenWeather a través del backend). Si falla, usar simulación
+    getBtn.addEventListener('click', async () => {
+  const id = null; // no longer used
+  if (!placeInput?.value && !(latEl?.value && lonEl?.value)) { alert('Escribe un lugar o proporciona coordenadas'); return; }
+
+      // 1) Intentar obtener coords: por inputs, por destino, o geocodificando el texto
+      let lat = parseFloat(latEl?.value || '');
+      let lon = parseFloat(lonEl?.value || '');
+      let label = (placeInput?.value || '').trim();
+      if (!(Number.isFinite(lat) && Number.isFinite(lon))) {
+        // Buscar en destinos
+        // No destination select; skip lookup
+      }
+      if (!(Number.isFinite(lat) && Number.isFinite(lon)) && (placeInput?.value)) {
+        // Geocodificar texto con Mapbox si hay token
+        try {
+          const token = (globalThis.__CONFIG__?.MAPBOX_TOKEN) || localStorage.getItem('mb_token') || (typeof mapboxgl!=='undefined' && mapboxgl.accessToken) || null;
+          if (token) {
+            const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(placeInput.value)}.json?access_token=${encodeURIComponent(token)}&limit=1&language=es`;
+            const res = await fetch(url);
+            const data = await res.json();
+            const center = data.features?.[0]?.center;
+            if (Array.isArray(center) && center.length===2){
+              lon = center[0]; lat = center[1];
+              lonEl && (lonEl.value = String(lon));
+              latEl && (latEl.value = String(lat));
+            }
+          }
+        } catch(_){ }
+      }
+
+      let data;
+      if (Number.isFinite(lat) && Number.isFinite(lon)) {
+        try {
+          // Solo registrar si el usuario está autenticado (lo detectamos luego)
+          // Enviar una etiqueta amigable (ciudad, país) si el usuario escribió algo
+          // Normalizar etiqueta: tomar siempre primer segmento (ciudad) y último (país), ignorando provincia/estado intermedio.
+          const partsRaw = (label || '').split(',').map(s=>s.trim()).filter(Boolean);
+          let cleanedLabel = '';
+          if (partsRaw.length >= 2) {
+            cleanedLabel = partsRaw[0] + ', ' + partsRaw[partsRaw.length - 1];
+          } else if (partsRaw.length === 1) {
+            cleanedLabel = partsRaw[0];
+          }
+          const url = `/api/weather/current?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&log=1` + (cleanedLabel ? `&q=${encodeURIComponent(cleanedLabel)}` : '');
+          const resp = await fetch(url, { credentials: 'include' });
+          const ctype = resp.headers.get('content-type') || '';
+          if (!resp.ok || !ctype.includes('application/json')) throw new Error(`HTTP ${resp.status}`);
+          const json = await resp.json();
+          if (json && (json.ok === true || 'temp' in json)) {
+            data = {
+              destId: id || null,
+              destName: json.location || label || 'Ubicación',
+              temp: json.temp,
+              condition: json.condition,
+              humidity: json.humidity,
+              windSpeed: json.windSpeed,
+              precipitation: json.precipitation,
+              pressure: json.pressure,
+              lat: json.lat,
+              lon: json.lon
+            };
+          }
+        } catch (e) {
+          console.warn('Fallo OpenWeather, usando simulador:', e?.message || e);
         }
       }
-    }, 0);
 
-    // Obtener clima simulado
-    getBtn.addEventListener('click', async () => {
-      const id = destSelect.value;
-      if (!id) { alert('Selecciona un destino'); return; }
-      const data = window.app?.getSimulatedWeather ? await window.app.getSimulatedWeather(id) : { error: 'Simulador no disponible' };
-
-      // Si es opción demo y el nombre quedó 'Desconocido', usar el texto del select
-      if (String(id).startsWith('guest:') && data && (!data.destName || data.destName === 'Desconocido')) {
-        const selText = destSelect.options[destSelect.selectedIndex]?.text || 'Destino';
-        data.destName = selText;
-        data.destId = id;
+      // Fallback simulación
+      if (!data) {
+        data = window.app?.getSimulatedWeather ? await window.app.getSimulatedWeather(null) : { error: 'Simulador no disponible' };
+        if (label && data) { data.destName = label; }
       }
 
       // Actualizar la UI con los datos del clima
@@ -42,7 +133,8 @@
       const weatherDetails = document.getElementById('weatherDetails');
 
       weatherLocation.textContent = data.destName || 'Ubicación desconocida';
-      weatherDate.textContent = new Date().toLocaleDateString();
+  const now = new Date();
+  weatherDate.textContent = now.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 
       weatherMain.innerHTML = `
         <div class="temp-main">
@@ -50,52 +142,101 @@
           <span class="condition">${data.condition}</span>
         </div>
       `;
+      // Insertar separador si no existe
+      if (!result.querySelector('hr.weather-sep')) {
+        const hr = document.createElement('hr');
+        hr.className = 'weather-sep';
+        const headerNode = result.querySelector('.weather-header');
+        headerNode && headerNode.insertAdjacentElement('afterend', hr);
+      }
+
+      // Valores por defecto si faltan
+      const humidity = (data.humidity ?? Math.floor(Math.random()*40)+50);
+      const wind = (data.windSpeed ?? Math.floor(Math.random()*25)+5);
+      const precip = (data.precipitation ?? Math.floor(Math.random()*60));
+      const pressure = (data.pressure ?? Math.floor(Math.random()*20)+1010);
 
       weatherDetails.innerHTML = `
         <ul class="weather-list">
-          <li>Humedad: ${data.humidity}%</li>
-          <li>Viento: ${data.windSpeed} km/h</li>
-          <li>Precipitación: ${data.precipitation}%</li>
-          <li>Presión: ${data.pressure} hPa</li>
+          <li>Humedad: ${humidity}%</li>
+          <li>Viento: ${wind} km/h</li>
+          <li>Precipitación: ${precip}%</li>
+          <li>Presión: ${pressure} hPa</li>
         </ul>
       `;
 
       result.style.display = 'block';
-      // Mostrar guardar solo para usuarios logueados
-      if (saveBtn.dataset.logged === '1') {
-        saveBtn.style.display = 'inline-block';
-      } else {
-        saveBtn.style.display = 'none';
-      }
-      window.currentWeather = data;
+      // Si hay mapa y coordenadas, mostrarlas
+      try {
+        const mapDiv = document.getElementById('weatherMap');
+        if (latEl && lonEl && mapDiv) {
+          if (data.lat != null && data.lon != null) {
+            latEl.value = String(data.lat);
+            lonEl.value = String(data.lon);
+          }
+          if (typeof mapboxgl !== 'undefined' && mapboxgl && (mapboxgl.accessToken || localStorage.getItem('mb_token'))) {
+            mapboxgl.accessToken = mapboxgl.accessToken || localStorage.getItem('mb_token');
+            const map = new mapboxgl.Map({
+              container: 'weatherMap',
+              style: 'mapbox://styles/mapbox/streets-v12',
+              center: [parseFloat(lonEl.value)||-78.5, parseFloat(latEl.value)||-0.2],
+              zoom: 10
+            });
+            map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+            const marker = new mapboxgl.Marker().setLngLat([
+              parseFloat(lonEl.value)||-78.5,
+              parseFloat(latEl.value)||-0.2
+            ]).addTo(map);
+          } else {
+            // Si no hay token, no mostramos error ruidoso
+            console.warn('Mapbox no configurado. Guarda "mb_token" en localStorage si deseas ver el mapa.');
+          }
+        }
+      } catch(e){ console.debug('Mapa no disponible:', e?.message || e); }
+
+      window.currentWeather = { ...data, humidity, windSpeed: wind, precipitation: precip, pressure };
     });
 
-    // Guardar registro
-    saveBtn.addEventListener('click', () => {
-      if (!window.currentWeather) { alert('Primero genera un clima'); return; }
-      if (!window.app?.saveWeather) { alert('Módulo de clima no disponible'); return; }
-      window.app.saveWeather(window.currentWeather);
-      window.app.renderWeatherRecords && window.app.renderWeatherRecords();
-    });
-
-    // Consultar estado de login para ocultar/mostrar guardar y registros
+    // Consultar estado de login y cargar historial si aplica
     (async function(){
       try {
         const res = await (globalThis.Auth ? globalThis.Auth.me() : Promise.reject());
         const logged = !!(res && res.ok);
-        saveBtn.dataset.logged = logged ? '1' : '0';
         if (logged) {
-          window.app?.renderWeatherRecords && window.app.renderWeatherRecords();
+          // En modo autenticado, listamos historial desde Mongo
+          await renderServerHistory();
         } else {
           // Invitado: ocultar botón guardar y no listar registros
-          saveBtn.style.display = 'none';
           const list = document.getElementById('weatherList');
           if (list) list.innerHTML = '';
         }
       } catch (_) {
-        saveBtn.dataset.logged = '0';
-        saveBtn.style.display = 'none';
+        const list = document.getElementById('weatherList');
+        if (list) list.innerHTML = '';
       }
     })();
+
+    // Carga historial desde backend y lo renderiza
+    async function renderServerHistory(page=1, size=20){
+      try {
+        const resp = await fetch(`/api/weather/history?page=${page}&size=${size}`, { credentials: 'include' });
+        if (!resp.ok) return; // unauth or 404
+        const ctype = resp.headers.get('content-type') || '';
+        if (!ctype.includes('application/json')) return;
+        const data = await resp.json();
+        if (!data || !Array.isArray(data.items)) return;
+        const ul = document.getElementById('weatherList');
+        if (!ul) return;
+        ul.innerHTML = '';
+        for (const r of data.items) {
+          const li = document.createElement('li');
+          const header = r.label || 'Ubicación';
+          const tempText = (r.temp != null) ? `${r.temp}°C` : '—';
+          const condText = r.condition ? ` · ${r.condition}` : '';
+          li.innerHTML = `<div><strong>${header}</strong> · ${tempText}${condText}<br><small>${r.createdAt || ''}</small></div>`;
+          ul.appendChild(li);
+        }
+      } catch(_){ /* silencioso */ }
+    }
   });
 })();

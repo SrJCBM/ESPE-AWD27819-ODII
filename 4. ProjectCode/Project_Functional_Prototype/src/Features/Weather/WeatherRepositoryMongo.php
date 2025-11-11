@@ -16,11 +16,12 @@ final class WeatherRepositoryMongo {
 
   public function logSearch(string $userId, array $data): void {
     $col = $this->db->selectCollection('weather_searches');
+    // Guardar ciudad, país y métricas completas (SIN label).
     $doc = [
       'userId' => new \MongoDB\BSON\ObjectId($userId),
       'label' => (string)($data['label'] ?? ''),
-      'lat' => (float)($data['lat'] ?? 0),
-      'lon' => (float)($data['lon'] ?? 0),
+      'lat' => isset($data['lat']) ? (float)$data['lat'] : null,
+      'lon' => isset($data['lon']) ? (float)$data['lon'] : null,
       'temp' => $data['temp'] ?? null,
       'condition' => (string)($data['condition'] ?? ''),
       'humidity' => $data['humidity'] ?? null,
@@ -32,9 +33,12 @@ final class WeatherRepositoryMongo {
     $col->insertOne($doc);
   }
 
-  public function logWeather(string $userId, Weather $w): void {
+  public function logWeather(string $userId, Weather $w, string $city = '', string $country = ''): void {
+    // Construir label: "Ciudad, País" si ambos existen; fallback al location del Weather
+    $base = $w->location ?: $city;
+    $label = ($city !== '' && $country !== '') ? ($city . ', ' . $country) : ($base ?: 'Ubicación');
     $this->logSearch($userId, [
-      'label' => $w->location,
+      'label' => $label,
       'lat' => $w->lat,
       'lon' => $w->lon,
       'temp' => $w->temp,
@@ -61,9 +65,8 @@ final class WeatherRepositoryMongo {
     foreach ($cursor as $doc) {
       $items[] = [
         '_id' => (string)$doc['_id'],
-        'label' => (string)($doc['label'] ?? ''),
-        'lat' => (float)($doc['lat'] ?? 0),
-        'lon' => (float)($doc['lon'] ?? 0),
+        'lat' => isset($doc['lat']) ? (float)$doc['lat'] : null,
+        'lon' => isset($doc['lon']) ? (float)$doc['lon'] : null,
         'temp' => isset($doc['temp']) ? (int)$doc['temp'] : null,
         'condition' => (string)($doc['condition'] ?? ''),
         'humidity' => isset($doc['humidity']) ? (int)$doc['humidity'] : null,
@@ -71,6 +74,7 @@ final class WeatherRepositoryMongo {
         'pressure' => isset($doc['pressure']) ? (int)$doc['pressure'] : null,
         'precipitation' => isset($doc['precipitation']) ? (int)$doc['precipitation'] : 0,
         'createdAt' => isset($doc['createdAt']) && $doc['createdAt'] instanceof UTCDateTime ? $doc['createdAt']->toDateTime()->format(DATE_ATOM) : null,
+        'label' => (string)($doc['label'] ?? ''),
       ];
     }
   $total = $col->countDocuments(['userId' => new \MongoDB\BSON\ObjectId($userId)]);

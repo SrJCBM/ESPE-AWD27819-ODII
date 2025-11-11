@@ -212,13 +212,20 @@ window.app = (function(){
 		} catch(e) {
 			console.error('Error obteniendo destino:', e);
 		}
-		const temps = [18,20,22,24,26,28,15,10];
-		const conditions = ['Soleado','Nublado','Lluvioso','Tormenta','Parcialmente nublado'];
+		const temps = [10,12,15,18,20,22,24,26,28];
+		const conditions = ['soleado','nubes','lluvia','tormenta','parcialmente nublado'];
+		const rnd = (min,max) => Math.floor(Math.random()*(max-min+1))+min;
 		const data = {
 			destId,
 			destName: d.name || 'Desconocido',
 			temp: temps[Math.floor(Math.random()*temps.length)],
-			condition: conditions[Math.floor(Math.random()*conditions.length)]
+			condition: conditions[Math.floor(Math.random()*conditions.length)],
+			humidity: rnd(40,95),
+			windSpeed: rnd(3,35),
+			precipitation: rnd(0,80),
+			pressure: rnd(990,1032),
+			lat: (d.lat!=null? d.lat : (d.latitude!=null? d.latitude : null)),
+			lon: (d.lng!=null? d.lng : (d.longitude!=null? d.longitude : null))
 		};
 		return data;
 	}

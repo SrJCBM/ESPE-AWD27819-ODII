@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Clima - Prototipo</title>
   <link rel="stylesheet" href="/assets/css/style.css" />
-  <link rel="stylesheet" href="/assets/css/weather.css" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.js"></script>
+  <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.css">
+  
 </head>
 <body>
   <header class="site-header">
@@ -19,7 +21,7 @@
         <a href="/weather">Clima</a>
         <a href="/budget">Presupuesto</a>
         <a href="/itinerary">Itinerario</a>
-        <a href="/currency">Divisas (Frankfurter)</a>
+        <a href="/currency">Divisas</a>
         <a href="/auth/login">Login</a>
         <a href="/auth/register">Registro</a>
         <span id="userArea" style="margin-left:12px;"></span>
@@ -29,12 +31,17 @@
 
   <main class="container">
     <section class="card">
-      <h2>Ver clima por destino</h2>
-      <label>Destino
-        <select id="weatherDest"></select>
-      </label>
-      <button id="getWeatherBtn">Obtener clima (simulado)</button>
-      <div id="weatherResult" class="weather-card">
+      <h2>Ver clima</h2>
+      <div class="form-row" style="gap:12px;align-items:flex-end;flex-wrap:wrap">
+        <label style="flex:1 1 420px">Buscar lugar (Mapbox)
+          <input id="weatherPlaceInput" list="weatherPlaceList" placeholder="Ciudad, país" autocomplete="off" />
+          <datalist id="weatherPlaceList"></datalist>
+        </label>
+        <input type="hidden" id="weatherLat" />
+        <input type="hidden" id="weatherLon" />
+      </div>
+      <button id="getWeatherBtn">Obtener clima</button>
+      <div id="weatherResult" class="weather-card" style="display:none">
         <div class="weather-header">
           <h3 id="weatherLocation"></h3>
           <div id="weatherDate"></div>
@@ -44,7 +51,10 @@
           <div id="weatherDetails"></div>
         </div>
       </div>
-      <button id="saveWeatherBtn" style="display:none">Guardar registro</button>
+      
+      <div class="card" style="margin-top:12px">
+        <div id="weatherMap" style="height:320px;width:100%"></div>
+      </div>
     </section>
 
     <section class="card">
@@ -53,7 +63,7 @@
     </section>
   </main>
 
-  <footer class="site-footer"><small>Clima simulado para el prototipo</small></footer>
+  <footer class="site-footer"><small>Clima provisto por OpenWeather</small></footer>
 
   <script src="/assets/js/layout.js"></script>
   <script src="/assets/js/auth-api.js"></script>

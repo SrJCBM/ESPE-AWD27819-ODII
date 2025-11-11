@@ -490,3 +490,21 @@ button:active,.btn:active{transform:translateY(-1px);box-shadow:var(--shadow)}
 .slide-in-right{animation:slideInRight .6s cubic-bezier(.4,0,.2,1) forwards}
 .pulse{animation:pulse 2s infinite}
 .loading-shimmer{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:400% 100%;animation:shimmer 1.5s infinite}
+
+/* =========================
+  Weather Card (detalle actual) – estilo compacto con temperatura grande
+  ========================= */
+.weather-card{margin-top:var(--spacing-lg);background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:var(--spacing-xl);box-shadow:var(--shadow);animation:fadeIn .4s ease}
+.weather-card .weather-header{margin-bottom:var(--spacing-md)}
+.weather-card .weather-header h3{margin:0;font-size:1.05rem;font-weight:600;color:var(--text-primary)}
+.weather-card .weather-header #weatherDate{font-size:.75rem;color:var(--text-secondary);margin-top:.35rem}
+.weather-card hr.weather-sep{border:0;border-top:1px solid var(--border-light);margin:var(--spacing-md) 0 var(--spacing-lg)}
+.weather-card .temp-main{text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:var(--spacing-lg)}
+.weather-card .temp-main .temp{display:block;font-size:3.25rem;line-height:1;font-weight:700;color:var(--primary-dark);letter-spacing:.5px}
+.weather-card .temp-main .condition{display:block;margin-top:.5rem;font-size:1rem;font-weight:500;color:var(--text-secondary);text-transform:lowercase}
+.weather-card .weather-list{list-style:none;margin:0;padding:0}
+.weather-card .weather-list li{padding:.55rem 0;font-size:.8rem;color:var(--text-primary);border-top:1px solid var(--border-light)}
+.weather-card .weather-list li:first-child{border-top:0}
+.weather-card .weather-list li strong{font-weight:600}
+.weather-card.small-temp .temp-main .temp{font-size:2.25rem}
+

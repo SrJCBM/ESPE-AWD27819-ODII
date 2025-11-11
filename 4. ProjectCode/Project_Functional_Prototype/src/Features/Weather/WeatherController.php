@@ -15,13 +15,15 @@ final class WeatherController {
   // GET /api/weather/current?lat=&lon=&q=&log=1
   public function current(): void {
     try {
+      // Asegurar sesión para poder obtener userId y registrar historial
+      AuthMiddleware::startSession();
       $lat = (float)Request::get('lat', null);
       $lon = (float)Request::get('lon', null);
       $label = (string)Request::get('q', '');
       $logFlag = (string)Request::get('log', '0') === '1';
       if ($lat === 0.0 && (Request::get('lat', '') === '')) { Response::error('Parámetros faltantes: lat', 400); return; }
       if ($lon === 0.0 && (Request::get('lon', '') === '')) { Response::error('Parámetros faltantes: lon', 400); return; }
-      $userId = AuthMiddleware::getUserId();
+      $userId = AuthMiddleware::isAuthenticated() ? AuthMiddleware::getUserId() : null;
   $weather = $this->service->getCurrent($lat, $lon, $label, $logFlag, $userId);
   // Nota: el modelo Weather siempre retorna un objeto; si no hay datos reales, condition tendrá el mensaje de error
   Response::json($weather->toArray());
