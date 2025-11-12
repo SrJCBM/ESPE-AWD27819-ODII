@@ -62,9 +62,11 @@ final class AuthMiddleware {
 
   public static function startSession(): void {
     if (session_status() !== PHP_SESSION_ACTIVE) {
+      $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
       session_set_cookie_params([
         'httponly' => true,
-        'secure' => false,
+        'secure' => $isHttps,
         'samesite' => 'Lax'
       ]);
       session_start();

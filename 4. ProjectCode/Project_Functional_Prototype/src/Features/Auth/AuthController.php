@@ -4,6 +4,7 @@ namespace App\Features\Auth;
 use App\Core\Http\Response;
 use App\Core\Http\Request;
 use App\Core\Auth\AuthMiddleware;
+use App\Core\Database\MongoConnection;
 use App\Features\Users\UserService;
 use App\Features\Users\UserRepositoryMongo;
 
@@ -101,7 +102,7 @@ final class AuthController {
   }
 
   private function initializeUsersCollection(): \MongoDB\Collection {
-    $mongoClient = new \MongoDB\Client(getenv('MONGO_URI') ?: 'mongodb://localhost:27017');
+    $mongoClient = MongoConnection::client();
     $mongoDb = $mongoClient->selectDatabase(getenv('MONGO_DB') ?: 'travel_brain');
     return $mongoDb->selectCollection('users');
   }
@@ -148,11 +149,29 @@ final class AuthController {
       return false;
     }
 
+    // Caso 1: contraseña moderna (passwordHash con bcrypt)
     $hash = $user['passwordHash'] ?? null;
-    if (!is_string($hash) || $hash === '') {
-      return false;
+    if (is_string($hash) && $hash !== '') {
+      return password_verify($password, $hash);
     }
-    return password_verify($password, $hash);
+
+    // Caso 2 (migración): existe un campo legacy 'password' en claro
+    // Si coincide, promovemos a passwordHash y eliminamos el legacy.
+    $legacy = $user['password'] ?? null;
+    if (is_string($legacy) && $legacy !== '' && hash_equals($legacy, $password)) {
+      try {
+        $this->usersCollection->updateOne(
+          ['_id' => new \MongoDB\BSON\ObjectId((string)$user['_id'])],
+          ['$set' => ['passwordHash' => password_hash($password, PASSWORD_BCRYPT)], '$unset' => ['password' => '']]
+        );
+      } catch (\Throwable $e) {
+        // si falla la promoción, igualmente negar por seguridad
+        return false;
+      }
+      return true;
+    }
+
+    return false;
   }
 
   private function updateLastLogin(\MongoDB\BSON\ObjectId $userId): void {
