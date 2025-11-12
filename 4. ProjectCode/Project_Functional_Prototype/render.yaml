@@ -14,6 +14,10 @@ services:
         fromSecret: mongo_uri
       - key: OPENWEATHER_API_KEY
         fromSecret: openweather_api_key
+      - key: APP_ENV
+        value: production
+      - key: TZ
+        value: America/Guayaquil
       # Opcionales para currency
       # - key: CURRENCY_PROVIDER
       #   value: erapi

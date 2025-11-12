@@ -15,3 +15,12 @@ env_default('MONGO_URI', 'mongodb+srv://SrJCBM:bdd2025@cluster0.tjvfmrk.mongodb.
 env_default('MONGO_DB', 'travel_brain');
 env_default('OPENWEATHER_API_KEY', '51355211649b0894257fe06250faa40d');
 env_default('CURRENCY_PROVIDER', 'erapi');
+// Timezone configuration: prefer explicit APP_TIMEZONE, fallback to TZ, default to Ecuador (America/Guayaquil)
+env_default('APP_TIMEZONE', 'America/Guayaquil');
+env_default('TZ', 'America/Guayaquil');
+
+// Apply PHP default timezone early so all DateTime operations use local time
+$appTz = getenv('APP_TIMEZONE') ?: getenv('TZ') ?: 'UTC';
+if (function_exists('date_default_timezone_set')) {
+	@date_default_timezone_set($appTz);
+}

@@ -9,6 +9,7 @@ final class DestinationValidator {
     $this->validateCountry($data['country'] ?? '');
     $this->validateCoordinates($data);
     $this->validateImageUrl($data['img'] ?? null);
+    $this->validateDescription($data['description'] ?? '');
   }
 
   public function validateForUpdate(array $data): void {
@@ -24,6 +25,10 @@ final class DestinationValidator {
     
     if (isset($data['img'])) {
       $this->validateImageUrl($data['img']);
+    }
+
+    if (isset($data['description'])) {
+      $this->validateDescription($data['description']);
     }
   }
 
@@ -80,6 +85,20 @@ final class DestinationValidator {
   private function validateImageUrl(?string $url): void {
     if ($url !== null && !empty($url) && !filter_var($url, FILTER_VALIDATE_URL)) {
       throw new \InvalidArgumentException('URL de imagen inválida');
+    }
+  }
+
+  private function validateDescription(string $description): void {
+    $trimmed = trim($description);
+    if ($trimmed === '' || strlen($trimmed) < ValidationRules::NAME_MIN_LENGTH) {
+      throw new \InvalidArgumentException(
+        sprintf('Descripción debe tener al menos %d caracteres', ValidationRules::NAME_MIN_LENGTH)
+      );
+    }
+    if (strlen($trimmed) > ValidationRules::MAX_DESCRIPTION_LENGTH) {
+      throw new \InvalidArgumentException(
+        sprintf('Descripción no puede exceder %d caracteres', ValidationRules::MAX_DESCRIPTION_LENGTH)
+      );
     }
   }
 }

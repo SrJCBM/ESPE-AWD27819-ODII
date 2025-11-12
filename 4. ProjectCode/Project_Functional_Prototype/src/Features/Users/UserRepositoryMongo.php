@@ -34,6 +34,12 @@ final class UserRepositoryMongo implements UserRepositoryInterface {
   }
 
   public function create(array $data): string {
+    $tz = getenv('APP_TIMEZONE') ?: (getenv('TZ') ?: 'America/Guayaquil');
+    try {
+      $localIso = (new \DateTimeImmutable('now', new \DateTimeZone($tz)))->format(DATE_ATOM);
+    } catch (\Throwable $e) {
+      $localIso = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format(DATE_ATOM);
+    }
     $payload = [
       'username'     => $data['username'] ?? '',
       'email'        => $data['email'],
@@ -42,6 +48,8 @@ final class UserRepositoryMongo implements UserRepositoryInterface {
       'role'         => $data['role'] ?? 'REGISTERED',
       'status'       => $data['status'] ?? 'ACTIVE',
       'createdAt'    => new UTCDateTime(),
+      'createdAtLocal' => $localIso,
+      'tz'           => $tz,
       'lastLogin'    => null
     ];
     $res = $this->col->insertOne($payload);
@@ -50,6 +58,16 @@ final class UserRepositoryMongo implements UserRepositoryInterface {
 
   public function update(string $id, array $data): bool {
     unset($data['_id']);
+    // If updating lastLogin, also add a local timestamp
+    if (array_key_exists('lastLogin', $data)) {
+      $tz = getenv('APP_TIMEZONE') ?: (getenv('TZ') ?: 'America/Guayaquil');
+      try {
+        $localIso = (new \DateTimeImmutable('now', new \DateTimeZone($tz)))->format(DATE_ATOM);
+      } catch (\Throwable $e) {
+        $localIso = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format(DATE_ATOM);
+      }
+      $data['lastLoginLocal'] = $localIso;
+    }
     $res = $this->col->updateOne(['_id'=>new ObjectId($id)], ['$set'=>$data]);
     return $res->getModifiedCount() > 0;
   }

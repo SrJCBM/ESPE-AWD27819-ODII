@@ -41,7 +41,9 @@
 
               <div class="form-group">
                 <label for="destination">Destino</label>
-                <input type="text" id="destination" placeholder="ej. París, Francia" required />
+                <input type="text" id="destination" placeholder="Ciudad, País" required
+                  data-autocomplete="mapbox" data-format="city-country" list="destinationList" />
+                <datalist id="destinationList"></datalist>
               </div>
 
               <div class="form-row">
@@ -87,6 +89,9 @@
   </main>
 
   <!-- Scripts -->
+  <script src="/assets/js/layout.js"></script>
+  <script src="/assets/js/auth-api.js"></script>
+  <script src="/assets/js/mapbox-autocomplete.js"></script>
   <script src="/assets/js/trip-form.js"></script>
   <script src="/assets/js/trip-list.js"></script>
 </body>

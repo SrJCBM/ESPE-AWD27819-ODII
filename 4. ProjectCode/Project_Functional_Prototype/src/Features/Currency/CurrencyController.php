@@ -17,7 +17,13 @@ final class CurrencyController {
       Response::json(['ok' => true] + $data);
     } catch (\RuntimeException $exception) {
       error_log('Currency rates error: ' . $exception->getMessage());
-      Response::error('El servicio de conversión en línea no está disponible en este momento. Puedes utilizar el conversor offline más abajo.', 503);
+      // Fallback amable: devolver tasas offline en lugar de 503
+      try {
+        $fallback = $this->service->getOfflineRates();
+        Response::json(['ok' => true] + $fallback, 200);
+      } catch (\Throwable $e) {
+        Response::error('El servicio de conversión en línea no está disponible en este momento. Puedes utilizar el conversor offline más abajo.', 503);
+      }
     }
   }
 
@@ -46,7 +52,17 @@ final class CurrencyController {
       Response::error($exception->getMessage(), 400);
     } catch (\RuntimeException $exception) {
       error_log('Currency conversion service unavailable: ' . $exception->getMessage());
-      Response::error('El servicio de conversión en línea no está disponible en este momento. Utiliza el conversor offline más abajo.', 503);
+      // Fallback amable de conversión
+      try {
+        $payload = Request::body();
+        $from = $payload['from'] ?? Request::get('from') ?? '';
+        $to = $payload['to'] ?? Request::get('to') ?? '';
+        $amount = (float)($payload['amount'] ?? Request::get('amount') ?? 0);
+        $result = $this->service->convertOffline((string)$from, (string)$to, $amount);
+        Response::json(['ok' => true, 'conversion' => $result], 200);
+      } catch (\Throwable $e) {
+        Response::error('El servicio de conversión en línea no está disponible en este momento. Utiliza el conversor offline más abajo.', 503);
+      }
     } catch (\Throwable $exception) {
       error_log('Currency conversion error: ' . $exception->getMessage());
       Response::error('No se pudo completar la conversión', 500);

@@ -16,6 +16,13 @@ final class WeatherRepositoryMongo {
 
   public function logSearch(string $userId, array $data): void {
     $col = $this->db->selectCollection('weather_searches');
+    $tz = getenv('APP_TIMEZONE') ?: (getenv('TZ') ?: 'America/Guayaquil');
+    try {
+      $localIso = (new \DateTimeImmutable('now', new \DateTimeZone($tz)))->format(DATE_ATOM);
+    } catch (\Throwable $e) {
+      $localIso = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format(DATE_ATOM);
+      $tz = 'UTC';
+    }
     // Guardar ciudad, país y métricas completas (SIN label).
     $doc = [
       'userId' => new \MongoDB\BSON\ObjectId($userId),
@@ -29,6 +36,8 @@ final class WeatherRepositoryMongo {
       'pressure' => $data['pressure'] ?? null,
       'precipitation' => $data['precipitation'] ?? 0,
       'createdAt' => new \MongoDB\BSON\UTCDateTime(),
+      'createdAtLocal' => $localIso,
+      'tz' => $tz,
     ];
     $col->insertOne($doc);
   }
@@ -74,6 +83,8 @@ final class WeatherRepositoryMongo {
         'pressure' => isset($doc['pressure']) ? (int)$doc['pressure'] : null,
         'precipitation' => isset($doc['precipitation']) ? (int)$doc['precipitation'] : 0,
         'createdAt' => isset($doc['createdAt']) && $doc['createdAt'] instanceof UTCDateTime ? $doc['createdAt']->toDateTime()->format(DATE_ATOM) : null,
+        'createdAtLocal' => isset($doc['createdAtLocal']) ? (string)$doc['createdAtLocal'] : null,
+        'tz' => isset($doc['tz']) ? (string)$doc['tz'] : null,
         'label' => (string)($doc['label'] ?? ''),
       ];
     }

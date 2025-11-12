@@ -14,6 +14,13 @@
         lastname: document.getElementById('r_lastname').value.trim(),
         email: document.getElementById('r_email').value.trim()
       };
+      // Componer name explícitamente para evitar rechazos de validación si el backend no lo arma
+      if (!data.name) {
+        const first = data.firstname || '';
+        const last = data.lastname || '';
+        const full = `${first} ${last}`.trim();
+        if (full.length >= 2) data.name = full;
+      }
 
       // Validación frontend básica
       if (data.password !== data.password2) {

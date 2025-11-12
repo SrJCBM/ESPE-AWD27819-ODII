@@ -156,9 +156,19 @@ final class AuthController {
   }
 
   private function updateLastLogin(\MongoDB\BSON\ObjectId $userId): void {
+    $tz = getenv('APP_TIMEZONE') ?: (getenv('TZ') ?: 'America/Guayaquil');
+    try {
+      $localIso = (new \DateTimeImmutable('now', new \DateTimeZone($tz)))->format(DATE_ATOM);
+    } catch (\Throwable $e) {
+      $localIso = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format(DATE_ATOM);
+    }
     $this->usersCollection->updateOne(
       ['_id' => $userId],
-      ['$set' => ['lastLogin' => new \MongoDB\BSON\UTCDateTime()]]
+      ['$set' => [
+        'lastLogin' => new \MongoDB\BSON\UTCDateTime(),
+        'lastLoginLocal' => $localIso,
+        'tz' => $tz,
+      ]]
     );
   }
 }

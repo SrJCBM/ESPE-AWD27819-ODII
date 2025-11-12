@@ -2,6 +2,22 @@ const form = document.getElementById("tripForm");
 const message = document.getElementById("message");
 const submitBtn = document.getElementById("submitBtn");
 
+// Wire Mapbox autocomplete to destination input (if available)
+try {
+  if (globalThis.MapboxAutocomplete && typeof MapboxAutocomplete.wire === 'function') {
+    MapboxAutocomplete.wire('destination', 'destinationList', (feature, meta) => {
+      try {
+        const placeName = feature.place_name || '';
+        const parts = placeName.split(',').map(s => s.trim()).filter(Boolean);
+        const city = parts[0] || '';
+        const country = (meta && meta.country) ? meta.country : (parts.length > 1 ? parts[parts.length - 1] : '');
+        const destEl = document.getElementById('destination');
+        if (destEl) destEl.value = city + (country ? ', ' + country : '');
+      } catch (e) { console.warn('Mapbox select failed in trip-form:', e); }
+    });
+  }
+} catch (e) { /* silent */ }
+
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   submitBtn.disabled = true;

@@ -233,7 +233,9 @@
           const header = r.label || 'Ubicación';
           const tempText = (r.temp != null) ? `${r.temp}°C` : '—';
           const condText = r.condition ? ` · ${r.condition}` : '';
-          li.innerHTML = `<div><strong>${header}</strong> · ${tempText}${condText}<br><small>${r.createdAt || ''}</small></div>`;
+          // Preferir hora local si existe
+          const when = r.createdAtLocal || r.createdAt || '';
+          li.innerHTML = `<div><strong>${header}</strong> · ${tempText}${condText}<br><small>${when}</small></div>`;
           ul.appendChild(li);
         }
       } catch(_){ /* silencioso */ }

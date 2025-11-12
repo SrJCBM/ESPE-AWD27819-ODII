@@ -35,6 +35,44 @@ final class CurrencyService {
     $this->apiBaseUrl = rtrim($baseUrl, '/');
   }
 
+  /**
+   * Fallback estático de tasas (coincide con el modo offline del frontend).
+   * @return array{base: array{code:string,name:string,symbol:?string}, updatedAt:string, defaults: array{from:string,to:string}, currencies: array<int, array{code:string,name:string,symbol:?string,rate:float}>, count:int, source:string, fallback:bool}
+   */
+  public function getOfflineRates(): array {
+    $offline = [
+      'updatedAt' => '2024-01-15T00:00:00Z',
+      'base' => ['code' => 'USD', 'name' => 'Dólar estadounidense', 'symbol' => '$'],
+      'currencies' => [
+        ['code' => 'USD', 'name' => 'Dólar estadounidense', 'symbol' => '$',  'rate' => 1.0],
+        ['code' => 'EUR', 'name' => 'Euro',                 'symbol' => '€',  'rate' => 0.92],
+        ['code' => 'GBP', 'name' => 'Libra esterlina',       'symbol' => '£',  'rate' => 0.79],
+        ['code' => 'JPY', 'name' => 'Yen japonés',           'symbol' => '¥',  'rate' => 146.5],
+        ['code' => 'CAD', 'name' => 'Dólar canadiense',      'symbol' => 'C$', 'rate' => 1.34],
+        ['code' => 'AUD', 'name' => 'Dólar australiano',     'symbol' => 'A$', 'rate' => 1.52],
+        ['code' => 'BRL', 'name' => 'Real brasileño',        'symbol' => 'R$', 'rate' => 4.95],
+        ['code' => 'CLP', 'name' => 'Peso chileno',          'symbol' => '$',  'rate' => 890.0],
+        ['code' => 'COP', 'name' => 'Peso colombiano',       'symbol' => '$',  'rate' => 3925.0],
+        ['code' => 'MXN', 'name' => 'Peso mexicano',         'symbol' => '$',  'rate' => 17.1],
+        ['code' => 'ARS', 'name' => 'Peso argentino',        'symbol' => '$',  'rate' => 830.0],
+        ['code' => 'PEN', 'name' => 'Sol peruano',           'symbol' => 'S/', 'rate' => 3.7],
+      ],
+    ];
+
+    // Ordenar por código para consistencia
+    usort($offline['currencies'], static fn($a,$b)=>strcmp($a['code'],$b['code']));
+
+    return [
+      'base'       => $offline['base'],
+      'updatedAt'  => $offline['updatedAt'],
+      'defaults'   => self::DEFAULTS,
+      'currencies' => $offline['currencies'],
+      'count'      => count($offline['currencies']),
+      'source'     => 'offline-fallback',
+      'fallback'   => true,
+    ];
+  }
+
   public function getRates(): array {
     $symbols = array_keys(self::CURRENCIES);
 
@@ -146,6 +184,64 @@ final class CurrencyService {
       'amountInBase' => round($amountInUsd, 2),
       'updatedAt'    => $updatedAt,
       'source'       => $source,
+    ];
+  }
+
+  /**
+   * Conversión usando las tasas del fallback offline, cuando el servicio online no responde.
+   */
+  public function convertOffline(string $from, string $to, float $amount): array {
+    $fromCode = strtoupper($from);
+    $toCode   = strtoupper($to);
+
+    // Construir mapa de tasas desde el fallback
+    $fallback = $this->getOfflineRates();
+    $rates = [];
+    foreach ($fallback['currencies'] as $c) {
+      $rates[$c['code']] = (float)$c['rate'];
+    }
+
+    if (!isset($rates[$fromCode])) {
+      throw new \RuntimeException('No se encontró tasa offline para la moneda de origen.');
+    }
+    if (!isset($rates[$toCode])) {
+      throw new \RuntimeException('No se encontró tasa offline para la moneda de destino.');
+    }
+
+    $fromRate = $rates[$fromCode];
+    $toRate   = $rates[$toCode];
+    $amountInBase = $fromRate > 0 ? $amount / $fromRate : 0.0;
+    $convertedAmount = $amountInBase * $toRate;
+    $conversionRate  = $amount > 0 ? $convertedAmount / $amount
+                                   : ($fromCode === $toCode ? 1.0 : $toRate / $fromRate);
+
+    $fromInfo = self::CURRENCIES[$fromCode] ?? ['name'=>$fromCode];
+    $toInfo   = self::CURRENCIES[$toCode]   ?? ['name'=>$toCode];
+    $baseInfo = $fallback['base'];
+
+    return [
+      'from' => [
+        'code'   => $fromCode,
+        'name'   => $fromInfo['name'] ?? $fromCode,
+        'symbol' => $fromInfo['symbol'] ?? null,
+        'amount' => round($amount, 2),
+      ],
+      'to' => [
+        'code'   => $toCode,
+        'name'   => $toInfo['name'] ?? $toCode,
+        'symbol' => $toInfo['symbol'] ?? null,
+        'amount' => round($convertedAmount, 2),
+      ],
+      'rate'         => round($conversionRate, 6),
+      'base' => [
+        'code'   => $baseInfo['code'],
+        'name'   => $baseInfo['name'],
+        'symbol' => $baseInfo['symbol'] ?? null,
+      ],
+      'amountInBase' => round($amountInBase, 2),
+      'updatedAt'    => $fallback['updatedAt'],
+      'source'       => 'offline-fallback',
+      'fallback'     => true,
     ];
   }
 
