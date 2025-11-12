@@ -1,44 +1,27 @@
 <?php
 /**
- * Carga estricta de variables de entorno.
- *
- * Este archivo NO inyecta secretos por defecto para evitar que entornos
- * de producción usen credenciales hardcodeadas. Si falta una variable
- * crítica, se lanza un error temprano.
+ * Carga de variables de entorno con fallback local.
+ * En producción (Render) se usarán variables ya definidas en el contenedor.
  */
 
-// Helper para requerir variable sensible
-function env_required(string $key): string {
-	$val = getenv($key);
-	if ($val === false || $val === '') {
-		http_response_code(500);
-		echo "Falta variable de entorno requerida: {$key}";
-		error_log("ENV missing: {$key}");
-		exit; // Parar ejecución inmediata (fail fast)
+function env_default(string $key, string $default): void {
+	if (getenv($key) === false) {
+		putenv("{$key}={$default}");
 	}
-	return $val;
 }
 
-// Variables sensibles (sin fallback)
-// Se asume que Render / .env local las define.
-$DB_DRIVER          = getenv('DB_DRIVER') ?: 'mongo'; // no sensible
-$MONGO_URI          = env_required('MONGO_URI');
-$MONGO_DB           = env_required('MONGO_DB');
-$OPENWEATHER_API_KEY= env_required('OPENWEATHER_API_KEY');
-$CURRENCY_PROVIDER  = getenv('CURRENCY_PROVIDER') ?: 'erapi';
-$MAPBOX_TOKEN       = getenv('MAPBOX_TOKEN') ?: ''; // opcional
+env_default('DB_DRIVER', 'mongo');
+env_default('MONGO_URI', 'mongodb+srv://SrJCBM:bdd2025@cluster0.tjvfmrk.mongodb.net/');
+env_default('MONGO_DB', 'travel_brain');
+env_default('OPENWEATHER_API_KEY', '51355211649b0894257fe06250faa40d');
+env_default('CURRENCY_PROVIDER', 'erapi');
+// Timezone configuration: prefer explicit APP_TIMEZONE, fallback to TZ, default to Ecuador (America/Guayaquil)
+env_default('APP_TIMEZONE', 'America/Guayaquil');
+env_default('TZ', 'America/Guayaquil');
+env_default('MAPBOX_TOKEN', 'pk.eyJ1Ijoic3JqY2JtIiwiYSI6ImNtZ3g0eGV5NDAwZzYya3BvdmFveWU2dnEifQ.yYCrLmlo9lW-AJf56akVCw');
 
-// Zona horaria: si APP_TIMEZONE no está, usar TZ; si no existe ninguno, default regional
-$appTz = getenv('APP_TIMEZONE') ?: (getenv('TZ') ?: 'America/Guayaquil');
+// Apply PHP default timezone early so all DateTime operations use local time
+$appTz = getenv('APP_TIMEZONE') ?: getenv('TZ') ?: 'UTC';
 if (function_exists('date_default_timezone_set')) {
 	@date_default_timezone_set($appTz);
 }
-
-// Exponer configuración no sensible (opcional)
-global $appConfig;
-$appConfig = [
-	'DB_DRIVER' => $DB_DRIVER,
-	'MONGO_DB'  => $MONGO_DB,
-	'CURRENCY_PROVIDER' => $CURRENCY_PROVIDER,
-	'APP_TIMEZONE' => $appTz,
-];

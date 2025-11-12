@@ -294,6 +294,35 @@ $router->get('/config.js', function () {
   exit;
 });
 
+// ============ DEBUG (opcional, requiere token) ============
+$router->get('/api/_debug/auth', function () use ($mongoDb) {
+  $tokenRequired = getenv('AUTH_DEBUG_TOKEN') ?: getenv('DEBUG_TOKEN') ?: '';
+  $provided = Request::get('token', '');
+  if ($tokenRequired === '' || !hash_equals($tokenRequired, $provided)) {
+    Response::error('Forbidden', 403);
+    return;
+  }
+  $identifier = trim((string)Request::get('user', ''));
+  if ($identifier === '') {
+    Response::error('user requerido', 400);
+    return;
+  }
+  $col = $mongoDb->selectCollection('users');
+  $doc = $col->findOne(['$or' => [['username' => $identifier], ['email' => $identifier]]]);
+  if (!$doc) { Response::json(['ok' => true, 'exists' => false]); return; }
+  $arr = $doc instanceof \MongoDB\Model\BSONDocument ? $doc->getArrayCopy() : (array)$doc;
+  $hash = isset($arr['passwordHash']) && is_string($arr['passwordHash']) ? $arr['passwordHash'] : null;
+  $probe = (string)Request::get('pass', '');
+  $verify = ($hash && $probe !== '') ? password_verify($probe, $hash) : null;
+  Response::json([
+    'ok' => true,
+    'exists' => true,
+    'hasPasswordHash' => $hash !== null,
+    'hashPrefix' => $hash ? substr($hash, 0, 7) : null,
+    'verify' => $verify
+  ]);
+});
+
 // ============ DESPACHAR ============
 try {
   $router->dispatch($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);
