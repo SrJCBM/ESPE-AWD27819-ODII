@@ -18,6 +18,7 @@ require __DIR__ . '/../config/env.php';
 use App\Core\Http\Router;
 use App\Core\Http\Response;
 use App\Core\Http\Request;
+use App\Core\Database\MongoConnection;
 use App\Core\Constants\UserStatus;
 use App\Core\Auth\AuthMiddleware;
 use App\Features\Auth\AuthController;
@@ -58,7 +59,7 @@ AuthMiddleware::startSession();
 
 // ============ CONEXIÓN MONGO ============
 try {
-  $mongoClient = new MongoDB\Client(getenv('MONGO_URI') ?: 'mongodb://localhost:27017');
+  $mongoClient = MongoConnection::client();
   $mongoDb     = $mongoClient->selectDatabase(getenv('MONGO_DB') ?: 'travel_brain');
   $usersCol    = $mongoDb->selectCollection('users');
 } catch (Exception $e) {
