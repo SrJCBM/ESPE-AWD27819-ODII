@@ -9,12 +9,11 @@
     const latEl = document.getElementById('weatherLat');
     const lonEl = document.getElementById('weatherLon');
 
-    // Destino select removed: rely only on Mapbox place input
 
     // Autocompletar básico con Mapbox (si hay token)
     (function wireAutocomplete(){
       if (!placeInput || !placeList) return;
-      const token = localStorage.getItem('mb_token') || (typeof mapboxgl!=='undefined' && mapboxgl.accessToken) || null;
+      const token = (globalThis.__CONFIG__?.MAPBOX_TOKEN) || localStorage.getItem('mb_token') || (typeof mapboxgl!=='undefined' && mapboxgl.accessToken) || null;
       if (!token) return; // sin token no autocompletamos
       let lastQ = '';
       placeInput.addEventListener('input', async () => {
@@ -54,8 +53,8 @@
 
     // Obtener clima real (OpenWeather a través del backend). Si falla, usar simulación
     getBtn.addEventListener('click', async () => {
-  const id = null; // no longer used
-  if (!placeInput?.value && !(latEl?.value && lonEl?.value)) { alert('Escribe un lugar o proporciona coordenadas'); return; }
+    const id = null; // no longer used
+    if (!placeInput?.value && !(latEl?.value && lonEl?.value)) { alert('Escribe un lugar o proporciona coordenadas'); return; }
 
       // 1) Intentar obtener coords: por inputs, por destino, o geocodificando el texto
       let lat = parseFloat(latEl?.value || '');
@@ -133,8 +132,8 @@
       const weatherDetails = document.getElementById('weatherDetails');
 
       weatherLocation.textContent = data.destName || 'Ubicación desconocida';
-  const now = new Date();
-  weatherDate.textContent = now.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+      const now = new Date();
+      weatherDate.textContent = now.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 
       weatherMain.innerHTML = `
         <div class="temp-main">
@@ -174,8 +173,8 @@
             latEl.value = String(data.lat);
             lonEl.value = String(data.lon);
           }
-          if (typeof mapboxgl !== 'undefined' && mapboxgl && (mapboxgl.accessToken || localStorage.getItem('mb_token'))) {
-            mapboxgl.accessToken = mapboxgl.accessToken || localStorage.getItem('mb_token');
+          if (typeof mapboxgl !== 'undefined' && mapboxgl && (mapboxgl.accessToken || (globalThis.__CONFIG__?.MAPBOX_TOKEN) || localStorage.getItem('mb_token'))) {
+            mapboxgl.accessToken = mapboxgl.accessToken || (globalThis.__CONFIG__?.MAPBOX_TOKEN) || localStorage.getItem('mb_token');
             const map = new mapboxgl.Map({
               container: 'weatherMap',
               style: 'mapbox://styles/mapbox/streets-v12',
