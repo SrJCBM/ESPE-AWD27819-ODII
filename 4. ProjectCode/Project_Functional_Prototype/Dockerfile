@@ -2,9 +2,17 @@
 FROM composer:2 AS vendor
 WORKDIR /app
 COPY composer.json composer.lock* ./
-RUN composer install --no-dev --no-scripts --prefer-dist --no-interaction --optimize-autoloader || true
+# Install PHP deps in build stage. The composer image doesn't have ext-mongodb, so
+# we ignore that platform requirement here; the runtime stage will install the PECL extension.
+RUN composer install \
+    --no-dev \
+    --no-scripts \
+    --prefer-dist \
+    --no-interaction \
+    --optimize-autoloader \
+    --ignore-platform-req=ext-mongodb
 COPY . .
-RUN composer dump-autoload -o || true
+RUN composer dump-autoload -o
 
 ## Runtime stage: PHP CLI with built-in server (simple, no Apache/Nginx)
 FROM php:8.2-cli-alpine AS runtime
