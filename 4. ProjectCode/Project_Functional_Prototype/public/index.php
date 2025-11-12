@@ -1,5 +1,15 @@
 <?php
 
+// Si se ejecuta con el servidor embebido de PHP y el archivo solicitado existe
+// dentro del directorio público, dejar que PHP lo sirva directamente (CSS/JS/IMG)
+if (PHP_SAPI === 'cli-server') {
+  $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+  $file = realpath(__DIR__ . $path);
+  if ($file && str_starts_with($file, realpath(__DIR__)) && is_file($file)) {
+    return false; // delegar al servidor embebido
+  }
+}
+
 // 1) Autoload de Composer
 require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/../config/env.php';

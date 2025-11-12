@@ -17,7 +17,8 @@
     </div>
 
     <div class="auth-form-container">
-      <form id="loginForm" class="auth-form">
+      <!-- method="post" evita que las credenciales aparezcan en la URL si por alguna razón no carga el JS -->
+      <form id="loginForm" class="auth-form" method="post" action="/auth/login" autocomplete="on">
         <div class="form-group">
           <input type="text" id="l_username" name="username" placeholder="Correo electrónico o usuario" required autocomplete="username" minlength="3" />
         </div>
