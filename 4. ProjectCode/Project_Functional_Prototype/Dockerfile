@@ -22,5 +22,5 @@ COPY --from=vendor /app /app
 ENV PORT=8080
 EXPOSE 8080
 
-# Start PHP built-in server pointing to public/
-CMD ["sh", "-c", "php -S 0.0.0.0:${PORT} -t public"]
+# Start PHP built-in server pointing to public/ and use index.php as router (front controller)
+CMD ["sh", "-c", "php -S 0.0.0.0:${PORT} -t public public/index.php"]

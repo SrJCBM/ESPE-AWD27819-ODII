@@ -6,7 +6,8 @@
 node_modules/
 dist/
 
-# Composer cache & local artifacts
+# Composer artifacts (we install inside image; exclude local vendor to avoid bloat)
+vendor/
 vendor/**/.git
 composer.phar
 
@@ -15,6 +16,9 @@ composer.phar
 *.tmp
 .DS_Store
 Thumbs.db
+.vscode/
+.idea/
+*.code-workspace
 
 # Tests (excluded from prod image)
 tests/
@@ -23,3 +27,9 @@ tests/
 .env
 .env.*
 docker-compose.*
+logs/
+cache/
+tmp/
+temp/
+var/
+storage/
