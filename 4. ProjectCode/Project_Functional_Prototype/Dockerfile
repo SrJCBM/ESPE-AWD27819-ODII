@@ -19,8 +19,11 @@ FROM php:8.2-cli-alpine AS runtime
 WORKDIR /app
 
 # Install system deps for pecl and MongoDB extension
+# Note: composer.lock pins mongodb/mongodb to 1.19.1. That library is compatible with ext-mongodb 1.18–1.19.
+# Newer PECL (e.g., 1.20+) adds strict return types causing signature mismatches with 1.19.1.
+# Pin PECL to a compatible 1.19.x to avoid "must be compatible with ... bsonSerialize()" fatals.
 RUN apk add --no-cache $PHPIZE_DEPS openssl-dev && \
-    pecl install mongodb && docker-php-ext-enable mongodb && \
+    pecl install mongodb-1.19.1 && docker-php-ext-enable mongodb && \
     apk del --no-cache $PHPIZE_DEPS
 
 # Copy app sources and vendor from builder
