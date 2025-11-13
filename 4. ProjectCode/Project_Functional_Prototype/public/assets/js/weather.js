@@ -100,8 +100,8 @@
         // Buscar en destinos
         // No destination select; skip lookup
       }
-      if (!(Number.isFinite(lat) && Number.isFinite(lon)) && (placeInput?.value)) {
-        // Geocodificar texto con Mapbox si hay token
+      if (placeInput?.value) {
+        // Siempre geocodificar el texto actual para refrescar coordenadas
         try {
           const token = (globalThis.__CONFIG__?.MAPBOX_TOKEN) || localStorage.getItem('mb_token') || (typeof mapboxgl!=='undefined' && mapboxgl.accessToken) || null;
           if (token) {
@@ -211,12 +211,21 @@
           }
           if (typeof mapboxgl !== 'undefined' && mapboxgl && (mapboxgl.accessToken || (globalThis.__CONFIG__?.MAPBOX_TOKEN) || localStorage.getItem('mb_token'))) {
             mapboxgl.accessToken = mapboxgl.accessToken || (globalThis.__CONFIG__?.MAPBOX_TOKEN) || localStorage.getItem('mb_token');
+            // Destruir mapa previo si existe para evitar estados obsoletos
+            try {
+              if (globalThis.__WEATHER_MAP__ && typeof globalThis.__WEATHER_MAP__.remove === 'function') {
+                globalThis.__WEATHER_MAP__.remove();
+              }
+            } catch(_){ }
+            const containerEl = document.getElementById('weatherMap');
+            if (containerEl) { containerEl.innerHTML = ''; }
             const map = new mapboxgl.Map({
               container: 'weatherMap',
               style: 'mapbox://styles/mapbox/streets-v12',
               center: [parseFloat(lonEl.value)||-78.5, parseFloat(latEl.value)||-0.2],
               zoom: 10
             });
+            globalThis.__WEATHER_MAP__ = map;
             map.addControl(new mapboxgl.NavigationControl(), 'top-right');
             const marker = new mapboxgl.Marker().setLngLat([
               parseFloat(lonEl.value)||-78.5,
