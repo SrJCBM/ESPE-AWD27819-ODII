@@ -2,6 +2,24 @@ const form = document.getElementById("tripForm");
 const message = document.getElementById("message");
 const submitBtn = document.getElementById("submitBtn");
 
+// Configurar validaciones del formulario
+const fieldRules = {
+  title: { required: true, minLength: 2, maxLength: 100 },
+  destination: { required: true, minLength: 2, maxLength: 100 },
+  start_date: { required: true, date: true, futureDate: true },
+  end_date: { required: true, date: true },
+  budget: { positiveNumber: true },
+  description: { maxLength: 500 },
+  _dateRange: { start: 'start_date', end: 'end_date' }
+};
+
+// Configurar validación en tiempo real cuando esté disponible
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.ValidationUtils) {
+    window.ValidationUtils.setupRealTimeValidation(form, fieldRules);
+  }
+});
+
 // Wire Mapbox autocomplete to destination input (if available)
 try {
   if (globalThis.MapboxAutocomplete && typeof MapboxAutocomplete.wire === 'function') {
@@ -12,7 +30,15 @@ try {
         const city = parts[0] || '';
         const country = (meta && meta.country) ? meta.country : (parts.length > 1 ? parts[parts.length - 1] : '');
         const destEl = document.getElementById('destination');
-        if (destEl) destEl.value = city + (country ? ', ' + country : '');
+        if (destEl) {
+          destEl.value = city + (country ? ', ' + country : '');
+          // Limpiar error de validación al seleccionar desde autocomplete
+          if (window.ValidationUtils) {
+            destEl.classList.remove('invalid');
+            const errorSpan = destEl.parentNode.querySelector('.field-error');
+            if (errorSpan) errorSpan.remove();
+          }
+        }
       } catch (e) { console.warn('Mapbox select failed in trip-form:', e); }
     });
   }
@@ -20,8 +46,15 @@ try {
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
-  submitBtn.disabled = true;
-  submitBtn.textContent = "Creando...";
+
+  // Validar formulario antes de enviar
+  if (window.ValidationUtils) {
+    const isValid = window.ValidationUtils.validateForm(form, fieldRules);
+    if (!isValid) {
+      window.ValidationUtils.showError('Por favor, corrige los errores en el formulario');
+      return;
+    }
+  }
 
   const title = document.getElementById("title").value;
   const destination = document.getElementById("destination").value;
@@ -29,6 +62,37 @@ form.addEventListener("submit", async (e) => {
   const end_date = document.getElementById("end_date").value;
   const budget = document.getElementById("budget").value;
   const description = document.getElementById("description").value;
+
+  // Validación básica si ValidationUtils no está disponible
+  if (!window.ValidationUtils) {
+    if (!title || title.trim().length < 2) {
+      showMessage('El nombre del viaje es obligatorio (mín. 2 caracteres)', 'error');
+      return;
+    }
+    if (!destination || destination.trim().length < 2) {
+      showMessage('El destino es obligatorio (mín. 2 caracteres)', 'error');
+      return;
+    }
+    if (!start_date) {
+      showMessage('La fecha de inicio es obligatoria', 'error');
+      return;
+    }
+    if (!end_date) {
+      showMessage('La fecha de fin es obligatoria', 'error');
+      return;
+    }
+    if (new Date(start_date) > new Date(end_date)) {
+      showMessage('La fecha de fin debe ser posterior a la de inicio', 'error');
+      return;
+    }
+    if (budget && (isNaN(parseFloat(budget)) || parseFloat(budget) < 0)) {
+      showMessage('El presupuesto debe ser un número positivo', 'error');
+      return;
+    }
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Creando...";
 
   try {
     const response = await fetch('/api/trips', {
@@ -96,8 +160,20 @@ form.addEventListener("submit", async (e) => {
 });
 
 function showMessage(text, type) {
-  message.textContent = text;
-  message.className = type;
+  // Usar Toastify si está disponible
+  if (window.ValidationUtils) {
+    if (type === 'success') {
+      window.ValidationUtils.showSuccess(text);
+    } else if (type === 'error') {
+      window.ValidationUtils.showError(text);
+    } else {
+      window.ValidationUtils.showInfo(text);
+    }
+  } else {
+    // Fallback al método anterior
+    message.textContent = text;
+    message.className = type;
+  }
 }
 
 function resetButton() {

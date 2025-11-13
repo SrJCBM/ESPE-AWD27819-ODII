@@ -149,20 +149,72 @@
         wireAutocomplete('originInput','originList');
         wireAutocomplete('destInput','destList');
 
+        // Configurar validación en tiempo real para los campos de rutas
+        if (window.ValidationUtils) {
+            const originInput = document.getElementById('originInput');
+            const destInput = document.getElementById('destInput');
+            
+            if (originInput && destInput) {
+                const fieldRules = {
+                    originInput: { required: true, minLength: 2, maxLength: 100 },
+                    destInput: { required: true, minLength: 2, maxLength: 100 }
+                };
+                
+                // Crear un contenedor virtual para las validaciones
+                const routeContainer = document.createElement('div');
+                routeContainer.appendChild(originInput.cloneNode(true));
+                routeContainer.appendChild(destInput.cloneNode(true));
+                
+                window.ValidationUtils.setupRealTimeValidation(routeContainer, fieldRules);
+            }
+        }
+
         document.getElementById('calcRouteBtn').addEventListener('click', async () => {
             const oText = document.getElementById('originInput').value?.trim();
             const dText = document.getElementById('destInput').value?.trim();
             const modeSel = document.getElementById('routeModeSelect');
             const selectedMode = modeSel?.value || 'auto';
             const out = document.getElementById('routeResult');
+            const originInput = document.getElementById('originInput');
+            const destInput = document.getElementById('destInput');
+            const calcBtn = document.getElementById('calcRouteBtn');
 
-            if (!oText || !dText) {
-                out.textContent = 'Selecciona origen y destino.';
+            // Validaciones
+            if (!oText || oText.length < 2) {
+                if (window.ValidationUtils) {
+                    window.ValidationUtils.showError('El origen es obligatorio (mín. 2 caracteres)');
+                    originInput.classList.add('invalid', 'shake');
+                    setTimeout(() => originInput.classList.remove('shake'), 500);
+                } else {
+                    out.textContent = 'El origen es obligatorio.';
+                }
+                originInput.focus();
                 return;
             }
 
+            if (!dText || dText.length < 2) {
+                if (window.ValidationUtils) {
+                    window.ValidationUtils.showError('El destino es obligatorio (mín. 2 caracteres)');
+                    destInput.classList.add('invalid', 'shake');
+                    setTimeout(() => destInput.classList.remove('shake'), 500);
+                } else {
+                    out.textContent = 'El destino es obligatorio.';
+                }
+                destInput.focus();
+                return;
+            }
+
+            // Mostrar indicador de carga
+            const originalText = calcBtn.textContent;
+            calcBtn.disabled = true;
+            calcBtn.textContent = 'Calculando...';
+
             out.textContent = 'Calculando...';
+            
             try {
+                // Limpiar errores de validación
+                originInput.classList.remove('invalid');
+                destInput.classList.remove('invalid');
                 await ensureStyleReady(map);
                 const [oCoord, dCoord] = await Promise.all([geocodePlace(oText), geocodePlace(dText)]);
                 let route;
@@ -211,8 +263,22 @@
                     mode: route.mode || (route.fallback ? 'fallback' : selectedMode || 'unknown')
                 };
                 document.dispatchEvent(new CustomEvent('route:calculated', { detail: globalThis.LastRoute }));
+                
+                // Mostrar mensaje de éxito
+                if (window.ValidationUtils) {
+                    window.ValidationUtils.showSuccess('Ruta calculada exitosamente');
+                }
+                
             } catch (e) {
                 out.textContent = 'No fue posible calcular la ruta.';
                 console.error(e);
+                
+                if (window.ValidationUtils) {
+                    window.ValidationUtils.showError('No fue posible calcular la ruta. Intenta con otros lugares.');
+                }
+            } finally {
+                // Restaurar botón
+                calcBtn.disabled = false;
+                calcBtn.textContent = originalText;
             }
         });

@@ -51,15 +51,51 @@
       });
     })();
 
+    // Configurar validación en tiempo real para el campo de lugar
+    if (window.ValidationUtils && placeInput) {
+      const fieldRules = { weatherPlaceInput: { minLength: 2, maxLength: 100 } };
+      window.ValidationUtils.setupRealTimeValidation(placeInput.form || document.body, fieldRules);
+    }
+
     // Obtener clima real (OpenWeather a través del backend). Si falla, usar simulación
     getBtn.addEventListener('click', async () => {
-    const id = null; // no longer used
-    if (!placeInput?.value && !(latEl?.value && lonEl?.value)) { alert('Escribe un lugar o proporciona coordenadas'); return; }
+      const id = null; // no longer used
+      
+      // Validar entrada
+      const place = placeInput?.value?.trim() || '';
+      const lat = parseFloat(latEl?.value || '');
+      const lon = parseFloat(lonEl?.value || '');
+      
+      if (!place && !(Number.isFinite(lat) && Number.isFinite(lon))) {
+        if (window.ValidationUtils) {
+          window.ValidationUtils.showError('Por favor, escribe un lugar o proporciona coordenadas válidas');
+        } else {
+          alert('Escribe un lugar o proporciona coordenadas');
+        }
+        placeInput?.focus();
+        return;
+      }
+      
+      if (place && place.length < 2) {
+        if (window.ValidationUtils) {
+          window.ValidationUtils.showError('El nombre del lugar debe tener al menos 2 caracteres');
+        } else {
+          alert('El nombre del lugar debe tener al menos 2 caracteres');
+        }
+        placeInput?.focus();
+        return;
+      }
 
-      // 1) Intentar obtener coords: por inputs, por destino, o geocodificando el texto
-      let lat = parseFloat(latEl?.value || '');
-      let lon = parseFloat(lonEl?.value || '');
-      let label = (placeInput?.value || '').trim();
+      // Mostrar indicador de carga
+      const originalText = getBtn.textContent;
+      getBtn.disabled = true;
+      getBtn.textContent = 'Obteniendo clima...';
+
+      try {
+        // 1) Intentar obtener coords: por inputs, por destino, o geocodificando el texto
+        let lat = parseFloat(latEl?.value || '');
+        let lon = parseFloat(lonEl?.value || '');
+        let label = place;
       if (!(Number.isFinite(lat) && Number.isFinite(lon))) {
         // Buscar en destinos
         // No destination select; skip lookup
@@ -193,7 +229,25 @@
         }
       } catch(e){ console.debug('Mapa no disponible:', e?.message || e); }
 
-      window.currentWeather = { ...data, humidity, windSpeed: wind, precipitation: precip, pressure };
+        window.currentWeather = { ...data, humidity, windSpeed: wind, precipitation: precip, pressure };
+
+        // Mostrar mensaje de éxito
+        if (window.ValidationUtils) {
+          window.ValidationUtils.showSuccess('Clima obtenido exitosamente');
+        }
+
+      } catch (error) {
+        console.error('Error obteniendo clima:', error);
+        if (window.ValidationUtils) {
+          window.ValidationUtils.showError('Error al obtener el clima. Inténtalo de nuevo.');
+        } else {
+          alert('Error al obtener el clima');
+        }
+      } finally {
+        // Restaurar botón
+        getBtn.disabled = false;
+        getBtn.textContent = originalText;
+      }
     });
 
     // Consultar estado de login y cargar historial si aplica

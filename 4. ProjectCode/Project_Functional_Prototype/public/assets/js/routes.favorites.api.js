@@ -98,9 +98,36 @@
 		// Save current route
 			btn.addEventListener('click', async () => {
 			const last = globalThis.LastRoute;
-			if (!last){ alert('Calculate a route first.'); return; }
-				const defaultName = `${last.origin.label||'Origen'} → ${last.destination.label||'Destino'}`;
-				const name = (nameInput?.value?.trim?.() ? nameInput.value.trim() : defaultName);
+			if (!last) {
+				if (window.ValidationUtils) {
+					window.ValidationUtils.showError('Primero calcula una ruta');
+				} else {
+					alert('Calculate a route first.');
+				}
+				return;
+			}
+			
+			const defaultName = `${last.origin.label||'Origen'} → ${last.destination.label||'Destino'}`;
+			const name = (nameInput?.value?.trim?.() ? nameInput.value.trim() : defaultName);
+			
+			// Validar nombre si está presente
+			if (nameInput && nameInput.value.trim() && nameInput.value.trim().length < 2) {
+				if (window.ValidationUtils) {
+					window.ValidationUtils.showError('El nombre debe tener al menos 2 caracteres');
+					nameInput.classList.add('invalid', 'shake');
+					setTimeout(() => nameInput.classList.remove('shake'), 500);
+				} else {
+					alert('El nombre debe tener al menos 2 caracteres');
+				}
+				nameInput.focus();
+				return;
+			}
+
+			// Mostrar indicador de carga
+			const originalText = btn.textContent;
+			btn.disabled = true;
+			btn.textContent = 'Guardando...';
+			
 			try {
 				await save({
 					name,
@@ -110,12 +137,37 @@
 					durationSec: last.durationSec || null,
 					mode: last.mode || ''
 				});
-					if (nameInput) nameInput.value = '';
-					render();
+				
+				// Limpiar errores y campo
+				if (nameInput) {
+					nameInput.value = '';
+					nameInput.classList.remove('invalid');
+				}
+				
+				if (window.ValidationUtils) {
+					window.ValidationUtils.showSuccess('Ruta favorita guardada exitosamente');
+				}
+				
+				render();
 			} catch(e){
-				if (e?.status === 401){ alert('Please sign in to save favorites.'); return; }
-				const msg = (e && (e.message || e.msg)) || 'Could not save favorite route.';
-				alert(msg);
+				if (e?.status === 401) {
+					if (window.ValidationUtils) {
+						window.ValidationUtils.showError('Debes iniciar sesión para guardar favoritos');
+					} else {
+						alert('Please sign in to save favorites.');
+					}
+					return;
+				}
+				const msg = (e && (e.message || e.msg)) || 'No se pudo guardar la ruta favorita';
+				if (window.ValidationUtils) {
+					window.ValidationUtils.showError(msg);
+				} else {
+					alert(msg);
+				}
+			} finally {
+				// Restaurar botón
+				btn.disabled = false;
+				btn.textContent = originalText;
 			}
 		});
 
@@ -138,9 +190,20 @@
 			const action = target.dataset.action;
 			if (!id || !action) return;
 			if (action === 'delete'){
-				if (!confirm('Delete favorite route?')) return;
-				await remove(id);
-				render();
+				if (!confirm('¿Eliminar esta ruta favorita?')) return;
+				try {
+					await remove(id);
+					if (window.ValidationUtils) {
+						window.ValidationUtils.showSuccess('Ruta favorita eliminada');
+					}
+					render();
+				} catch (e) {
+					if (window.ValidationUtils) {
+						window.ValidationUtils.showError('Error al eliminar la ruta favorita');
+					} else {
+						alert('Error al eliminar la ruta');
+					}
+				}
 			} else if (action === 'load'){
 				const items2 = await list(1,50);
 				const found = items2.find(x => x._id === id);

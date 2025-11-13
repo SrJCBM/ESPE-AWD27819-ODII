@@ -4,6 +4,21 @@
     const search = document.getElementById('searchDest');
     const listEl = document.getElementById('destList');
 
+    // Configurar validaciones del formulario
+    const fieldRules = {
+      name: { required: true, minLength: 2, maxLength: 100 },
+      country: { required: true, minLength: 2, maxLength: 50 },
+      description: { required: true, minLength: 10, maxLength: 1000 },
+      lat: { number: true },
+      lng: { number: true },
+      img: { url: true }
+    };
+
+    // Configurar validación en tiempo real
+    if (window.ValidationUtils) {
+      window.ValidationUtils.setupRealTimeValidation(form, fieldRules);
+    }
+
     // Renderizar destinos iniciales
     renderDestinations();
 
@@ -31,6 +46,17 @@
             if (imgEl && !imgEl.value && globalThis.PlaceImage) {
               PlaceImage.imageForPlace(city, country).then(url => { if (url) imgEl.value = url; }).catch(()=>{});
             }
+            
+            // Limpiar errores de validación al seleccionar desde autocomplete
+            if (window.ValidationUtils) {
+              [document.getElementById('destName'), document.getElementById('destCountry')].forEach(el => {
+                if (el) {
+                  el.classList.remove('invalid');
+                  const errorSpan = el.parentNode.querySelector('.field-error');
+                  if (errorSpan) errorSpan.remove();
+                }
+              });
+            }
           } catch (e) { console.warn('Mapbox select failed in destinations:', e); }
         });
       }
@@ -38,6 +64,15 @@
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+
+      // Validar formulario antes de enviar
+      if (window.ValidationUtils) {
+        const isValid = window.ValidationUtils.validateForm(form, fieldRules);
+        if (!isValid) {
+          window.ValidationUtils.showError('Por favor, corrige los errores en el formulario');
+          return;
+        }
+      }
       
       const id = document.getElementById('destId').value || null;
       const dest = {
@@ -49,28 +84,86 @@
         img: document.getElementById('destImg').value.trim() || null
       };
 
-      try {
-        // Front validation: ensure description present (A) and warn if empty (C)
-        if (!dest.description || dest.description.length < 2) {
-          alert('La descripción es obligatoria y debe tener al menos 2 caracteres.');
-          const descEl = document.getElementById('destDesc');
-          descEl && descEl.focus();
+      // Validaciones básicas si ValidationUtils no está disponible
+      if (!window.ValidationUtils) {
+        if (!dest.name || dest.name.length < 2) {
+          alert('El nombre es obligatorio y debe tener al menos 2 caracteres.');
+          document.getElementById('destName')?.focus();
           return;
         }
+        if (!dest.country || dest.country.length < 2) {
+          alert('El país es obligatorio y debe tener al menos 2 caracteres.');
+          document.getElementById('destCountry')?.focus();
+          return;
+        }
+        if (!dest.description || dest.description.length < 10) {
+          alert('La descripción es obligatoria y debe tener al menos 10 caracteres.');
+          document.getElementById('destDesc')?.focus();
+          return;
+        }
+        if (dest.lat !== null && (isNaN(dest.lat) || dest.lat < -90 || dest.lat > 90)) {
+          alert('La latitud debe ser un número entre -90 y 90.');
+          document.getElementById('destLat')?.focus();
+          return;
+        }
+        if (dest.lng !== null && (isNaN(dest.lng) || dest.lng < -180 || dest.lng > 180)) {
+          alert('La longitud debe ser un número entre -180 y 180.');
+          document.getElementById('destLng')?.focus();
+          return;
+        }
+        if (dest.img) {
+          try {
+            new URL(dest.img);
+          } catch {
+            alert('La URL de la imagen no es válida.');
+            document.getElementById('destImg')?.focus();
+            return;
+          }
+        }
+      }
+
+      try {
+        // Mostrar indicador de carga
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Guardando...';
         if (id) {
           // Actualizar
           await window.DestinationsAPI.update(id, dest);
-          alert('Destino actualizado');
+          if (window.ValidationUtils) {
+            window.ValidationUtils.showSuccess('Destino actualizado exitosamente');
+          } else {
+            alert('Destino actualizado');
+          }
         } else {
           // Crear
           await window.DestinationsAPI.create(dest);
-          alert('Destino creado');
+          if (window.ValidationUtils) {
+            window.ValidationUtils.showSuccess('Destino creado exitosamente');
+          } else {
+            alert('Destino creado');
+          }
         }
+        
+        // Restaurar botón
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+        
         form.reset();
         document.getElementById('destId').value = '';
         renderDestinations();
       } catch (err) {
-        alert(err.message || 'Error al guardar destino');
+        // Restaurar botón en caso de error
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Guardar';
+        
+        if (window.ValidationUtils) {
+          window.ValidationUtils.showError(err.message || 'Error al guardar destino');
+        } else {
+          alert(err.message || 'Error al guardar destino');
+        }
       }
     });
 
@@ -117,10 +210,18 @@
             if (!confirm('¿Eliminar este destino?')) return;
             try {
               await window.DestinationsAPI.delete(id);
-              alert('Destino eliminado');
+              if (window.ValidationUtils) {
+                window.ValidationUtils.showSuccess('Destino eliminado exitosamente');
+              } else {
+                alert('Destino eliminado');
+              }
               renderDestinations(filter);
             } catch (err) {
-              alert(err.message || 'Error al eliminar');
+              if (window.ValidationUtils) {
+                window.ValidationUtils.showError(err.message || 'Error al eliminar destino');
+              } else {
+                alert(err.message || 'Error al eliminar');
+              }
             }
           });
         });
@@ -142,7 +243,11 @@
               
               window.scrollTo(0, 0);
             } catch (err) {
-              alert(err.message || 'Error al cargar destino');
+              if (window.ValidationUtils) {
+                window.ValidationUtils.showError(err.message || 'Error al cargar destino');
+              } else {
+                alert(err.message || 'Error al cargar destino');
+              }
             }
           });
         });

@@ -378,6 +378,44 @@ button:active,.btn:active{transform:translateY(-1px);box-shadow:var(--shadow)}
 .loading p{margin:var(--spacing-sm) 0}
 .error{text-align:center;padding:var(--spacing-xl);color:var(--danger);background:rgba(255,71,87,.1);border-radius:var(--radius-md);border:1px solid rgba(255,71,87,.2)}
 
+/* Estilos para validación de formularios */
+.form-group input.invalid, .form-group textarea.invalid, .form-group select.invalid {
+  border-color: var(--danger) !important;
+  background-color: rgba(255,71,87,.05) !important;
+  box-shadow: 0 0 0 2px rgba(255,71,87,.2) !important;
+}
+
+.form-group input.valid, .form-group textarea.valid, .form-group select.valid {
+  border-color: var(--success) !important;
+  background-color: rgba(107,207,127,.05) !important;
+  box-shadow: 0 0 0 2px rgba(107,207,127,.2) !important;
+}
+
+.field-error {
+  color: var(--danger);
+  font-size: 0.875rem;
+  margin-top: var(--spacing-xs);
+  display: block;
+}
+
+.field-success {
+  color: var(--success);
+  font-size: 0.875rem;
+  margin-top: var(--spacing-xs);
+  display: block;
+}
+
+/* Animación para campos inválidos */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.shake {
+  animation: shake 0.5s ease-in-out;
+}
+
 /* =========================
    Accesibilidad / Motion
    ========================= */
