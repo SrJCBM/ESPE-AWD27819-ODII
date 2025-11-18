@@ -1,32 +1,48 @@
-# Lightweight PHP CLI image with built-in server
-FROM php:8.2-cli
+########### BUILD STAGE ###########
+FROM php:8.2-cli AS build
+ENV COMPOSER_ALLOW_SUPERUSER=1
 
-# Install dependencies for pecl and composer
+# System deps (git for composer downloads, zip support optional, ssl)
 RUN apt-get update \
- && apt-get install -y --no-install-recommends git unzip pkg-config libssl-dev \
- && rm -rf /var/lib/apt/lists/*
+ && apt-get install -y --no-install-recommends git unzip pkg-config libssl-dev libzip-dev \
+ && rm -rf /var/lib/apt/lists/* \
+ && docker-php-ext-install zip || true
 
-# Install MongoDB PHP extension
+# MongoDB extension (required by mongodb/mongodb library)
 RUN pecl install mongodb \
  && docker-php-ext-enable mongodb
 
-# Install Composer
+# Install Composer binary
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
+COPY composer.json composer.lock /app/
+RUN composer install --no-dev --prefer-dist --no-interaction --no-progress
 
-# Copy composer files and install deps
-COPY composer.json /app/
-RUN composer install --no-dev --prefer-dist --no-interaction
-
-# Copy source
+# Copy application sources
 COPY src/ /app/src/
 COPY public/ /app/public/
 COPY docker-entrypoint.sh /app/
-
-# Ensure entrypoint is executable
+COPY bootstrap.php /app/
 RUN chmod +x /app/docker-entrypoint.sh
 
-ENV APP_ENV=production
+########### RUNTIME STAGE ###########
+FROM php:8.2-cli AS runtime
+ENV APP_ENV=production \
+		COMPOSER_ALLOW_SUPERUSER=1
+
+# Only needed runtime libs + mongodb ext
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends libssl-dev libzip-dev \
+ && rm -rf /var/lib/apt/lists/* \
+ && pecl install mongodb \
+ && docker-php-ext-enable mongodb
+
+WORKDIR /app
+COPY --from=build /app /app
+
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+	CMD wget -qO- http://localhost:8080/health.php || exit 1
 
 CMD ["/app/docker-entrypoint.sh"]

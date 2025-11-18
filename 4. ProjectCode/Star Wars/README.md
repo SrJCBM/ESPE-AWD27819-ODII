@@ -59,6 +59,9 @@ Open http://localhost:8080
   - `DB_NAME=sw_db`
   - `COLLECTION_NAME=starships`
 - No Start Command needed (Dockerfile sets entrypoint). Render will pass `PORT` automatically.
+ - Healthcheck: Dockerfile includes `HEALTHCHECK` hitting `/health.php`.
+ - Exposed port: `8080` (Render injects `$PORT`; entrypoint binds to it).
+ - For faster cold starts keep image small: multi-stage build already in place.
 
 ## API
 - `GET /api/starships.php` → list all

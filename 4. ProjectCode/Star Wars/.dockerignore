@@ -1,0 +1,9 @@
+# Ignore dev/local artifacts to shrink build context
+.env
+.git
+.gitignore
+node_modules
+vendor
+tests
+*.log
+Dockerfile.old
