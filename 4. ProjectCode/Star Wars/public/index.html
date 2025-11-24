@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Star Wars Starships — Parsecs → Light Years</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="header">
+    <h1>Star Wars Starships</h1>
+    <p class="subtitle">Parsecs are distance. 1 parsec = 3.26 light-years.</p>
+  </header>
+
+  <section class="toolbar">
+    <button id="btnLoad">Load All</button>
+    <div class="search">
+      <input id="searchName" type="text" placeholder="Find by name (e.g., Falcon)" />
+      <button id="btnSearch">Search</button>
+      <button id="btnReset" class="secondary">Reset</button>
+    </div>
+  </section>
+
+  <section class="form">
+    <h2>Add Starship</h2>
+    <form id="shipForm">
+      <div class="grid">
+        <label>
+          <span>Name</span>
+          <input name="name" required maxlength="100" />
+        </label>
+        <label>
+          <span>Model</span>
+          <input name="model" required maxlength="100" />
+        </label>
+        <label>
+          <span>Manufacturer</span>
+          <input name="manufacturer" required maxlength="120" />
+        </label>
+        <label>
+          <span>Hyperdrive Rating</span>
+          <input name="hyperdriveRating" type="number" step="0.01" min="0.01" required />
+        </label>
+        <label>
+          <span>Max Distance (parsecs)</span>
+          <input id="parsecs" name="maxDistanceParsec" type="number" step="0.01" min="0.01" required />
+        </label>
+        <div class="computed">
+          <span>Computed Light-Years</span>
+          <output id="lightYears">0.00</output>
+        </div>
+      </div>
+      <button id="btnAdd" type="submit">Add Starship</button>
+    </form>
+  </section>
+
+  <section class="results">
+    <h2>Starships</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Model</th>
+            <th>Manufacturer</th>
+            <th>Hyperdrive</th>
+            <th>Max Parsecs</th>
+            <th>Light-Years</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script>
+    window.API_BASE = './api/starships.php';
+    window.LY_PER_PARSEC = 3.26;
+  </script>
+  <script src="./app.js"></script>
+</body>
+</html>
