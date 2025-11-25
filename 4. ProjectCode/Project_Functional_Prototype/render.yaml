@@ -18,6 +18,8 @@ services:
         value: production
       - key: TZ
         value: America/Guayaquil
+      - key: MAPBOX_TOKEN
+        value: pk.eyJ1Ijoic3JqY2JtIiwiYSI6ImNtZ3g0eGV5NDAwZzYya3BvdmFveWU2dnEifQ.yYCrLmlo9lW-AJf56akVCw
       # Opcionales para currency
       # - key: CURRENCY_PROVIDER
       #   value: erapi

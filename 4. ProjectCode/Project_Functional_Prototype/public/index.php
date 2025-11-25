@@ -34,6 +34,7 @@ require __DIR__ . '/../src/Features/Trips/TripRoutes.php';
 require __DIR__ . '/../src/Features/Routes/RouteFavoritesRoutes.php';
 require __DIR__ . '/../src/Features/Currency/CurrencyRoutes.php';
 require __DIR__ . '/../src/Features/Weather/WeatherRoutes.php';
+require __DIR__ . '/../src/Features/Rates/RateRoutes.php';
 
 // ============ HELPERS ============
 function requireAuth(): void {
@@ -85,6 +86,11 @@ $router->get('/auth/register', function () {
 $router->get('/destinations', function () {
   requireAuth();
   readfile(__DIR__ . '/../src/views/destinations/destinations.html');
+});
+
+$router->get('/favorites', function () {
+  requireAuth();
+  readfile(__DIR__ . '/../src/views/destinations/favorites.html');
 });
 
 $router->get('/trips', function () {
