@@ -90,6 +90,20 @@ final class AuthController {
   }
 
   private function normalizeRegistrationData(array $body): array {
+    // Construir 'name' a partir de firstname + lastname si no viene explícito
+    $name = $body['name'] ?? '';
+    if (empty($name)) {
+      $firstname = trim($body['firstname'] ?? '');
+      $lastname = trim($body['lastname'] ?? '');
+      if ($firstname && $lastname) {
+        $name = $firstname . ' ' . $lastname;
+      } elseif ($firstname) {
+        $name = $firstname;
+      } elseif ($lastname) {
+        $name = $lastname;
+      }
+    }
+    
     return [
       'username' => $body['username'] ?? '',
       'email' => $body['email'] ?? '',
@@ -97,7 +111,7 @@ final class AuthController {
       'password_confirm' => $body['password2'] ?? $body['password_confirm'] ?? null,
       'firstname' => $body['firstname'] ?? '',
       'lastname' => $body['lastname'] ?? '',
-      'name' => $body['name'] ?? ''
+      'name' => $name
     ];
   }
 
