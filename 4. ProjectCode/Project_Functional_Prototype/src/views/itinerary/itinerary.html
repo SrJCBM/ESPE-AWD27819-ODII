@@ -5,6 +5,7 @@
 	<meta name="viewport" content="width=device-width,initial-scale=1" />
 	<title>Itinerario - Prototipo</title>
 	<link rel="stylesheet" href="/assets/css/style.css">
+	<link rel="stylesheet" href="/assets/css/itinerary.css">
 	<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 </head>
 <body>
@@ -31,10 +32,21 @@
 			<h2>Generar itinerario inteligente</h2>
 			<div class="form-grid">
 				<label>Seleccionar viaje
-					<select id="itTripSelect" name="trip" required></select>
+					<select id="itTripSelect" name="trip" required>
+						<option value="">-- Selecciona un viaje --</option>
+					</select>
 				</label>
-				<label>Días del viaje
-					<input id="itDays" name="days" type="number" min="1" max="30" value="3" required>
+			</div>
+			
+			<!-- Información del viaje seleccionado (auto-completada) -->
+			<div id="tripInfoBox" class="trip-info-box" style="display:none; margin: 20px 0; padding: 16px; background: #f8f9fa; border-left: 4px solid #4a90e2; border-radius: 4px;">
+				<h3 style="margin: 0 0 12px 0; color: #2c3e50;">📋 Información del viaje</h3>
+				<div id="tripInfo"></div>
+			</div>
+			
+			<div class="form-grid">
+				<label>Días del viaje (calculado automáticamente)
+					<input id="itDays" name="days" type="number" min="1" max="30" value="3" readonly style="background: #e9ecef; cursor: not-allowed;">
 				</label>
 				<label>Tipo de intereses
 					<select id="itInterests" name="interests">
@@ -75,6 +87,7 @@
 	<script src="/config.js"></script>
 	<script src="/assets/js/layout.js"></script>
 	<script src="/assets/js/auth-api.js"></script>
+	<script src="/assets/js/itineraries-api.js"></script>
 	<script src="/assets/js/main.js"></script>
 	<script src="/assets/js/api-gemini.js"></script>
  	<script src="/assets/js/itinerary.js"></script>

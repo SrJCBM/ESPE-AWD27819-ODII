@@ -176,7 +176,104 @@ window.app = (function(){
 		
 		return { html, data };
 	}
-	function saveItinerary(it){ const arr = read(ls.itKey); arr.push({ id: uid('it_'), created: new Date().toISOString(), it }); write(ls.itKey, arr); }
+	async function saveItinerary(it){ 
+		if (!it || !it.data) {
+			console.error('No itinerary data to save');
+			if (window.ValidationUtils) {
+				window.ValidationUtils.showError('No hay datos de itinerario para guardar');
+			}
+			return false;
+		}
+
+		// Validar que tenemos un tripId válido
+		const tripId = it.data.tripId;
+		if (!tripId || tripId === '' || tripId === 'undefined') {
+			console.error('Invalid tripId:', tripId);
+			if (window.ValidationUtils) {
+				window.ValidationUtils.showError('ID de viaje inválido. Por favor selecciona un viaje válido.');
+			}
+			return false;
+		}
+
+		try {
+			// Formatear días correctamente
+			let daysArray = [];
+			
+			if (it.data.travelPlan?.itinerary) {
+				// Formato Gemini
+				daysArray = it.data.travelPlan.itinerary;
+			} else if (it.data.items && Array.isArray(it.data.items)) {
+				// Formato básico - agrupar por día
+				const dayGroups = {};
+				it.data.items.forEach(item => {
+					if (!dayGroups[item.day]) {
+						dayGroups[item.day] = [];
+					}
+					dayGroups[item.day].push(item.activity);
+				});
+				
+				daysArray = Object.keys(dayGroups).map(day => ({
+					dayNumber: parseInt(day),
+					activities: dayGroups[day]
+				}));
+			}
+
+			const payload = {
+				tripId: tripId,
+				totalDays: it.data.days || it.data.totalDays || daysArray.length || 1,
+				days: daysArray,
+				interests: it.data.travelPlan?.interests || it.data.interests || 'cultura',
+				budgetStyle: it.data.travelPlan?.budgetStyle || it.data.budgetStyle || 'medio',
+				generatedBy: it.data.generatedBy || 'basic',
+				destinationId: it.data.destinationId || null,
+				notes: it.data.notes || null
+			};
+
+			console.log('Saving itinerary with payload:', payload);
+
+			const response = await fetch(`/api/trips/${tripId}/itinerary`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				credentials: 'include',
+				body: JSON.stringify(payload)
+			});
+
+			if (!response.ok) {
+				const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }));
+				throw new Error(errorData.error || `HTTP ${response.status}`);
+			}
+
+			const result = await response.json();
+			console.log('Itinerary saved successfully:', result);
+			
+			if (window.ValidationUtils) {
+				window.ValidationUtils.showSuccess('Itinerario guardado exitosamente en la base de datos');
+			}
+			
+			return true;
+		} catch (error) {
+			console.error('Error saving itinerary to API:', error);
+			
+			if (window.ValidationUtils) {
+				window.ValidationUtils.showError(`Error al guardar: ${error.message}. Guardado en local como respaldo.`);
+			}
+			
+			// Fallback a localStorage
+			try {
+				const arr = read(ls.itKey); 
+				arr.push({ id: uid('it_'), created: new Date().toISOString(), it }); 
+				write(ls.itKey, arr);
+				console.log('Itinerary saved to localStorage as fallback');
+			} catch (localError) {
+				console.error('Failed to save to localStorage:', localError);
+				if (window.ValidationUtils) {
+					window.ValidationUtils.showError('No se pudo guardar el itinerario');
+				}
+			}
+			
+			return false;
+		}
+	}
 
 	// Helpers
 	function haversine(lat1, lon1, lat2, lon2){
@@ -290,29 +387,57 @@ window.app = (function(){
 		
 		try {
 			// Intentar cargar desde la API primero
-			const response = await fetch('/api/trips?page=1&size=50');
+			const response = await fetch('/api/trips?page=1&size=50', {
+				credentials: 'include'
+			});
 			
 			if (response.ok) {
 				const data = await response.json();
 				const trips = data.items || [];
-				for (const t of trips) { 
-					el.appendChild(new Option(t.title || t.name, t._id || t.id)); 
+				
+				// Solo mostrar trips con ID válido de MongoDB
+				const validTrips = trips.filter(t => {
+					const id = t._id || t.id;
+					return id && typeof id === 'string' && id.length === 24 && /^[0-9a-fA-F]{24}$/.test(id);
+				});
+				
+				for (const t of validTrips) { 
+					const tripId = t._id || t.id;
+					const tripName = t.title || t.name || t.destination || 'Viaje sin nombre';
+					el.appendChild(new Option(tripName, tripId)); 
 				}
-				return;
+				
+				if (validTrips.length > 0) {
+					console.log(`Loaded ${validTrips.length} trips from API`);
+					return;
+				}
 			}
 		} catch (err) {
-			console.warn('Error cargando trips desde API para selector, usando localStorage:', err.message);
+			console.warn('Error cargando trips desde API para selector:', err.message);
 		}
 		
 		// Fallback: usar localStorage con la clave correcta
+		console.log('Usando trips de localStorage como fallback');
 		try {
 			const localTrips = JSON.parse(localStorage.getItem('trips')) || [];
-			for (const t of localTrips) { 
-				el.appendChild(new Option(t.title || t.name, t._id || t.id)); 
+			
+			// Solo mostrar trips con ID válido
+			const validLocalTrips = localTrips.filter(t => {
+				const id = t._id || t.id;
+				return id && typeof id === 'string' && id.length === 24 && /^[0-9a-fA-F]{24}$/.test(id);
+			});
+			
+			for (const t of validLocalTrips) { 
+				const tripId = t._id || t.id;
+				const tripName = t.title || t.name || t.destination || 'Viaje sin nombre';
+				el.appendChild(new Option(tripName, tripId)); 
 			}
 			
-			// También incluir trips del formato antiguo por compatibilidad
-			const oldTrips = getTrips();
+			// También incluir trips del formato antiguo por compatibilidad (pero sin IDs locales)
+			const oldTrips = getTrips().filter(t => {
+				const id = t._id || t.id;
+				return id && /^[0-9a-fA-F]{24}$/.test(id);
+			});
 			for (const t of oldTrips) { 
 				el.appendChild(new Option(t.name, t.id)); 
 			}

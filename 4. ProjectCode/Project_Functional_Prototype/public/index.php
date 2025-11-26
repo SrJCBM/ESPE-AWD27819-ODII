@@ -35,6 +35,7 @@ require __DIR__ . '/../src/Features/Routes/RouteFavoritesRoutes.php';
 require __DIR__ . '/../src/Features/Currency/CurrencyRoutes.php';
 require __DIR__ . '/../src/Features/Weather/WeatherRoutes.php';
 require __DIR__ . '/../src/Features/Rates/RateRoutes.php';
+require __DIR__ . '/../src/Features/Itinerary/ItineraryRoutes.php';
 
 // ============ HELPERS ============
 function requireAuth(): void {
