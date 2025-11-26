@@ -18,7 +18,7 @@ router.post("/", async (req, res) => {
 // 3. GET /weathers/:id (Buscar)
 router.get("/:id", async (req, res) => {
     const w = await Weather.findById(req.params.id);
-    if (!w) return res.status(404).json({ message: "Weather no encontrado" });
+    if (!w) return res.status(404).json({ message: "Weather  doesn't found" });
     res.json(w);
 });
 
@@ -35,7 +35,7 @@ router.put("/:id", async (req, res) => {
 // 5. DELETE /weathers/:id (Eliminar)
 router.delete("/:id", async (req, res) => {
     await Weather.findByIdAndDelete(req.params.id);
-    res.json({ message: "Weather eliminado" });
+    res.json({ message: "Weather deleted" });
 });
 
 module.exports = router;
