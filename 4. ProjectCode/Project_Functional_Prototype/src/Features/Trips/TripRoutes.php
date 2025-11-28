@@ -4,8 +4,8 @@ use App\Features\Trips\TripController;
 
 $tripController = new TripController();
 
-// GET /api/trips - Listar viajes del usuario
-$router->get('/api/trips', [$tripController, 'index']);
+// GET /api/trips/{page}/{size} - Listar viajes del usuario
+$router->get('/api/trips/{page}/{size}', [$tripController, 'index']);
 
 // GET /api/trips/{id} - Obtener un viaje específico
 $router->get('/api/trips/{id}', [$tripController, 'show']);

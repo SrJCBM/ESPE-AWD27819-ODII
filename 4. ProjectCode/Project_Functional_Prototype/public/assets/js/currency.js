@@ -537,7 +537,7 @@
         if (api && typeof api.listRates === 'function') {
           data = await api.listRates();
         } else {
-          const response = await fetch('/api/currency/rates');
+          const response = await fetch('/api/currency/rates/EUR');
           if (!response.ok) throw new Error('No se pudo obtener la lista de tasas');
           data = await response.json();
         }

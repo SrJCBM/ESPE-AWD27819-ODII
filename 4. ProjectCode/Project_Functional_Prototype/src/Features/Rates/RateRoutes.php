@@ -14,7 +14,7 @@ $router->get('/api/destinations/{id}/rates/stats', [$rateController, 'stats']);
 $router->get('/api/destinations/{id}/rates/me', [$rateController, 'myRate']);
 
 // Calificaciones de un destino específico
-$router->get('/api/destinations/{id}/rates', [$rateController, 'index']);
+$router->get('/api/destinations/{id}/rates/{page}/{size}', [$rateController, 'index']);
 $router->post('/api/destinations/{id}/rate', [$rateController, 'rate']);
 $router->post('/api/destinations/{id}/favorite', [$rateController, 'toggleFavorite']);
 $router->delete('/api/destinations/{id}/rates/me', [$rateController, 'delete']);

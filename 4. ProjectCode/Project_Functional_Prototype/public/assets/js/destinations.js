@@ -177,7 +177,7 @@
       listEl.innerHTML = '<li>Cargando...</li>';
       
       try {
-        const res = await window.DestinationsAPI.list(filter);
+        const res = await window.DestinationsAPI.list(1, 100, filter);
         const destinations = res.items || [];
         
         listEl.innerHTML = '';

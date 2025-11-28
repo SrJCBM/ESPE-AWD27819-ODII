@@ -68,7 +68,7 @@ window.app = (function(){
 	async function getAllTrips() {
 		try {
 			// Intentar desde API primero
-			const response = await fetch('/api/trips?page=1&size=50');
+			const response = await fetch('/api/trips/1/50');
 			if (response.ok) {
 				const data = await response.json();
 				return data.items || [];
@@ -387,7 +387,7 @@ window.app = (function(){
 		
 		try {
 			// Intentar cargar desde la API primero
-			const response = await fetch('/api/trips?page=1&size=50', {
+			const response = await fetch('/api/trips/1/50', {
 				credentials: 'include'
 			});
 			

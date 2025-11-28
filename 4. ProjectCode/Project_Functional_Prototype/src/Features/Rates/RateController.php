@@ -14,12 +14,12 @@ final class RateController {
   }
 
   /**
-   * GET /api/destinations/{destinationId}/rates - Lista calificaciones de un destino
+   * GET /api/destinations/{destinationId}/rates/{page}/{size} - Lista calificaciones de un destino
    */
-  public function index(string $destinationId): void {
+  public function index(string $destinationId, string $page = '1', string $size = '20'): void {
     try {
-      $page = max(1, (int)Request::get('page', 1));
-      $size = max(1, min(100, (int)Request::get('size', 20)));
+      $page = max(1, (int)$page);
+      $size = max(1, min(100, (int)$size));
       
       $rates = $this->service->list($page, $size, null, $destinationId);
       $stats = $this->service->getDestinationStats($destinationId);

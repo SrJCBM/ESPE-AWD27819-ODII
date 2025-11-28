@@ -44,10 +44,11 @@ window.ItinerariesAPI = (function() {
      * @param {boolean} withDetails - Include trip and destination details
      * @returns {Promise<Array>}
      */
-    async getMyItineraries(withDetails = false) {
+    async getMyItineraries(page = 1, size = 10, withDetails = false) {
+      const baseUrl = `${BASE_URL}/users/me/itineraries/${page}/${size}`;
       const url = withDetails 
-        ? `${BASE_URL}/users/me/itineraries?details=true`
-        : `${BASE_URL}/users/me/itineraries`;
+        ? `${baseUrl}?details=true`
+        : baseUrl;
       
       const response = await fetch(url, {
         credentials: 'include'

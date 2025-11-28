@@ -6,7 +6,7 @@
 
   async function list(page=1, size=50){
     try {
-      const data = await globalThis.http.apiJson(`/api/trips?page=${page}&size=${size}`);
+      const data = await globalThis.http.apiJson(`/api/trips/${page}/${size}`);
       if (data && Array.isArray(data.items)) return data.items;
     } catch(e){
       if (e.status === 401) throw e; // bubble up for auth handling

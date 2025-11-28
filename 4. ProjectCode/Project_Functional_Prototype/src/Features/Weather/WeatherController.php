@@ -12,15 +12,15 @@ final class WeatherController {
     $this->service = new WeatherService(new WeatherRepositoryMongo());
   }
 
-  // GET /api/weather/current?lat=&lon=&q=&log=1
-  public function current(): void {
+  // GET /api/weather/current/{lat}/{lon}/{log}
+  public function current(string $lat, string $lon, string $log = '0'): void {
     try {
       // Asegurar sesión para poder obtener userId y registrar historial
       AuthMiddleware::startSession();
-      $lat = (float)Request::get('lat', null);
-      $lon = (float)Request::get('lon', null);
-      $label = (string)Request::get('q', '');
-      $logFlag = (string)Request::get('log', '0') === '1';
+      $lat = (float)$lat;
+      $lon = (float)$lon;
+      $label = '';
+      $logFlag = $log === '1';
       if ($lat === 0.0 && (Request::get('lat', '') === '')) { Response::error('Parámetros faltantes: lat', 400); return; }
       if ($lon === 0.0 && (Request::get('lon', '') === '')) { Response::error('Parámetros faltantes: lon', 400); return; }
       $userId = AuthMiddleware::isAuthenticated() ? AuthMiddleware::getUserId() : null;
@@ -32,13 +32,13 @@ final class WeatherController {
     }
   }
 
-  // GET /api/weather/history?page=&size=
-  public function history(): void {
+  // GET /api/weather/history/{page}/{size}
+  public function history(string $page = '1', string $size = '10'): void {
     try {
       AuthMiddleware::startSession();
       if (!AuthMiddleware::isAuthenticated()) { Response::error('No autenticado', 401); return; }
-      $page = max(1, (int)Request::get('page', 1));
-      $size = max(1, min(50, (int)Request::get('size', 10)));
+      $page = max(1, (int)$page);
+      $size = max(1, min(50, (int)$size));
       $data = $this->service->history(AuthMiddleware::getUserId(), $page, $size);
       Response::json(['ok' => true, 'items' => $data['items'], 'page' => $page, 'size' => $size, 'total' => $data['total']]);
     } catch (\Throwable $e) {

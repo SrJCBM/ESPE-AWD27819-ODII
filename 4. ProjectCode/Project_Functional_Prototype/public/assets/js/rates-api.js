@@ -17,7 +17,7 @@
      * Obtiene las calificaciones de un destino
      */
     async getDestinationRates(destinationId, page = 1, size = 20) {
-      const url = `/api/destinations/${destinationId}/rates?page=${page}&size=${size}`;
+      const url = `/api/destinations/${destinationId}/rates/${page}/${size}`;
       return await apiCall(url);
     },
 

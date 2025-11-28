@@ -14,10 +14,10 @@
   };
 
   window.DestinationsAPI = {
-    async list(search = '') {
-      const params = new URLSearchParams();
-      if (search) params.set('search', search);
-      const url = '/api/destinations' + (params.toString() ? '?' + params.toString() : '');
+    async list(page = 1, size = 10, search = '') {
+      const url = search 
+        ? `/api/destinations/${page}/${size}/${encodeURIComponent(search)}`
+        : `/api/destinations/${page}/${size}`;
       return await apiCall(url);
     },
 

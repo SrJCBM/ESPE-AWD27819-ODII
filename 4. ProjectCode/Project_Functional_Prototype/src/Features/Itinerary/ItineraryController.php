@@ -102,9 +102,9 @@ final class ItineraryController {
   }
 
   /**
-   * GET /api/users/me/itineraries - Obtener todos los itinerarios del usuario
+   * GET /api/users/me/itineraries/{page}/{size} - Obtener todos los itinerarios del usuario
    */
-  public function getUserItineraries(): void {
+  public function getUserItineraries(string $page = '1', string $size = '10'): void {
     try {
       AuthMiddleware::startSession();
       if (!AuthMiddleware::isAuthenticated()) {
@@ -113,6 +113,8 @@ final class ItineraryController {
       }
       
       $userId = AuthMiddleware::getUserId();
+      $page = max(1, (int)$page);
+      $size = max(1, min(100, (int)$size));
       $withDetails = Request::get('details', 'false') === 'true';
 
       if ($withDetails) {

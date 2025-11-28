@@ -17,7 +17,7 @@ async function loadTrips() {
   tripListContainer.innerHTML = '<div class="empty-message">Cargando viajes...</div>';
 
   try {
-    const response = await fetch('/api/trips?page=1&size=50');
+    const response = await fetch('/api/trips/1/50');
 
     // Si la API está disponible y responde OK, usarla
     if (response.ok) {

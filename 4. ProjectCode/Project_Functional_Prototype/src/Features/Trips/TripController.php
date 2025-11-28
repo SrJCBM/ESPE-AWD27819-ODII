@@ -15,10 +15,10 @@ final class TripController {
     $this->service = new TripService($repo);
   }
 
-  public function index(): void {
+  public function index(string $page = '1', string $size = '10'): void {
     try {
-      $page = max(ValidationRules::DEFAULT_PAGE, (int)Request::get('page', ValidationRules::DEFAULT_PAGE));
-      $size = max(1, min(ValidationRules::MAX_PAGE_SIZE, (int)Request::get('size', ValidationRules::DEFAULT_PAGE_SIZE)));
+      $page = max(ValidationRules::DEFAULT_PAGE, (int)$page);
+      $size = max(1, min(ValidationRules::MAX_PAGE_SIZE, (int)$size));
       $userId = AuthMiddleware::getUserId();
 
       if (!$userId) {

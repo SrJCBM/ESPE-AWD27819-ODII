@@ -146,12 +146,12 @@ $router->get('/api/auth/me', [$authController, 'me']);
 $router->post('/api/auth/logout', [$authController, 'logout']);
 
 // ============ API ADMIN USUARIOS ============
-// GET /api/admin/users?page=&size=
-$router->get('/api/admin/users', function () use ($usersCol) {
+// GET /api/admin/users/{page}/{size}
+$router->get('/api/admin/users/{page}/{size}', function ($page, $size) use ($usersCol) {
   try {
     requireAdmin();
-    $page = max(1, (int)Request::get('page', 1));
-    $size = max(1, min(100, (int)Request::get('size', 10)));
+    $page = max(1, (int)$page);
+    $size = max(1, min(100, (int)$size));
     $skip = ($page - 1) * $size;
     
     $cursor = $usersCol->find([], [

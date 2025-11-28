@@ -97,7 +97,7 @@
       } else if (nav.parentElement !== container) {
         container.appendChild(nav);
       }
-      if (heading && nav.previousElementSibling !== heading) {
+      if (heading && heading.nextSibling && heading.parentElement === container && nav.previousElementSibling !== heading) {
         container.insertBefore(nav, heading.nextSibling);
       }
       const existingHrefs = new Set(Array.from(nav.querySelectorAll('a')).map(a => a.getAttribute('href')));
