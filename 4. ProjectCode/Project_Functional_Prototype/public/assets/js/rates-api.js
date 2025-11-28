@@ -62,7 +62,7 @@
      * Obtiene mis calificaciones
      */
     async getMyRates(page = 1, size = 20) {
-      const url = `/api/users/me/rates?page=${page}&size=${size}`;
+      const url = `/api/users/me/rates/${page}/${size}`;
       return await apiCall(url);
     },
 

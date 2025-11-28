@@ -20,7 +20,7 @@ $router->post('/api/destinations/{id}/favorite', [$rateController, 'toggleFavori
 $router->delete('/api/destinations/{id}/rates/me', [$rateController, 'delete']);
 
 // Mis calificaciones y favoritos
-$router->get('/api/users/me/rates', [$rateController, 'myRates']);
+$router->get('/api/users/me/rates/{page}/{size}', [$rateController, 'myRates']);
 $router->get('/api/users/me/favorites', [$rateController, 'myFavorites']);
 
 // CRUD de calificaciones individuales (por ID de rate)
