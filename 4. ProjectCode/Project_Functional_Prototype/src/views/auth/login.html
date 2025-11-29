@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/assets/css/style.css" />
   <link rel="stylesheet" href="/assets/css/auth.css" />
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body class="auth-page">
   <main class="auth-container">
@@ -30,6 +31,8 @@
         <button type="submit" class="btn-auth">Iniciar sesión</button>
 
         <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
+
+        <div id="buttonDiv"></div>
 
         <div class="divider"><span></span></div>
 
@@ -56,5 +59,25 @@
   <script src="/assets/js/layout.js"></script>
   <script src="/assets/js/auth-api.js"></script>
   <script src="/assets/js/auth-login.js"></script>
+  <script>
+  function handleCredentialResponse(response) {
+    // Esta función se ejecuta cuando el usuario se loguea correctamente
+    console.log("Token recibido de Google:", response.credential);
+  }
+
+  window.onload = function () {
+    google.accounts.id.initialize({
+      client_id: "713160370468-sb3jjg16idaaakn3n6fe870nu6cn2h4b.apps.googleusercontent.com",
+      callback: handleCredentialResponse
+    });
+
+    google.accounts.id.renderButton(
+      document.getElementById("buttonDiv"),
+      { theme: "outline", size: "large" }  // Puedes cambiar el estilo aquí
+    );
+
+    google.accounts.id.prompt(); // Muestra también el aviso flotante (One Tap)
+  }
+</script>
 </body>
 </html>
