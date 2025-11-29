@@ -4,7 +4,7 @@
 let ai = null;
 
 function initializeGeminiAI() {
-  const API_KEY = window.AppConfig?.getGeminiApiKey();
+  const API_KEY = "AIzaSyCSfdu4v-uWA386q51qBhy6elQJUNoW78U"; // Reemplazar con AppConfig.GEMINI_API_KEY o similar
   
   if (!API_KEY) {
     console.warn("API_KEY no configurada. Usando modo simulado.");
@@ -112,7 +112,13 @@ Proporciona:
 Responde en español y con información realista y útil.`;
 
   try {
-    const model = ai.getGenerativeModel({ model: "gemini-pro" });
+    const model = ai.getGenerativeModel({
+      model: "gemini-1.5-flash", // Recomendado para velocidad y precisión JSON
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: travelPlanSchema
+      }
+    });
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
