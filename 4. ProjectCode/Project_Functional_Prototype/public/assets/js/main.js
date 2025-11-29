@@ -417,7 +417,7 @@ window.app = (function(){
 		}
 		
 		// Fallback: usar localStorage con la clave correcta
-		console.log('Usando trips de localStorage como fallback');
+		console.info('ℹ️ Cargando viajes desde almacenamiento local');
 		try {
 			const localTrips = JSON.parse(localStorage.getItem('trips')) || [];
 			

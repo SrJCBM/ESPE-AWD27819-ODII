@@ -6,7 +6,11 @@ const api = async (url, opts = {}) => {
     body: opts.body ? JSON.stringify(opts.body) : undefined
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.msg || `HTTP ${res.status}`);
+  if (!res.ok) {
+    // No loggear 401 como error, es un estado esperado cuando no hay sesión
+    const errorMsg = data.msg || (res.status === 401 ? 'No autenticado' : `HTTP ${res.status}`);
+    throw new Error(errorMsg);
+  }
   return data;
 };
 
@@ -88,7 +92,10 @@ window.Auth = {
         }
       }
     }catch(err){
-      console.warn('Auth status check failed:', err);
+      // 401 es esperado cuando no hay sesión, no es un error real
+      if (!err.message.includes('No autenticado') && !err.message.includes('401')) {
+        console.warn('⚠️ Error verificando autenticación:', err.message);
+      }
       // 401 or error -> treat as not logged
       slot.innerHTML = '';
       if (loginLink) loginLink.style.display = '';

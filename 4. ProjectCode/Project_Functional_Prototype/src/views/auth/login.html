@@ -8,7 +8,8 @@
   <link rel="stylesheet" href="/assets/css/style.css" />
   <link rel="stylesheet" href="/assets/css/auth.css" />
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- Google Sign-In temporalmente deshabilitado - requiere configurar origins autorizados en Google Cloud Console -->
+  <!-- <script src="https://accounts.google.com/gsi/client" async defer></script> -->
 </head>
 <body class="auth-page">
   <main class="auth-container">
@@ -32,9 +33,14 @@
 
         <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
 
-        <div id="buttonDiv"></div>
+        <!-- Info: Google Sign-In temporalmente deshabilitado -->
+        <div style="margin: 1.5rem 0; padding: 0.75rem; background: #e3f2fd; border-left: 3px solid #2196f3; border-radius: 4px; font-size: 0.875rem; color: #1565c0;">
+          <strong>ℹ️ Nota:</strong> Google Sign-In está temporalmente deshabilitado. Usa el formulario de login tradicional.
+        </div>
 
-        <div class="divider"><span></span></div>
+        <!-- Google Sign-In temporalmente deshabilitado -->
+        <!-- <div id="buttonDiv"></div>
+        <div class="divider"><span></span></div> -->
 
         <!-- Navega a la ruta limpia que sirve register.html -->
         <a href="/auth/register" class="btn-create-account">Crear cuenta nueva</a>
@@ -59,25 +65,39 @@
   <script src="/assets/js/layout.js"></script>
   <script src="/assets/js/auth-api.js"></script>
   <script src="/assets/js/auth-login.js"></script>
+  <!-- Google Sign-In temporalmente deshabilitado
+       Para habilitarlo:
+       1. Ve a https://console.cloud.google.com/apis/credentials
+       2. Selecciona tu Client ID OAuth 2.0
+       3. Agrega estos orígenes autorizados:
+          - http://localhost:3000
+          - http://127.0.0.1:3000
+          - Tu dominio de producción (si aplica)
+       4. Descomenta este código
+  -->
+  <!--
   <script>
   function handleCredentialResponse(response) {
-    // Esta función se ejecuta cuando el usuario se loguea correctamente
     console.log("Token recibido de Google:", response.credential);
+    // Aquí deberías enviar el token a tu backend para validarlo
   }
 
   window.onload = function () {
-    google.accounts.id.initialize({
-      client_id: "713160370468-sb3jjg16idaaakn3n6fe870nu6cn2h4b.apps.googleusercontent.com",
-      callback: handleCredentialResponse
-    });
+    if (typeof google !== 'undefined' && google.accounts) {
+      google.accounts.id.initialize({
+        client_id: "713160370468-sb3jjg16idaaakn3n6fe870nu6cn2h4b.apps.googleusercontent.com",
+        callback: handleCredentialResponse
+      });
 
-    google.accounts.id.renderButton(
-      document.getElementById("buttonDiv"),
-      { theme: "outline", size: "large" }  // Puedes cambiar el estilo aquí
-    );
+      google.accounts.id.renderButton(
+        document.getElementById("buttonDiv"),
+        { theme: "outline", size: "large" }
+      );
 
-    google.accounts.id.prompt(); // Muestra también el aviso flotante (One Tap)
+      google.accounts.id.prompt();
+    }
   }
-</script>
+  </script>
+  -->
 </body>
 </html>

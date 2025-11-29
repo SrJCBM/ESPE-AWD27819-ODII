@@ -34,7 +34,7 @@ window.AppConfig = {
 // Mostrar notificación si no hay API key configurada
 document.addEventListener('DOMContentLoaded', function() {
     if (!window.AppConfig.hasGeminiKey()) {
-        console.warn('API Key de Gemini no configurada. Usando modo simulado.');
+        console.info('ℹ️ API Key de Gemini no configurada. Usando modo simulado.');
         
         // Mostrar mensaje en páginas de itinerario
         if (window.location.pathname.includes('itinerary')) {
