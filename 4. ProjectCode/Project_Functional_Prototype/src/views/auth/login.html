@@ -8,8 +8,7 @@
   <link rel="stylesheet" href="/assets/css/style.css" />
   <link rel="stylesheet" href="/assets/css/auth.css" />
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-  <!-- Google Sign-In temporalmente deshabilitado - requiere configurar origins autorizados en Google Cloud Console -->
-  <!-- <script src="https://accounts.google.com/gsi/client" async defer></script> -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body class="auth-page">
   <main class="auth-container">
@@ -38,9 +37,8 @@
           <strong>ℹ️ Nota:</strong> Google Sign-In está temporalmente deshabilitado. Usa el formulario de login tradicional.
         </div>
 
-        <!-- Google Sign-In temporalmente deshabilitado -->
-        <!-- <div id="buttonDiv"></div>
-        <div class="divider"><span></span></div> -->
+        <div id="buttonDiv"></div>
+        <div class="divider"><span></span></div>
 
         <!-- Navega a la ruta limpia que sirve register.html -->
         <a href="/auth/register" class="btn-create-account">Crear cuenta nueva</a>
@@ -65,17 +63,6 @@
   <script src="/assets/js/layout.js"></script>
   <script src="/assets/js/auth-api.js"></script>
   <script src="/assets/js/auth-login.js"></script>
-  <!-- Google Sign-In temporalmente deshabilitado
-       Para habilitarlo:
-       1. Ve a https://console.cloud.google.com/apis/credentials
-       2. Selecciona tu Client ID OAuth 2.0
-       3. Agrega estos orígenes autorizados:
-          - http://localhost:3000
-          - http://127.0.0.1:3000
-          - Tu dominio de producción (si aplica)
-       4. Descomenta este código
-  -->
-  <!--
   <script>
   function handleCredentialResponse(response) {
     console.log("Token recibido de Google:", response.credential);
@@ -98,6 +85,5 @@
     }
   }
   </script>
-  -->
 </body>
 </html>
