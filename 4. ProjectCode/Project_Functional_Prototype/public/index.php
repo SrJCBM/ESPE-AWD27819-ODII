@@ -49,11 +49,7 @@ function requireAuth(): void {
 
 function requireAdmin(): void {
   AuthMiddleware::startSession();
-  if (!AuthMiddleware::ensureAdmin()) {
-    http_response_code(403);
-    Response::error('Acceso denegado', 403);
-    exit;
-  }
+  AuthMiddleware::ensureAdmin();
 }
 
 // ============ SESIÓN ============
@@ -125,6 +121,10 @@ $router->get('/itinerary', function () {
 });
 
 // ============ VISTA ADMIN ============
+$router->get('/admin', function () {
+  requireAdmin();
+  readfile(__DIR__ . '/../src/views/admin/index.html');
+});
 $router->get('/admin/users', function () {
   requireAdmin();
   readfile(__DIR__ . '/../src/views/admin/users.html');
@@ -146,6 +146,28 @@ $router->get('/api/auth/me', [$authController, 'me']);
 $router->post('/api/auth/logout', [$authController, 'logout']);
 
 // ============ API ADMIN USUARIOS ============
+// Resumen para métricas del dashboard
+$router->get('/api/admin/metrics', function () use ($usersCol, $mongoDb) {
+  try {
+    requireAdmin();
+    $destinationsCol = $mongoDb->selectCollection('destinations');
+    $tripsCol = $mongoDb->selectCollection('trips');
+    $itinsCol = $mongoDb->selectCollection('itineraries');
+    $routesCol = $mongoDb->selectCollection('favorite_routes');
+
+    $usersTotal = $usersCol->countDocuments();
+    $usersActive = $usersCol->countDocuments(['status' => 'ACTIVE']);
+    $usersDeactivated = $usersCol->countDocuments(['status' => 'DEACTIVATED']);
+    $destinations = $destinationsCol->countDocuments();
+    $trips = $tripsCol->countDocuments();
+    $itineraries = $itinsCol->countDocuments();
+    $routes = $routesCol->countDocuments();
+
+    Response::json(['ok' => true, 'usersTotal' => $usersTotal, 'usersActive' => $usersActive, 'usersDeactivated' => $usersDeactivated, 'destinations' => $destinations, 'trips' => $trips, 'itineraries' => $itineraries, 'routes' => $routes]);
+  } catch (Exception $e) {
+    Response::error('Error métricas: ' . $e->getMessage(), 500);
+  }
+});
 // GET /api/admin/users/{page}/{size}
 $router->get('/api/admin/users/{page}/{size}', function ($page, $size) use ($usersCol) {
   try {
@@ -190,7 +212,7 @@ $router->get('/api/admin/users/{id}', function ($id) use ($usersCol) {
     }
     
     $user = $usersCol->findOne(
-      ['_id' => new ObjectId($id)],
+      ['_id' => new \MongoDB\BSON\ObjectId($id)],
       ['projection' => ['passwordHash' => 0]]
     );
     
@@ -237,7 +259,7 @@ $router->put('/api/admin/users/{id}', function ($id) use ($usersCol) {
     }
     
     $result = $usersCol->updateOne(
-      ['_id' => new ObjectId($id)],
+      ['_id' => new \MongoDB\BSON\ObjectId($id)],
       ['$set' => $updateData]
     );
     
@@ -263,7 +285,7 @@ $router->delete('/api/admin/users/{id}', function ($id) use ($usersCol) {
     }
     
     $result = $usersCol->updateOne(
-      ['_id' => new ObjectId($id)],
+      ['_id' => new \MongoDB\BSON\ObjectId($id)],
       ['$set' => ['status' => UserStatus::DEACTIVATED]]
     );
     
@@ -275,6 +297,114 @@ $router->delete('/api/admin/users/{id}', function ($id) use ($usersCol) {
     Response::json(['ok' => true]);
   } catch (Exception $e) {
     Response::error('Error al desactivar usuario: ' . $e->getMessage(), 500);
+  }
+});
+
+// ============ API ADMIN - DESTINOS ============
+$router->get('/api/admin/destinations/{page}/{size}', function ($page, $size) use ($mongoDb) {
+  try {
+    requireAdmin();
+    $page = max(1, (int)$page);
+    $size = min(100, max(1, (int)$size));
+    $skip = ($page - 1) * $size;
+    
+    $col = $mongoDb->selectCollection('destinations');
+    $total = $col->countDocuments();
+    $items = $col->find([], ['limit' => $size, 'skip' => $skip])->toArray();
+    
+    Response::json(['ok' => true, 'items' => $items, 'total' => $total, 'page' => $page, 'size' => $size]);
+  } catch (Exception $e) {
+    Response::error('Error al cargar destinos: ' . $e->getMessage(), 500);
+  }
+});
+
+// ============ API ADMIN - VIAJES ============
+$router->get('/api/admin/trips/{page}/{size}', function ($page, $size) use ($mongoDb) {
+  try {
+    requireAdmin();
+    $page = max(1, (int)$page);
+    $size = min(100, max(1, (int)$size));
+    $skip = ($page - 1) * $size;
+    
+    $col = $mongoDb->selectCollection('trips');
+    $total = $col->countDocuments();
+    $items = $col->find([], ['limit' => $size, 'skip' => $skip])->toArray();
+    
+    Response::json(['ok' => true, 'items' => $items, 'total' => $total, 'page' => $page, 'size' => $size]);
+  } catch (Exception $e) {
+    Response::error('Error al cargar viajes: ' . $e->getMessage(), 500);
+  }
+});
+
+// ============ API ADMIN - ITINERARIOS ============
+$router->get('/api/admin/itineraries/{page}/{size}', function ($page, $size) use ($mongoDb) {
+  try {
+    requireAdmin();
+    $page = max(1, (int)$page);
+    $size = min(100, max(1, (int)$size));
+    $skip = ($page - 1) * $size;
+    
+    $col = $mongoDb->selectCollection('itineraries');
+    $total = $col->countDocuments();
+    $items = $col->find([], ['limit' => $size, 'skip' => $skip])->toArray();
+    
+    Response::json(['ok' => true, 'items' => $items, 'total' => $total, 'page' => $page, 'size' => $size]);
+  } catch (Exception $e) {
+    Response::error('Error al cargar itinerarios: ' . $e->getMessage(), 500);
+  }
+});
+
+// ============ API ADMIN - RUTAS FAVORITAS ============
+$router->get('/api/admin/routes/{page}/{size}', function ($page, $size) use ($mongoDb) {
+  try {
+    requireAdmin();
+    $page = max(1, (int)$page);
+    $size = min(100, max(1, (int)$size));
+    $skip = ($page - 1) * $size;
+    
+    $col = $mongoDb->selectCollection('favorite_routes');
+    $total = $col->countDocuments();
+    $items = $col->find([], ['limit' => $size, 'skip' => $skip])->toArray();
+    
+    Response::json(['ok' => true, 'items' => $items, 'total' => $total, 'page' => $page, 'size' => $size]);
+  } catch (Exception $e) {
+    Response::error('Error al cargar rutas: ' . $e->getMessage(), 500);
+  }
+});
+
+// ============ API ADMIN - GASTOS ============
+$router->get('/api/admin/expenses/{page}/{size}', function ($page, $size) use ($mongoDb) {
+  try {
+    requireAdmin();
+    $page = max(1, (int)$page);
+    $size = min(100, max(1, (int)$size));
+    $skip = ($page - 1) * $size;
+    
+    $col = $mongoDb->selectCollection('expenses');
+    $total = $col->countDocuments();
+    $items = $col->find([], ['limit' => $size, 'skip' => $skip])->toArray();
+    
+    Response::json(['ok' => true, 'items' => $items, 'total' => $total, 'page' => $page, 'size' => $size]);
+  } catch (Exception $e) {
+    Response::error('Error al cargar gastos: ' . $e->getMessage(), 500);
+  }
+});
+
+// ============ API ADMIN - BÚSQUEDAS CLIMA ============
+$router->get('/api/admin/weather/{page}/{size}', function ($page, $size) use ($mongoDb) {
+  try {
+    requireAdmin();
+    $page = max(1, (int)$page);
+    $size = min(100, max(1, (int)$size));
+    $skip = ($page - 1) * $size;
+    
+    $col = $mongoDb->selectCollection('weather_searches');
+    $total = $col->countDocuments();
+    $items = $col->find([], ['limit' => $size, 'skip' => $skip])->toArray();
+    
+    Response::json(['ok' => true, 'items' => $items, 'total' => $total, 'page' => $page, 'size' => $size]);
+  } catch (Exception $e) {
+    Response::error('Error al cargar búsquedas de clima: ' . $e->getMessage(), 500);
   }
 });
 
