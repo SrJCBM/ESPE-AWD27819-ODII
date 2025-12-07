@@ -28,13 +28,15 @@ use MongoDB\BSON\UTCDateTime;
 $router = new Router();
 
 // 3) Registrar rutas por feature
+// IMPORTANTE: RateRoutes debe ir ANTES de DestinationRoutes
+// porque las rutas de rates son más específicas (/api/destinations/{id}/rates/stats)
 require __DIR__ . '/../src/Features/Users/UserRoutes.php';
+require __DIR__ . '/../src/Features/Rates/RateRoutes.php';
 require __DIR__ . '/../src/Features/Destinations/DestinationRoutes.php';
 require __DIR__ . '/../src/Features/Trips/TripRoutes.php';
 require __DIR__ . '/../src/Features/Routes/RouteFavoritesRoutes.php';
 require __DIR__ . '/../src/Features/Currency/CurrencyRoutes.php';
 require __DIR__ . '/../src/Features/Weather/WeatherRoutes.php';
-require __DIR__ . '/../src/Features/Rates/RateRoutes.php';
 require __DIR__ . '/../src/Features/Itinerary/ItineraryRoutes.php';
 
 // ============ HELPERS ============
