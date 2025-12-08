@@ -6,6 +6,13 @@ const mongoose = require("mongoose");
 // Configure mongoose
 mongoose.set('strictQuery', false);
 
+// Middleware ANTES de conectar a la BD
+app.use(express.json());
+
+// Rutas ANTES de conectar a la BD
+const weatherRoutes = require("./routes/weatherRoutes");
+app.use("/", weatherRoutes);
+
 // Connect to MongoDB with proper options
 mongoose.connect(`mongodb+srv://SrJCBM:bdd2025@cluster0.tjvfmrk.mongodb.net/travel_brain?retryWrites=true&w=majority`, {
     serverSelectionTimeoutMS: 30000,
@@ -24,7 +31,3 @@ mongoose.connect(`mongodb+srv://SrJCBM:bdd2025@cluster0.tjvfmrk.mongodb.net/trav
 const db = mongoose.connection;
 db.on("error", (error) => console.error("MongoDB error:", error));
 db.on("disconnected", () => console.log("MongoDB disconnected"));
-
-app.use(express.json());
-const weatherRoutes = require ("./routes/weatherRoutes");
-app.use("/", weatherRoutes);
