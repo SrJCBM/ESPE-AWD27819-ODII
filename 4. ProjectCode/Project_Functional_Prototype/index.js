@@ -27,4 +27,4 @@ db.on("disconnected", () => console.log("MongoDB disconnected"));
 
 app.use(express.json());
 const weatherRoutes = require ("./routes/weatherRoutes");
-app.use("/travel-brain", weatherRoutes);
+app.use("/", weatherRoutes);
