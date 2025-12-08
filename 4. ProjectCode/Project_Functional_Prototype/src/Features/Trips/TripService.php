@@ -37,6 +37,8 @@ final class TripService {
   }
 
   public function create(array $input, string $userId): string {
+    // Normalizar campos (acepta camelCase o snake_case)
+    $input = $this->validator->normalize($input);
     $this->validator->validateForCreate($input);
     
   $startDate = \DateTime::createFromFormat('Y-m-d', $input['start_date']);
@@ -70,6 +72,8 @@ final class TripService {
       throw new \DomainException('No tienes permiso para editar este viaje');
     }
     
+    // Normalizar campos (acepta camelCase o snake_case)
+    $input = $this->validator->normalize($input);
     $this->validator->validateForUpdate($input);
     
     $updateData = ['updatedAt' => new UTCDateTime()];

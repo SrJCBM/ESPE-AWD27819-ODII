@@ -77,6 +77,7 @@ final class AuthController {
       }
 
       $user['_id'] = (string)$user['_id'];
+      $user = $this->formatUserDates($user);
       Response::json(['ok' => true, 'user' => $user]);
     } catch (\Throwable $exception) {
       error_log('Error en me(): ' . $exception->getMessage());
@@ -156,6 +157,40 @@ final class AuthController {
       return $doc;
     }
     return (array)$doc;
+  }
+
+  /**
+   * Formatea las fechas del usuario para respuesta JSON
+   */
+  private function formatUserDates(array $user): array {
+    $dateFields = ['createdAt', 'updatedAt', 'lastLogin'];
+    
+    foreach ($dateFields as $field) {
+      if (isset($user[$field])) {
+        $user[$field] = $this->formatMongoDate($user[$field]);
+      }
+    }
+    
+    return $user;
+  }
+
+  /**
+   * Convierte fecha MongoDB a string legible
+   */
+  private function formatMongoDate($date): string {
+    if ($date instanceof \MongoDB\BSON\UTCDateTime) {
+      return $date->toDateTime()->format('Y-m-d H:i:s');
+    }
+    if (is_object($date) && method_exists($date, 'toDateTime')) {
+      return $date->toDateTime()->format('Y-m-d H:i:s');
+    }
+    if (is_array($date) && isset($date['$date'])) {
+      if (isset($date['$date']['$numberLong'])) {
+        $timestamp = (int)$date['$date']['$numberLong'] / 1000;
+        return date('Y-m-d H:i:s', (int)$timestamp);
+      }
+    }
+    return (string)$date;
   }
 
   private function isValidCredentials(?array $user, string $password): bool {

@@ -40,7 +40,7 @@ final class DestinationRepositoryMongo implements DestinationRepositoryInterface
     return array_map(function($d) {
       $arr = (array)$d;
       $arr['_id'] = (string)$arr['_id'];
-      return $arr;
+      return $this->formatDates($arr);
     }, iterator_to_array($cursor));
   }
 
@@ -51,7 +51,7 @@ final class DestinationRepositoryMongo implements DestinationRepositoryInterface
       
       $arr = (array)$doc;
       $arr['_id'] = (string)$arr['_id'];
-      return $arr;
+      return $this->formatDates($arr);
     } catch (\Exception $e) {
       return null;
     }
@@ -89,6 +89,40 @@ final class DestinationRepositoryMongo implements DestinationRepositoryInterface
     } catch (\Exception $e) {
       return false;
     }
+  }
+
+  /**
+   * Formatea fechas MongoDB a string legible
+   */
+  private function formatDates(array $doc): array {
+    $dateFields = ['createdAt', 'updatedAt'];
+    foreach ($dateFields as $field) {
+      if (isset($doc[$field])) {
+        $doc[$field] = $this->formatDate($doc[$field]);
+      }
+    }
+    return $doc;
+  }
+
+  private function formatDate($date): string {
+    if ($date === null) return '';
+    
+    if ($date instanceof UTCDateTime) {
+      return $date->toDateTime()->format('Y-m-d H:i:s');
+    }
+    
+    if (is_array($date) || is_object($date)) {
+      $arr = (array)$date;
+      if (isset($arr['$date'])) {
+        $inner = (array)$arr['$date'];
+        if (isset($inner['$numberLong'])) {
+          $ts = (int)$inner['$numberLong'] / 1000;
+          return date('Y-m-d H:i:s', (int)$ts);
+        }
+      }
+    }
+    
+    return is_string($date) ? $date : '';
   }
 }
 

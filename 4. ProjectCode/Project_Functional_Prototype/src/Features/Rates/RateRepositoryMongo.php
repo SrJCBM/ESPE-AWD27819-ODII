@@ -14,6 +14,40 @@ final class RateRepositoryMongo {
   }
 
   /**
+   * Formatea un documento para respuesta JSON (convierte fechas)
+   */
+  private function formatForResponse(array $arr): array {
+    // Formatear createdAt
+    if (isset($arr['createdAt'])) {
+      $arr['createdAt'] = $this->formatDate($arr['createdAt']);
+    }
+    // Formatear updatedAt
+    if (isset($arr['updatedAt'])) {
+      $arr['updatedAt'] = $this->formatDate($arr['updatedAt']);
+    }
+    return $arr;
+  }
+
+  /**
+   * Convierte UTCDateTime o fecha MongoDB a string legible
+   */
+  private function formatDate($date): string {
+    if ($date instanceof UTCDateTime) {
+      return $date->toDateTime()->format('Y-m-d H:i:s');
+    }
+    if (is_object($date) && method_exists($date, 'toDateTime')) {
+      return $date->toDateTime()->format('Y-m-d H:i:s');
+    }
+    if (is_array($date) && isset($date['$date'])) {
+      if (isset($date['$date']['$numberLong'])) {
+        $timestamp = (int)$date['$date']['$numberLong'] / 1000;
+        return date('Y-m-d H:i:s', $timestamp);
+      }
+    }
+    return (string)$date;
+  }
+
+  /**
    * Encuentra todas las calificaciones con paginación
    */
   public function findAll(int $page = 1, int $size = 20, ?string $userId = null, ?string $destinationId = null): array {
@@ -40,7 +74,7 @@ final class RateRepositoryMongo {
       $rate = Rate::fromDocument($doc);
       $arr = $rate->toArray();
       $arr['_id'] = (string)$arr['_id'];
-      $items[] = $arr;
+      $items[] = $this->formatForResponse($arr);
     }
     
     return $items;
@@ -59,7 +93,7 @@ final class RateRepositoryMongo {
       $rate = Rate::fromDocument($doc);
       $arr = $rate->toArray();
       $arr['_id'] = (string)$arr['_id'];
-      return $arr;
+      return $this->formatForResponse($arr);
     } catch (\Exception $e) {
       return null;
     }
@@ -81,7 +115,7 @@ final class RateRepositoryMongo {
     $rate = Rate::fromDocument($doc);
     $arr = $rate->toArray();
     $arr['_id'] = (string)$arr['_id'];
-    return $arr;
+    return $this->formatForResponse($arr);
   }
 
   /**
@@ -135,20 +169,58 @@ final class RateRepositoryMongo {
       ['$group' => [
         '_id' => '$destinationId',
         'avgRating' => ['$avg' => '$rating'],
-        'totalRatings' => ['$sum' => 1]
+        'totalRatings' => ['$sum' => 1],
+        'totalFavorites' => ['$sum' => ['$cond' => [['$eq' => ['$favorite', true]], 1, 0]]]
       ]]
     ];
     
     $result = $this->collection->aggregate($pipeline)->toArray();
     
     if (empty($result)) {
-      return ['avgRating' => 0, 'totalRatings' => 0];
+      return [
+        'avgRating' => 0, 
+        'totalRatings' => 0, 
+        'totalFavorites' => 0,
+        'distribution' => ['1' => 0, '2' => 0, '3' => 0, '4' => 0, '5' => 0]
+      ];
     }
+    
+    // Obtener distribución de ratings
+    $distribution = $this->getRatingDistribution($destinationId);
     
     return [
       'avgRating' => round($result[0]['avgRating'], 1),
-      'totalRatings' => $result[0]['totalRatings']
+      'totalRatings' => $result[0]['totalRatings'],
+      'totalFavorites' => $result[0]['totalFavorites'],
+      'distribution' => $distribution
     ];
+  }
+
+  /**
+   * Obtiene la distribución de calificaciones (1-5 estrellas)
+   */
+  public function getRatingDistribution(string $destinationId): array {
+    $pipeline = [
+      ['$match' => ['destinationId' => $destinationId]],
+      ['$group' => [
+        '_id' => '$rating',
+        'count' => ['$sum' => 1]
+      ]]
+    ];
+    
+    $result = $this->collection->aggregate($pipeline)->toArray();
+    
+    // Inicializar distribución con 0s
+    $distribution = ['1' => 0, '2' => 0, '3' => 0, '4' => 0, '5' => 0];
+    
+    foreach ($result as $item) {
+      $rating = (string)$item['_id'];
+      if (isset($distribution[$rating])) {
+        $distribution[$rating] = $item['count'];
+      }
+    }
+    
+    return $distribution;
   }
 
   /**
@@ -182,7 +254,7 @@ final class RateRepositoryMongo {
       $rate = Rate::fromDocument($doc);
       $arr = $rate->toArray();
       $arr['_id'] = (string)$arr['_id'];
-      $items[] = $arr;
+      $items[] = $this->formatForResponse($arr);
     }
     
     return $items;

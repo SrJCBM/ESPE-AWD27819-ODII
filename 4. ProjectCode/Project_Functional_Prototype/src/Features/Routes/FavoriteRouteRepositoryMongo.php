@@ -4,6 +4,7 @@ namespace App\Features\Routes;
 use App\Core\Database\MongoConnection;
 use MongoDB\Collection;
 use MongoDB\BSON\ObjectId;
+use MongoDB\BSON\UTCDateTime;
 
 final class FavoriteRouteRepositoryMongo {
 	private Collection $collection;
@@ -28,11 +29,51 @@ final class FavoriteRouteRepositoryMongo {
 			['userId' => $userId],
 			['sort' => ['createdAt' => -1], 'skip' => $skip, 'limit' => $limit]
 		);
-		return iterator_to_array($cursor);
+		return array_map(fn($doc) => $this->formatDates((array)$doc), iterator_to_array($cursor));
 	}
 
 	public function countByUser(string $userId): int {
 		return $this->collection->countDocuments(['userId' => $userId]);
+	}
+
+	/**
+	 * Formatea fechas MongoDB a string legible
+	 */
+	private function formatDates(array $doc): array {
+		$dateFields = ['createdAt', 'updatedAt'];
+		
+		// Convertir _id a string
+		if (isset($doc['_id'])) {
+			$doc['_id'] = (string)$doc['_id'];
+		}
+		
+		foreach ($dateFields as $field) {
+			if (isset($doc[$field])) {
+				$doc[$field] = $this->formatDate($doc[$field]);
+			}
+		}
+		return $doc;
+	}
+
+	private function formatDate($date): string {
+		if ($date === null) return '';
+		
+		if ($date instanceof UTCDateTime) {
+			return $date->toDateTime()->format('Y-m-d H:i:s');
+		}
+		
+		if (is_array($date) || is_object($date)) {
+			$arr = (array)$date;
+			if (isset($arr['$date'])) {
+				$inner = (array)$arr['$date'];
+				if (isset($inner['$numberLong'])) {
+					$ts = (int)$inner['$numberLong'] / 1000;
+					return date('Y-m-d H:i:s', (int)$ts);
+				}
+			}
+		}
+		
+		return is_string($date) ? $date : '';
 	}
 }
 

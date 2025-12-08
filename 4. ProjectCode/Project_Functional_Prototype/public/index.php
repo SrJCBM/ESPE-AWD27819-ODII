@@ -28,8 +28,6 @@ use MongoDB\BSON\UTCDateTime;
 $router = new Router();
 
 // 3) Registrar rutas por feature
-// IMPORTANTE: RateRoutes debe ir ANTES de DestinationRoutes
-// porque las rutas de rates son más específicas (/api/destinations/{id}/rates/stats)
 require __DIR__ . '/../src/Features/Users/UserRoutes.php';
 require __DIR__ . '/../src/Features/Rates/RateRoutes.php';
 require __DIR__ . '/../src/Features/Destinations/DestinationRoutes.php';
@@ -52,6 +50,72 @@ function requireAuth(): void {
 function requireAdmin(): void {
   AuthMiddleware::startSession();
   AuthMiddleware::ensureAdmin();
+}
+
+/**
+ * Formatea una fecha MongoDB a string legible
+ */
+function formatMongoDate($date): string {
+  if ($date === null) return '';
+  
+  // Si es UTCDateTime de MongoDB
+  if ($date instanceof \MongoDB\BSON\UTCDateTime) {
+    return $date->toDateTime()->format('Y-m-d H:i:s');
+  }
+  
+  // Si es un array con formato $date.$numberLong (JSON extendido)
+  if (is_array($date) || is_object($date)) {
+    $arr = (array)$date;
+    if (isset($arr['$date'])) {
+      $inner = (array)$arr['$date'];
+      if (isset($inner['$numberLong'])) {
+        $ts = (int)$inner['$numberLong'] / 1000;
+        return date('Y-m-d H:i:s', (int)$ts);
+      }
+    }
+  }
+  
+  // Si ya es string
+  if (is_string($date)) {
+    return $date;
+  }
+  
+  return '';
+}
+
+/**
+ * Formatea fechas en un documento MongoDB
+ */
+function formatDocumentDates(array $doc): array {
+  $dateFields = ['createdAt', 'updatedAt', 'startDate', 'endDate', 'date', 'searchedAt'];
+  
+  foreach ($dateFields as $field) {
+    if (isset($doc[$field])) {
+      $doc[$field] = formatMongoDate($doc[$field]);
+    }
+  }
+  
+  // Convertir _id a string
+  if (isset($doc['_id'])) {
+    $doc['_id'] = (string)$doc['_id'];
+  }
+  
+  // Convertir userId a string
+  if (isset($doc['userId'])) {
+    $doc['userId'] = (string)$doc['userId'];
+  }
+  
+  // Convertir tripId a string
+  if (isset($doc['tripId'])) {
+    $doc['tripId'] = (string)$doc['tripId'];
+  }
+  
+  // Convertir destinationId a string
+  if (isset($doc['destinationId'])) {
+    $doc['destinationId'] = (string)$doc['destinationId'];
+  }
+  
+  return $doc;
 }
 
 // ============ SESIÓN ============
@@ -186,8 +250,7 @@ $router->get('/api/admin/users/{page}/{size}', function ($page, $size) use ($use
     ]);
     
     $items = array_map(function($user) {
-      $user['_id'] = (string)$user['_id'];
-      return $user;
+      return formatDocumentDates((array)$user);
     }, iterator_to_array($cursor));
     
     $total = $usersCol->countDocuments();
@@ -223,7 +286,7 @@ $router->get('/api/admin/users/{id}', function ($id) use ($usersCol) {
       return;
     }
     
-    $user['_id'] = (string)$user['_id'];
+    $user = formatDocumentDates((array)$user);
     Response::json(['ok' => true, 'user' => $user]);
   } catch (Exception $e) {
     Response::error('Error al obtener usuario: ' . $e->getMessage(), 500);
@@ -312,7 +375,8 @@ $router->get('/api/admin/destinations/{page}/{size}', function ($page, $size) us
     
     $col = $mongoDb->selectCollection('destinations');
     $total = $col->countDocuments();
-    $items = $col->find([], ['limit' => $size, 'skip' => $skip])->toArray();
+    $cursor = $col->find([], ['limit' => $size, 'skip' => $skip]);
+    $items = array_map(fn($doc) => formatDocumentDates((array)$doc), iterator_to_array($cursor));
     
     Response::json(['ok' => true, 'items' => $items, 'total' => $total, 'page' => $page, 'size' => $size]);
   } catch (Exception $e) {
@@ -330,7 +394,8 @@ $router->get('/api/admin/trips/{page}/{size}', function ($page, $size) use ($mon
     
     $col = $mongoDb->selectCollection('trips');
     $total = $col->countDocuments();
-    $items = $col->find([], ['limit' => $size, 'skip' => $skip])->toArray();
+    $cursor = $col->find([], ['limit' => $size, 'skip' => $skip]);
+    $items = array_map(fn($doc) => formatDocumentDates((array)$doc), iterator_to_array($cursor));
     
     Response::json(['ok' => true, 'items' => $items, 'total' => $total, 'page' => $page, 'size' => $size]);
   } catch (Exception $e) {
@@ -348,7 +413,8 @@ $router->get('/api/admin/itineraries/{page}/{size}', function ($page, $size) use
     
     $col = $mongoDb->selectCollection('itineraries');
     $total = $col->countDocuments();
-    $items = $col->find([], ['limit' => $size, 'skip' => $skip])->toArray();
+    $cursor = $col->find([], ['limit' => $size, 'skip' => $skip]);
+    $items = array_map(fn($doc) => formatDocumentDates((array)$doc), iterator_to_array($cursor));
     
     Response::json(['ok' => true, 'items' => $items, 'total' => $total, 'page' => $page, 'size' => $size]);
   } catch (Exception $e) {
@@ -366,7 +432,8 @@ $router->get('/api/admin/routes/{page}/{size}', function ($page, $size) use ($mo
     
     $col = $mongoDb->selectCollection('favorite_routes');
     $total = $col->countDocuments();
-    $items = $col->find([], ['limit' => $size, 'skip' => $skip])->toArray();
+    $cursor = $col->find([], ['limit' => $size, 'skip' => $skip]);
+    $items = array_map(fn($doc) => formatDocumentDates((array)$doc), iterator_to_array($cursor));
     
     Response::json(['ok' => true, 'items' => $items, 'total' => $total, 'page' => $page, 'size' => $size]);
   } catch (Exception $e) {
@@ -384,7 +451,8 @@ $router->get('/api/admin/expenses/{page}/{size}', function ($page, $size) use ($
     
     $col = $mongoDb->selectCollection('expenses');
     $total = $col->countDocuments();
-    $items = $col->find([], ['limit' => $size, 'skip' => $skip])->toArray();
+    $cursor = $col->find([], ['limit' => $size, 'skip' => $skip]);
+    $items = array_map(fn($doc) => formatDocumentDates((array)$doc), iterator_to_array($cursor));
     
     Response::json(['ok' => true, 'items' => $items, 'total' => $total, 'page' => $page, 'size' => $size]);
   } catch (Exception $e) {
@@ -402,7 +470,8 @@ $router->get('/api/admin/weather/{page}/{size}', function ($page, $size) use ($m
     
     $col = $mongoDb->selectCollection('weather_searches');
     $total = $col->countDocuments();
-    $items = $col->find([], ['limit' => $size, 'skip' => $skip])->toArray();
+    $cursor = $col->find([], ['limit' => $size, 'skip' => $skip]);
+    $items = array_map(fn($doc) => formatDocumentDates((array)$doc), iterator_to_array($cursor));
     
     Response::json(['ok' => true, 'items' => $items, 'total' => $total, 'page' => $page, 'size' => $size]);
   } catch (Exception $e) {
