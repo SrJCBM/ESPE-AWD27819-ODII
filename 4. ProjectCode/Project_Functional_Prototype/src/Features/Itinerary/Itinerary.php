@@ -47,6 +47,9 @@ final class Itinerary {
   }
 
   public function toArray(): array {
+    // Usar timezone configurado (America/Guayaquil = UTC-5)
+    $tz = new \DateTimeZone(date_default_timezone_get());
+    
     return [
       '_id' => $this->id ? (string)$this->id : null,
       'userId' => (string)$this->userId,
@@ -58,8 +61,8 @@ final class Itinerary {
       'budgetStyle' => $this->budgetStyle,
       'generatedBy' => $this->generatedBy,
       'notes' => $this->notes,
-      'createdAt' => $this->createdAt->toDateTime()->format('c'),
-      'updatedAt' => $this->updatedAt->toDateTime()->format('c'),
+      'createdAt' => $this->createdAt->toDateTime()->setTimezone($tz)->format('Y-m-d H:i:s'),
+      'updatedAt' => $this->updatedAt->toDateTime()->setTimezone($tz)->format('Y-m-d H:i:s'),
     ];
   }
 

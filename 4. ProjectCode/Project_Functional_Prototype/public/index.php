@@ -53,14 +53,17 @@ function requireAdmin(): void {
 }
 
 /**
- * Formatea una fecha MongoDB a string legible
+ * Formatea una fecha MongoDB a string legible (usando timezone configurado)
  */
 function formatMongoDate($date): string {
   if ($date === null) return '';
   
+  // Timezone configurado (America/Guayaquil = UTC-5)
+  $tz = new \DateTimeZone(date_default_timezone_get());
+  
   // Si es UTCDateTime de MongoDB
   if ($date instanceof \MongoDB\BSON\UTCDateTime) {
-    return $date->toDateTime()->format('Y-m-d H:i:s');
+    return $date->toDateTime()->setTimezone($tz)->format('Y-m-d H:i:s');
   }
   
   // Si es un array con formato $date.$numberLong (JSON extendido)
@@ -70,6 +73,7 @@ function formatMongoDate($date): string {
       $inner = (array)$arr['$date'];
       if (isset($inner['$numberLong'])) {
         $ts = (int)$inner['$numberLong'] / 1000;
+        // date() ya usa el timezone por defecto de PHP
         return date('Y-m-d H:i:s', (int)$ts);
       }
     }

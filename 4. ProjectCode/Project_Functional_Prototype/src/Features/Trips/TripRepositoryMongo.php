@@ -17,7 +17,7 @@ final class TripRepositoryMongo {
   public function findById(string $id): ?array {
     try {
       $trip = $this->collection->findOne(['_id' => new ObjectId($id)]);
-      return $trip ? $this->formatDates((array)$trip) : null;
+      return $trip ? (array)$trip : null;
     } catch (\Exception $e) {
       error_log('Error finding trip by id: ' . $e->getMessage());
       return null;
@@ -35,7 +35,7 @@ final class TripRepositoryMongo {
         ]
       );
       
-      return array_map(fn($doc) => $this->formatDates((array)$doc), iterator_to_array($cursor));
+      return array_map(fn($doc) => (array)$doc, iterator_to_array($cursor));
     } catch (\Exception $e) {
       error_log('Error finding trips by user: ' . $e->getMessage());
       return [];
@@ -91,45 +91,5 @@ final class TripRepositoryMongo {
       error_log('Error deleting trip: ' . $e->getMessage());
       return false;
     }
-  }
-
-  /**
-   * Formatea fechas MongoDB a string legible
-   */
-  private function formatDates(array $doc): array {
-    $dateFields = ['createdAt', 'updatedAt', 'startDate', 'endDate'];
-    
-    // Convertir _id a string
-    if (isset($doc['_id'])) {
-      $doc['_id'] = (string)$doc['_id'];
-    }
-    
-    foreach ($dateFields as $field) {
-      if (isset($doc[$field])) {
-        $doc[$field] = $this->formatDate($doc[$field]);
-      }
-    }
-    return $doc;
-  }
-
-  private function formatDate($date): string {
-    if ($date === null) return '';
-    
-    if ($date instanceof UTCDateTime) {
-      return $date->toDateTime()->format('Y-m-d H:i:s');
-    }
-    
-    if (is_array($date) || is_object($date)) {
-      $arr = (array)$date;
-      if (isset($arr['$date'])) {
-        $inner = (array)$arr['$date'];
-        if (isset($inner['$numberLong'])) {
-          $ts = (int)$inner['$numberLong'] / 1000;
-          return date('Y-m-d H:i:s', (int)$ts);
-        }
-      }
-    }
-    
-    return is_string($date) ? $date : '';
   }
 }

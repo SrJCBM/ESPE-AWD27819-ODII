@@ -175,18 +175,22 @@ final class AuthController {
   }
 
   /**
-   * Convierte fecha MongoDB a string legible
+   * Convierte fecha MongoDB a string legible (usando timezone configurado)
    */
   private function formatMongoDate($date): string {
+    // Timezone configurado (America/Guayaquil = UTC-5)
+    $tz = new \DateTimeZone(date_default_timezone_get());
+    
     if ($date instanceof \MongoDB\BSON\UTCDateTime) {
-      return $date->toDateTime()->format('Y-m-d H:i:s');
+      return $date->toDateTime()->setTimezone($tz)->format('Y-m-d H:i:s');
     }
     if (is_object($date) && method_exists($date, 'toDateTime')) {
-      return $date->toDateTime()->format('Y-m-d H:i:s');
+      return $date->toDateTime()->setTimezone($tz)->format('Y-m-d H:i:s');
     }
     if (is_array($date) && isset($date['$date'])) {
       if (isset($date['$date']['$numberLong'])) {
         $timestamp = (int)$date['$date']['$numberLong'] / 1000;
+        // date() ya usa el timezone por defecto de PHP
         return date('Y-m-d H:i:s', (int)$timestamp);
       }
     }
