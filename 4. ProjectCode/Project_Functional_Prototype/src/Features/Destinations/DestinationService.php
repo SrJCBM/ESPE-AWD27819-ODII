@@ -30,14 +30,25 @@ final class DestinationService {
     $input = $this->normalizePlaceInput($input);
     $this->validator->validateForCreate($input);
     
+    $name = trim($input['name']);
+    $country = trim($input['country']);
+    
+    // DESTINOS COMPARTIDOS: Buscar si ya existe un destino con el mismo nombre y país
+    $existing = $this->repo->findByName($name, $country);
+    if ($existing) {
+      // Retornar el ID del destino existente para que todos los usuarios compartan el mismo
+      return $existing['_id'];
+    }
+    
+    // Si no existe, crear uno nuevo (sin userId para que sea compartido)
     $data = [
-      'name' => trim($input['name']),
-      'country' => trim($input['country']),
+      'name' => $name,
+      'country' => $country,
       'description' => trim($input['description'] ?? ''),
       'lat' => isset($input['lat']) && $input['lat'] !== '' ? (float)$input['lat'] : null,
       'lng' => isset($input['lng']) && $input['lng'] !== '' ? (float)$input['lng'] : null,
       'img' => !empty($input['img']) ? trim($input['img']) : null,
-      'userId' => $userId
+      'userId' => null  // Destinos compartidos no tienen dueño
     ];
 
     return $this->repo->create((new Destination($data))->toArray());

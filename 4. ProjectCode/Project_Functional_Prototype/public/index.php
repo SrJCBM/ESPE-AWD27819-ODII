@@ -483,6 +483,79 @@ $router->get('/api/admin/weather/{page}/{size}', function ($page, $size) use ($m
   }
 });
 
+// ============ API ADMIN - CALIFICACIONES (RATES) ============
+$router->get('/api/admin/rates/{page}/{size}', function ($page, $size) use ($mongoDb) {
+  try {
+    requireAdmin();
+    $page = max(1, (int)$page);
+    $size = min(100, max(1, (int)$size));
+    $skip = ($page - 1) * $size;
+    
+    $col = $mongoDb->selectCollection('rates');
+    $total = $col->countDocuments();
+    $cursor = $col->find([], ['limit' => $size, 'skip' => $skip, 'sort' => ['createdAt' => -1]]);
+    $items = array_map(fn($doc) => formatDocumentDates((array)$doc), iterator_to_array($cursor));
+    
+    Response::json(['ok' => true, 'items' => $items, 'total' => $total, 'page' => $page, 'size' => $size]);
+  } catch (Exception $e) {
+    Response::error('Error al cargar calificaciones: ' . $e->getMessage(), 500);
+  }
+});
+
+// ============ API ADMIN - ESTADÍSTICAS DE DESTINOS CON RATINGS ============
+$router->get('/api/admin/destinations-stats', function () use ($mongoDb) {
+  try {
+    requireAdmin();
+    
+    // Agregación: obtener destinos con sus estadísticas de ratings
+    $destinationsCol = $mongoDb->selectCollection('destinations');
+    $ratesCol = $mongoDb->selectCollection('rates');
+    
+    // Obtener todos los destinos
+    $destinations = iterator_to_array($destinationsCol->find([], ['limit' => 100]));
+    
+    $results = [];
+    foreach ($destinations as $dest) {
+      $destId = (string)$dest['_id'];
+      
+      // Calcular estadísticas de este destino
+      $pipeline = [
+        ['$match' => ['destinationId' => $destId]],
+        ['$group' => [
+          '_id' => '$destinationId',
+          'avgRating' => ['$avg' => '$rating'],
+          'totalRatings' => ['$sum' => 1],
+          'totalFavorites' => ['$sum' => ['$cond' => [['$eq' => ['$favorite', true]], 1, 0]]]
+        ]]
+      ];
+      
+      $stats = iterator_to_array($ratesCol->aggregate($pipeline));
+      
+      $results[] = [
+        '_id' => $destId,
+        'name' => $dest['name'] ?? 'Sin nombre',
+        'country' => $dest['country'] ?? '',
+        'userId' => (string)($dest['userId'] ?? ''),
+        'avgRating' => !empty($stats) ? round($stats[0]['avgRating'], 1) : 0,
+        'totalRatings' => !empty($stats) ? $stats[0]['totalRatings'] : 0,
+        'totalFavorites' => !empty($stats) ? $stats[0]['totalFavorites'] : 0,
+        'createdAt' => formatMongoDate($dest['createdAt'] ?? null)
+      ];
+    }
+    
+    // Ordenar por avgRating descendente
+    usort($results, fn($a, $b) => $b['avgRating'] <=> $a['avgRating']);
+    
+    Response::json([
+      'ok' => true,
+      'items' => $results,
+      'total' => count($results)
+    ]);
+  } catch (Exception $e) {
+    Response::error('Error al cargar estadísticas: ' . $e->getMessage(), 500);
+  }
+});
+
 // GET /health
 $router->get('/health', function () use ($mongoDb) {
   try {

@@ -27,7 +27,14 @@
     async getDestinationStats(destinationId) {
       const url = `/api/destinations/${destinationId}/rates/stats`;
       const result = await apiCall(url);
-      return result.stats || { averageRating: 0, totalRatings: 0 };
+      const stats = result.stats || { avgRating: 0, totalRatings: 0 };
+      // Normalizar nombre del campo para el frontend
+      return {
+        averageRating: stats.avgRating || 0,
+        totalRatings: stats.totalRatings || 0,
+        totalFavorites: stats.totalFavorites || 0,
+        distribution: stats.distribution || {}
+      };
     },
 
     /**

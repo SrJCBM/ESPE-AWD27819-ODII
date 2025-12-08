@@ -21,6 +21,64 @@
   font-size: 13px;
 }
 
+/* Stats Badge - Muestra promedio y total de calificaciones */
+.stats-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+.stats-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.stats-rating.popular {
+  color: #e67e22;
+}
+
+.stats-avg {
+  font-size: 1.4em;
+  color: #333;
+}
+
+.stats-star {
+  color: #ffc107;
+  font-size: 1.2em;
+}
+
+.stats-count {
+  color: #666;
+  font-size: 0.9em;
+}
+
+.popular-badge {
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  color: white;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.75em;
+  font-weight: 600;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+.no-ratings {
+  color: #999;
+  font-style: italic;
+  font-size: 0.9em;
+}
+
 .destination-actions {
   display: flex;
   gap: 8px;

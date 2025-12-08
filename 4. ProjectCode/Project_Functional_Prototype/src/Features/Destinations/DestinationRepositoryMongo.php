@@ -57,6 +57,26 @@ final class DestinationRepositoryMongo implements DestinationRepositoryInterface
     }
   }
 
+  /**
+   * Busca un destino por nombre exacto (case-insensitive) y opcionalmente país
+   */
+  public function findByName(string $name, ?string $country = null): ?array {
+    $query = [
+      'name' => ['$regex' => '^' . preg_quote($name, '/') . '$', '$options' => 'i']
+    ];
+    
+    if ($country) {
+      $query['country'] = ['$regex' => '^' . preg_quote($country, '/') . '$', '$options' => 'i'];
+    }
+    
+    $doc = $this->col->findOne($query);
+    if (!$doc) return null;
+    
+    $arr = (array)$doc;
+    $arr['_id'] = (string)$arr['_id'];
+    return $this->formatDates($arr);
+  }
+
   public function create(array $data): string {
     $payload = array_merge($data, [
       'createdAt' => new UTCDateTime(),

@@ -200,10 +200,42 @@
    */
   function formatRating(avgRating, totalRatings) {
     if (!totalRatings || totalRatings === 0) {
-      return 'Sin calificaciones';
+      return 'Sin calificaciones aún';
     }
     
-    return `${avgRating.toFixed(1)} ★ (${totalRatings} ${totalRatings === 1 ? 'calificación' : 'calificaciones'})`;
+    const avg = avgRating.toFixed(1);
+    const plural = totalRatings === 1 ? 'persona' : 'personas';
+    return `${avg} ★ (${totalRatings} ${plural})`;
+  }
+
+  /**
+   * Renderiza un badge de estadísticas completo
+   * @param {number} avgRating - Promedio de calificación
+   * @param {number} totalRatings - Total de calificaciones
+   * @returns {HTMLElement}
+   */
+  function renderStatsBadge(avgRating, totalRatings) {
+    const container = document.createElement('div');
+    container.className = 'stats-badge';
+    
+    if (!totalRatings || totalRatings === 0) {
+      container.innerHTML = '<span class="no-ratings">Sin calificaciones aún</span>';
+      return container;
+    }
+    
+    const avg = avgRating.toFixed(1);
+    const popularClass = totalRatings >= 3 ? 'popular' : '';
+    
+    container.innerHTML = `
+      <div class="stats-rating ${popularClass}">
+        <span class="stats-avg">${avg}</span>
+        <span class="stats-star">★</span>
+      </div>
+      <div class="stats-count">${totalRatings} ${totalRatings === 1 ? 'reseña' : 'reseñas'}</div>
+      ${totalRatings >= 3 ? '<span class="popular-badge"> Popular</span>' : ''}
+    `;
+    
+    return container;
   }
 
   // Exponer funciones globalmente
@@ -212,7 +244,8 @@
     updateStarDisplay,
     showRatingModal,
     renderFavoriteButton,
-    formatRating
+    formatRating,
+    renderStatsBadge
   };
 
   // Agregar estilos CSS si no existen

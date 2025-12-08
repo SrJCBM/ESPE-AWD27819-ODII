@@ -202,27 +202,20 @@
           // Contenedor de calificación (se llenará async)
           const ratingDiv = document.createElement('div');
           ratingDiv.className = 'destination-rating';
-          ratingDiv.innerHTML = '<span class="loading-spinner"></span>';
+          ratingDiv.innerHTML = '<span class="loading-spinner">Cargando calificaciones...</span>';
           mainDiv.appendChild(ratingDiv);
           
           // Cargar estadísticas de calificación
           if (window.RatesAPI && window.RatingUI) {
             window.RatesAPI.getDestinationStats(d._id)
               .then(stats => {
-                if (stats.totalRatings > 0) {
-                  ratingDiv.innerHTML = '';
-                  const stars = window.RatingUI.renderStars(Math.round(stats.averageRating));
-                  ratingDiv.appendChild(stars);
-                  const text = document.createElement('span');
-                  text.className = 'destination-rating-text';
-                  text.textContent = window.RatingUI.formatRating(stats.averageRating, stats.totalRatings);
-                  ratingDiv.appendChild(text);
-                } else {
-                  ratingDiv.textContent = 'Sin calificaciones';
-                }
+                ratingDiv.innerHTML = '';
+                // Usar el nuevo badge de estadísticas
+                const statsBadge = window.RatingUI.renderStatsBadge(stats.averageRating, stats.totalRatings);
+                ratingDiv.appendChild(statsBadge);
               })
               .catch(() => {
-                ratingDiv.textContent = '';
+                ratingDiv.innerHTML = '<span class="no-ratings">Sin calificaciones aún</span>';
               });
           } else {
             ratingDiv.innerHTML = '';
@@ -269,19 +262,16 @@
                   // Actualizar solo las estadísticas de este destino sin recargar toda la lista
                   const ratingDiv = destCard.querySelector('.destination-rating');
                   if (ratingDiv) {
-                    ratingDiv.innerHTML = '<span class="loading-spinner"></span>';
+                    ratingDiv.innerHTML = '<span class="loading-spinner">Actualizando...</span>';
                     try {
                       const stats = await window.RatesAPI.getDestinationStats(destId);
                       ratingDiv.innerHTML = '';
-                      const stars = window.RatingUI.renderStars(Math.round(stats.averageRating));
-                      ratingDiv.appendChild(stars);
-                      const text = document.createElement('span');
-                      text.className = 'destination-rating-text';
-                      text.textContent = window.RatingUI.formatRating(stats.averageRating, stats.totalRatings);
-                      ratingDiv.appendChild(text);
+                      // Usar el nuevo badge de estadísticas
+                      const statsBadge = window.RatingUI.renderStatsBadge(stats.averageRating, stats.totalRatings);
+                      ratingDiv.appendChild(statsBadge);
                     } catch (statErr) {
                       console.error('Error updating stats:', statErr);
-                      ratingDiv.textContent = 'Error al cargar estadísticas';
+                      ratingDiv.innerHTML = '<span class="no-ratings">Error al cargar</span>';
                     }
                   }
                 }
