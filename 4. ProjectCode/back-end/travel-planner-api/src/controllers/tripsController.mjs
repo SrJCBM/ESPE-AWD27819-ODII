@@ -1,7 +1,7 @@
 import Trip from "../models/Trip.mjs";
 import Itinerary from "../models/Itinerary.mjs";
 export async function createTrip(req, res) {
-  const { name, startDate, endDate, budget = 0 } = req.body || {};
+  const { name, startDate, endDate, budget = 0, expenses = 0, } = req.body || {};
   if (!name || !startDate || !endDate)
     return res.status(400).json({ error: "name, startDate, endDate required" });
   const trip = await Trip.create({
@@ -10,6 +10,7 @@ export async function createTrip(req, res) {
     startDate,
     endDate,
     budget,
+    expenses,
   });
   res.status(201).json(trip);
 }

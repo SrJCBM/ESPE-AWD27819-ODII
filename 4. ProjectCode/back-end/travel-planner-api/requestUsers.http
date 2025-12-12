@@ -1,0 +1,86 @@
+##  Health Check
+GET http://localhost:8080/health HTTP/1.1
+###
+
+
+##  Get All Trips
+GET http://localhost:8080/api/trips HTTP/1.1
+
+###
+##  User Registration
+POST http://localhost:8080/auth/register HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "testuser",
+  "email": "testuser@espe.edu.ec",
+  "password": "testpassword"
+}
+###
+
+##  User Login
+# @name login
+POST http://localhost:8080/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "testuser@espe.edu.ec",
+  "password": "testpassword"
+}
+###
+
+##  Create Trip
+POST http://localhost:8080/trips HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "name": "Canada Trip",
+  "startDate": "2024-12-01",
+  "endDate": "2024-12-10",
+  "budget": 2000,
+  "expenses": 300
+}
+###
+
+
+## Get Trips
+GET http://localhost:8080/trips HTTP/1.1
+Authorization: Bearer {{login.response.body.token}}
+###
+
+##  Create Itinerary Item
+POST http://localhost:8080/trips/693c26d624db491f3ba6c64d/itineraries HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "day": 1,
+ "notes": "Visit CN Tower",
+ "activities": ["Sightseeing", "Photography"],
+ "destination": "Toronto"
+}
+###
+
+##  Get Itinerary Items for a Trip
+GET http://localhost:8080/trips/693c26d624db491f3ba6c64d/itineraries HTTP/1.1
+Authorization: Bearer {{login.response.body.token}}
+###
+
+##  Get Itinerary Items for a Specific Day
+GET http://localhost:8080/trips/693c26d624db491f3ba6c64d/itineraries?day=1 HTTP/1.1
+Authorization: Bearer {{login.response.body.token}}
+###
+
+##  Update Itinerary Item
+PUT http://localhost:8080/trips/693c26d624db491f3ba6c64d/itineraries/693c280d24db491f3ba6c650 HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "notes": "Visit CN Tower and Ripley's Aquarium",
+  "activities": ["Sightseeing", "Photography", "Aquarium Visit"],
+  "destination": "Toronto"
+}
+###
+
