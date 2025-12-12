@@ -1,9 +1,10 @@
 const express = require("express");
 const weather = require("../models/weather");
+const { cacheMiddleware, invalidateCache } = require("../utils/cache");
 const router = express.Router();
 
 //Get all Weathers
-router.get("/weathers", async(req, res) =>{
+router.get("/weathers", cacheMiddleware(600), async(req, res) =>{
     try{
         console.log("Fetching all weathers...");
         const weathers = await weather.find();
@@ -16,7 +17,7 @@ router.get("/weathers", async(req, res) =>{
 });
 
 //Get one Weather
-router.get('/weathers/:id', async (req, res) =>{
+router.get('/weathers/:id', cacheMiddleware(600), async (req, res) =>{
     try{
         const weatherObject = await weather.findById(req.params.id);
         if(weatherObject == null){
@@ -47,6 +48,8 @@ router.post('/weather', async (req, res) => {
 
     try{
         const weatherToSave = await weatherObject.save();
+        // Invalidar caché de weather
+        invalidateCache('/weathers');
         res.status(201).json(weatherToSave);
     }
     catch(error){
@@ -98,6 +101,8 @@ const updateWeather = async (req, res) => {
 
         const updatedWeather = await weatherObject.save();
         console.log('Weather updated successfully');
+        // Invalidar caché de weather
+        invalidateCache('/weathers');
         res.json(updatedWeather);
     }
     catch(error){
@@ -120,6 +125,8 @@ router.delete('/weathers/:id', async (req, res) => {
 
         await weatherObject.deleteOne();
         console.log('Weather deleted successfully');
+        // Invalidar caché de weather
+        invalidateCache('/weathers');
         res.json({message: 'Weather deleted successfully', deletedId: req.params.id});
     }
     catch(error){

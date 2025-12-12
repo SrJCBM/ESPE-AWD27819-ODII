@@ -1,9 +1,10 @@
 const express = require("express");
 const User = require("../models/users");
+const { cacheMiddleware, invalidateCache } = require("../utils/cache");
 const router = express.Router();
 
 //Get all Users
-router.get("/users", async(req, res) =>{
+router.get("/users", cacheMiddleware(300), async(req, res) =>{
     try{
         console.log("Fetching all users...");
         const users = await User.find();
@@ -16,7 +17,7 @@ router.get("/users", async(req, res) =>{
 });
 
 //Get one User
-router.get('/users/:id', async (req, res) =>{
+router.get('/users/:id', cacheMiddleware(300), async (req, res) =>{
     try{
         const userObject = await User.findById(req.params.id);
         if(userObject == null){
@@ -45,6 +46,8 @@ router.post('/users', async (req, res) => {
 
     try{
         const userToSave = await userObject.save();
+        // Invalidar caché de usuarios
+        invalidateCache('/users');
         res.status(201).json(userToSave);
     }
     catch(error){
@@ -87,6 +90,8 @@ const updateUser = async (req, res) => {
 
         const updatedUser = await userObject.save();
         console.log('User updated successfully');
+        // Invalidar caché de usuarios
+        invalidateCache('/users');
         res.json(updatedUser);
     }
     catch(error){
@@ -109,6 +114,8 @@ router.delete('/users/:id', async (req, res) => {
 
         await userObject.deleteOne();
         console.log('User deleted successfully');
+        // Invalidar caché de usuarios
+        invalidateCache('/users');
         res.json({message: 'User deleted successfully', deletedId: req.params.id});
     }
     catch(error){
