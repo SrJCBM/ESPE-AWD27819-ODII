@@ -11,7 +11,9 @@ app.use(express.json());
 
 // Rutas ANTES de conectar a la BD
 const weatherRoutes = require("./routes/weatherRoutes");
+const userRoutes = require("./routes/userRoutes");
 app.use("/", weatherRoutes);
+app.use("/", userRoutes);
 
 // Connect to MongoDB with proper options
 mongoose.connect(`mongodb+srv://SrJCBM:bdd2025@cluster0.tjvfmrk.mongodb.net/travel_brain?retryWrites=true&w=majority`, {
