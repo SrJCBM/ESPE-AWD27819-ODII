@@ -23,7 +23,7 @@ mongoose.connect(`mongodb+srv://SrJCBM:bdd2025@cluster0.tjvfmrk.mongodb.net/trav
 .then(() => {
     console.log("System connected to MongoDb Database");
     // Start server only after DB connection is established
-    app.listen(port, () => console.log("TravelBrain Server is running on port -->" + port));
+    app.listen(port, '0.0.0.0', () => console.log("TravelBrain Server is running on port -->" + port));
 })
 .catch((error) => {
     console.error("MongoDB connection error:", error);
