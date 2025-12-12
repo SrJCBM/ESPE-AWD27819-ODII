@@ -177,7 +177,7 @@
       listEl.innerHTML = '<li>Cargando...</li>';
       
       try {
-        const res = await window.DestinationsAPI.list(filter);
+        const res = await window.DestinationsAPI.list(1, 100, filter);
         const destinations = res.items || [];
         
         listEl.innerHTML = '';
@@ -189,18 +189,101 @@
 
         for (const d of destinations) {
           const li = document.createElement('li');
-          li.innerHTML = `
-            <div>
-              <strong>${d.name || ''}</strong> <small>${d.country || ''}</small><br>
-              <small>${formatDescription(d.description || '')}</small>
-              ${d.lat && d.lng ? `<br><small>📍 ${d.lat}, ${d.lng}</small>` : ''}
-            </div>
-            <div>
-              <button class="editDest" data-id="${d._id}">Editar</button>
-              <button class="delDest" data-id="${d._id}">Eliminar</button>
-            </div>
+          li.className = 'destination-card';
+          
+          // Contenedor principal
+          const mainDiv = document.createElement('div');
+          mainDiv.innerHTML = `
+            <strong>${d.name || ''}</strong> <small>${d.country || ''}</small><br>
+            <small>${formatDescription(d.description || '')}</small>
+            ${d.lat && d.lng ? `<br><small>📍 ${d.lat}, ${d.lng}</small>` : ''}
           `;
+          
+          // Contenedor de calificación (se llenará async)
+          const ratingDiv = document.createElement('div');
+          ratingDiv.className = 'destination-rating';
+          ratingDiv.innerHTML = '<span class="loading-spinner">Cargando calificaciones...</span>';
+          mainDiv.appendChild(ratingDiv);
+          
+          // Cargar estadísticas de calificación
+          if (window.RatesAPI && window.RatingUI) {
+            window.RatesAPI.getDestinationStats(d._id)
+              .then(stats => {
+                ratingDiv.innerHTML = '';
+                // Usar el nuevo badge de estadísticas
+                const statsBadge = window.RatingUI.renderStatsBadge(stats.averageRating, stats.totalRatings);
+                ratingDiv.appendChild(statsBadge);
+              })
+              .catch(() => {
+                ratingDiv.innerHTML = '<span class="no-ratings">Sin calificaciones aún</span>';
+              });
+          } else {
+            ratingDiv.innerHTML = '';
+          }
+          
+          li.appendChild(mainDiv);
+          
+          // Botones de acción
+          const actionsDiv = document.createElement('div');
+          actionsDiv.className = 'destination-actions';
+          actionsDiv.innerHTML = `
+            <button class="btn btn-rate rateDest" data-id="${d._id}" data-name="${escapeAttr(d.name || '')}">⭐ Calificar</button>
+            <button class="editDest" data-id="${d._id}">Editar</button>
+            <button class="delDest" data-id="${d._id}">Eliminar</button>
+          `;
+          li.appendChild(actionsDiv);
+          
           listEl.appendChild(li);
+        }
+        
+        // Bind evento de calificar
+        if (window.RatesAPI && window.RatingUI) {
+          listEl.querySelectorAll('.rateDest').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+              const destId = e.target.dataset.id;
+              const destName = e.target.dataset.name;
+              const destCard = e.target.closest('.destination-card');
+              
+              try {
+                // Obtener calificación actual del usuario si existe
+                const currentRate = await window.RatesAPI.getMyRate(destId);
+                
+                // Mostrar modal
+                const result = await window.RatingUI.showRatingModal(destId, destName, currentRate);
+                
+                if (result) {
+                  await window.RatesAPI.rateDestination(destId, result.rating, result.favorite, result.comment);
+                  if (window.ValidationUtils) {
+                    window.ValidationUtils.showSuccess('Calificación guardada exitosamente');
+                  } else {
+                    alert('Calificación guardada');
+                  }
+                  
+                  // Actualizar solo las estadísticas de este destino sin recargar toda la lista
+                  const ratingDiv = destCard.querySelector('.destination-rating');
+                  if (ratingDiv) {
+                    ratingDiv.innerHTML = '<span class="loading-spinner">Actualizando...</span>';
+                    try {
+                      const stats = await window.RatesAPI.getDestinationStats(destId);
+                      ratingDiv.innerHTML = '';
+                      // Usar el nuevo badge de estadísticas
+                      const statsBadge = window.RatingUI.renderStatsBadge(stats.averageRating, stats.totalRatings);
+                      ratingDiv.appendChild(statsBadge);
+                    } catch (statErr) {
+                      console.error('Error updating stats:', statErr);
+                      ratingDiv.innerHTML = '<span class="no-ratings">Error al cargar</span>';
+                    }
+                  }
+                }
+              } catch (err) {
+                if (window.ValidationUtils) {
+                  window.ValidationUtils.showError(err.message || 'Error al guardar calificación');
+                } else {
+                  alert(err.message || 'Error al guardar calificación');
+                }
+              }
+            });
+          });
         }
 
         // Bind eventos de editar y eliminar
@@ -274,5 +357,9 @@
       .replace(/</g,'&lt;')
       .replace(/>/g,'&gt;');
     return esc.replace(/\n+/g,'<br>');
+  }
+  
+  function escapeAttr(text) {
+    return (text || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 })();

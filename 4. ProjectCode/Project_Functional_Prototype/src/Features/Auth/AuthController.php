@@ -77,6 +77,7 @@ final class AuthController {
       }
 
       $user['_id'] = (string)$user['_id'];
+      $user = $this->formatUserDates($user);
       Response::json(['ok' => true, 'user' => $user]);
     } catch (\Throwable $exception) {
       error_log('Error en me(): ' . $exception->getMessage());
@@ -90,6 +91,20 @@ final class AuthController {
   }
 
   private function normalizeRegistrationData(array $body): array {
+    // Construir 'name' a partir de firstname + lastname si no viene explícito
+    $name = $body['name'] ?? '';
+    if (empty($name)) {
+      $firstname = trim($body['firstname'] ?? '');
+      $lastname = trim($body['lastname'] ?? '');
+      if ($firstname && $lastname) {
+        $name = $firstname . ' ' . $lastname;
+      } elseif ($firstname) {
+        $name = $firstname;
+      } elseif ($lastname) {
+        $name = $lastname;
+      }
+    }
+    
     return [
       'username' => $body['username'] ?? '',
       'email' => $body['email'] ?? '',
@@ -97,7 +112,7 @@ final class AuthController {
       'password_confirm' => $body['password2'] ?? $body['password_confirm'] ?? null,
       'firstname' => $body['firstname'] ?? '',
       'lastname' => $body['lastname'] ?? '',
-      'name' => $body['name'] ?? ''
+      'name' => $name
     ];
   }
 
@@ -142,6 +157,44 @@ final class AuthController {
       return $doc;
     }
     return (array)$doc;
+  }
+
+  /**
+   * Formatea las fechas del usuario para respuesta JSON
+   */
+  private function formatUserDates(array $user): array {
+    $dateFields = ['createdAt', 'updatedAt', 'lastLogin'];
+    
+    foreach ($dateFields as $field) {
+      if (isset($user[$field])) {
+        $user[$field] = $this->formatMongoDate($user[$field]);
+      }
+    }
+    
+    return $user;
+  }
+
+  /**
+   * Convierte fecha MongoDB a string legible (usando timezone configurado)
+   */
+  private function formatMongoDate($date): string {
+    // Timezone configurado (America/Guayaquil = UTC-5)
+    $tz = new \DateTimeZone(date_default_timezone_get());
+    
+    if ($date instanceof \MongoDB\BSON\UTCDateTime) {
+      return $date->toDateTime()->setTimezone($tz)->format('Y-m-d H:i:s');
+    }
+    if (is_object($date) && method_exists($date, 'toDateTime')) {
+      return $date->toDateTime()->setTimezone($tz)->format('Y-m-d H:i:s');
+    }
+    if (is_array($date) && isset($date['$date'])) {
+      if (isset($date['$date']['$numberLong'])) {
+        $timestamp = (int)$date['$date']['$numberLong'] / 1000;
+        // date() ya usa el timezone por defecto de PHP
+        return date('Y-m-d H:i:s', (int)$timestamp);
+      }
+    }
+    return (string)$date;
   }
 
   private function isValidCredentials(?array $user, string $password): bool {

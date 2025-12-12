@@ -4,7 +4,28 @@ namespace App\Features\Trips;
 use App\Core\Constants\ValidationRules;
 
 final class TripValidator {
+  
+  /**
+   * Normaliza los campos de entrada para aceptar camelCase o snake_case
+   */
+  public function normalize(array $data): array {
+    // Mapeo de camelCase a snake_case
+    $mapping = [
+      'startDate' => 'start_date',
+      'endDate' => 'end_date',
+    ];
+    
+    foreach ($mapping as $camel => $snake) {
+      if (isset($data[$camel]) && !isset($data[$snake])) {
+        $data[$snake] = $data[$camel];
+      }
+    }
+    
+    return $data;
+  }
+
   public function validateForCreate(array $data): void {
+    $data = $this->normalize($data);
     $this->validateRequired($data);
     $this->validateTitle($data['title']);
     $this->validateDestination($data['destination']);
@@ -20,6 +41,8 @@ final class TripValidator {
   }
 
   public function validateForUpdate(array $data): void {
+    $data = $this->normalize($data);
+    
     if (isset($data['title'])) {
       $this->validateTitle($data['title']);
     }

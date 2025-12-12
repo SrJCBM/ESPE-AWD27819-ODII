@@ -1,5 +1,7 @@
 // public/assets/js/itinerary.js
 (function () {
+  let selectedTrip = null; // Guardar el viaje seleccionado completo
+  
   document.addEventListener('DOMContentLoaded', async () => {
     // Poblado de viajes disponibles
     if (window.app?.populateTripSelect) {
@@ -10,6 +12,63 @@
     const saveBtn = document.getElementById('saveItBtn');
     const exportBtn = document.getElementById('exportItBtn');
     const view = document.getElementById('itineraryView');
+    const tripSelect = document.getElementById('itTripSelect');
+    const tripInfoBox = document.getElementById('tripInfoBox');
+    const tripInfo = document.getElementById('tripInfo');
+    const daysInput = document.getElementById('itDays');
+    
+    // Auto-completar información al seleccionar viaje
+    tripSelect.addEventListener('change', async (e) => {
+      const tripId = e.target.value;
+      
+      if (!tripId) {
+        tripInfoBox.style.display = 'none';
+        daysInput.value = 3;
+        selectedTrip = null;
+        return;
+      }
+      
+      try {
+        // Obtener información completa del viaje
+        const response = await fetch(`/api/trips/${tripId}`, {
+          credentials: 'include'
+        });
+        
+        if (!response.ok) throw new Error('No se pudo cargar el viaje');
+        
+        const data = await response.json();
+        selectedTrip = data.trip;
+        
+        // Calcular días automáticamente
+        const startDate = new Date(selectedTrip.startDate);
+        const endDate = new Date(selectedTrip.endDate);
+        const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+        
+        // Auto-llenar días
+        daysInput.value = days;
+        
+        // Mostrar información del viaje
+        tripInfo.innerHTML = `
+          <div style="display: grid; gap: 8px;">
+            <p style="margin: 0;"><strong>📍 Destino:</strong> ${selectedTrip.destination}</p>
+            <p style="margin: 0;"><strong>📅 Inicio:</strong> ${startDate.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            <p style="margin: 0;"><strong>📅 Fin:</strong> ${endDate.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            <p style="margin: 0;"><strong>⏱️ Duración:</strong> ${days} ${days === 1 ? 'día' : 'días'}</p>
+            ${selectedTrip.budget ? `<p style="margin: 0;"><strong>💰 Presupuesto:</strong> $${selectedTrip.budget.toFixed(2)}</p>` : ''}
+            ${selectedTrip.description ? `<p style="margin: 8px 0 0 0; color: #666;"><em>${selectedTrip.description}</em></p>` : ''}
+          </div>
+        `;
+        
+        tripInfoBox.style.display = 'block';
+        
+      } catch (error) {
+        console.error('Error cargando información del viaje:', error);
+        if (window.ValidationUtils) {
+          window.ValidationUtils.showError('Error al cargar información del viaje');
+        }
+        tripInfoBox.style.display = 'none';
+      }
+    });
 
     // Configurar validaciones
     const fieldRules = {
@@ -119,6 +178,29 @@
       }
     });
 
-    exportBtn.addEventListener('click', () => window.print());
+    exportBtn.addEventListener('click', () => {
+      // Ocultar elementos innecesarios antes de imprimir
+      const header = document.querySelector('.site-header');
+      const footer = document.querySelector('.site-footer');
+      const formSection = document.querySelector('.card:first-of-type');
+      
+      if (header) header.style.display = 'none';
+      if (footer) footer.style.display = 'none';
+      if (formSection) formSection.style.display = 'none';
+      
+      // Agregar clase para estilos de impresión
+      document.body.classList.add('printing');
+      
+      // Imprimir
+      window.print();
+      
+      // Restaurar elementos después de imprimir
+      setTimeout(() => {
+        if (header) header.style.display = '';
+        if (footer) footer.style.display = '';
+        if (formSection) formSection.style.display = '';
+        document.body.classList.remove('printing');
+      }, 500);
+    });
   });
 })();

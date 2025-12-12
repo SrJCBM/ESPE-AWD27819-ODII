@@ -99,10 +99,20 @@
           window.Auth.renderUserArea();
         }
 
-        // Redirigir después de un breve delay
-        setTimeout(() => {
-          location.href = '/';
-        }, 1500);
+        // Verificar si es admin y redirigir apropiadamente
+        setTimeout(async () => {
+          try {
+            const meRes = await fetch('/api/auth/me', { credentials: 'include' });
+            const meData = await meRes.json();
+            if (meData.ok && meData.user && meData.user.role === 'ADMIN') {
+              location.href = '/admin';
+            } else {
+              location.href = '/';
+            }
+          } catch (e) {
+            location.href = '/';
+          }
+        }, 800);
 
       } catch (err) {
         console.error('Error en autenticación:', err);

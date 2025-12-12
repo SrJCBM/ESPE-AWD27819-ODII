@@ -1,7 +1,7 @@
 // public/assets/js/routes.favorites.api.js
 (function(){
 	async function list(page=1, size=50){
-		const url = `/api/routes/favorites?page=${page}&size=${size}`;
+		const url = `/api/routes/favorites/${page}/${size}`;
 		try {
 			const res = await http.apiJson(url);
 			return res.items || [];

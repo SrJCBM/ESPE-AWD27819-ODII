@@ -29,13 +29,13 @@ final class FavoriteRouteController {
 		}
 	}
 
-	// GET /api/routes/favorites?page=&size=
-	public function index(): void {
+	// GET /api/routes/favorites/{page}/{size}
+	public function index(string $page = '1', string $size = '10'): void {
 		try {
 			$userId = AuthMiddleware::getUserId();
 			if (!$userId) { Response::error('No autenticado', 401); return; }
-			$page = max(ValidationRules::DEFAULT_PAGE, (int)Request::get('page', ValidationRules::DEFAULT_PAGE));
-			$size = max(1, min(ValidationRules::MAX_PAGE_SIZE, (int)Request::get('size', ValidationRules::DEFAULT_PAGE_SIZE)));
+			$page = max(ValidationRules::DEFAULT_PAGE, (int)$page);
+			$size = max(1, min(ValidationRules::MAX_PAGE_SIZE, (int)$size));
 			$res = $this->service->list($userId, $page, $size);
 			Response::json(['ok' => true, 'items' => $res['items'], 'page' => $page, 'size' => $size, 'total' => $res['total']]);
 		} catch (\Throwable $e) {

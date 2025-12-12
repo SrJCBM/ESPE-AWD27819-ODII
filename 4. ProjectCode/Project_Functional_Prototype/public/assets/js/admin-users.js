@@ -41,7 +41,7 @@
   async function loadPage(){
     try{
       const size = parseInt($('#pageSize').value || '10', 10);
-      const data = await api(`/api/admin/users?page=1&size=${size}`);
+      const data = await api(`/api/admin/users/1/${size}`);
       renderUsers(data.items || data.users || []);
     }catch(err){ alert('Error cargando usuarios: '+ err.message); }
   }

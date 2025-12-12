@@ -41,17 +41,20 @@ final class Trip {
   }
 
   public function toArray(): array {
+    // Usar timezone configurado (America/Guayaquil = UTC-5)
+    $tz = new \DateTimeZone(date_default_timezone_get());
+    
     return [
       '_id' => $this->id ? (string)$this->id : null,
       'userId' => $this->userId,
       'title' => $this->title,
       'destination' => $this->destination,
-      'startDate' => $this->startDate->toDateTime()->format('Y-m-d'),
-      'endDate' => $this->endDate->toDateTime()->format('Y-m-d'),
+      'startDate' => $this->startDate->toDateTime()->setTimezone($tz)->format('Y-m-d'),
+      'endDate' => $this->endDate->toDateTime()->setTimezone($tz)->format('Y-m-d'),
       'budget' => $this->budget,
       'description' => $this->description,
-      'createdAt' => $this->createdAt->toDateTime()->format('c'),
-      'updatedAt' => $this->updatedAt->toDateTime()->format('c'),
+      'createdAt' => $this->createdAt->toDateTime()->setTimezone($tz)->format('Y-m-d H:i:s'),
+      'updatedAt' => $this->updatedAt->toDateTime()->setTimezone($tz)->format('Y-m-d H:i:s'),
     ];
   }
 

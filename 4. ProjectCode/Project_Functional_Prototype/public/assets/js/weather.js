@@ -281,7 +281,7 @@
     // Carga historial desde backend y lo renderiza
     async function renderServerHistory(page=1, size=20){
       try {
-        const resp = await fetch(`/api/weather/history?page=${page}&size=${size}`, { credentials: 'include' });
+        const resp = await fetch(`/api/weather/history/${page}/${size}`, { credentials: 'include' });
         if (!resp.ok) return; // unauth or 404
         const ctype = resp.headers.get('content-type') || '';
         if (!ctype.includes('application/json')) return;

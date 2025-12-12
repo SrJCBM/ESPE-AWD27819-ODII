@@ -35,7 +35,7 @@ final class TripRepositoryMongo {
         ]
       );
       
-      return iterator_to_array($cursor);
+      return array_map(fn($doc) => (array)$doc, iterator_to_array($cursor));
     } catch (\Exception $e) {
       error_log('Error finding trips by user: ' . $e->getMessage());
       return [];

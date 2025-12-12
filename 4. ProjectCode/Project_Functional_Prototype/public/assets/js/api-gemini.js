@@ -1,27 +1,34 @@
-// Para usar en navegador, necesitamos cargar la biblioteca desde CDN
-// <script src="https://cdn.jsdelivr.net/npm/@google/generative-ai@0.1.3/dist/index.min.js"></script>
+// Para usar en navegador con módulos ES
+// Requiere <script type="importmap"> en el HTML
 
 let ai = null;
+let GoogleGenerativeAI = null;
 
-function initializeGeminiAI() {
-  const API_KEY = window.AppConfig?.getGeminiApiKey();
+async function initializeGeminiAI() {
+  const API_KEY = "AIzaSyCSfdu4v-uWA386q51qBhy6elQJUNoW78U"; // Reemplazar con AppConfig.GEMINI_API_KEY o similar
   
   if (!API_KEY) {
-    console.warn("API_KEY no configurada. Usando modo simulado.");
+    console.info("API_KEY no configurada. Usando modo simulado.");
     return false;
   }
 
   try {
-    if (window.GoogleGenerativeAI) {
-      ai = new window.GoogleGenerativeAI.GoogleGenerativeAI(API_KEY);
-      console.log("Google Generative AI inicializado correctamente");
+    // Intentar importar el módulo dinámicamente
+    if (!GoogleGenerativeAI) {
+      const module = await import('@google/generative-ai');
+      GoogleGenerativeAI = module.GoogleGenerativeAI;
+    }
+    
+    if (GoogleGenerativeAI) {
+      ai = new GoogleGenerativeAI(API_KEY);
+      console.log("✅ Google Generative AI inicializado correctamente");
       return true;
     } else {
-      console.warn("SDK de Google Generative AI no disponible");
+      console.info("SDK de Google Generative AI no disponible. Usando modo simulado.");
       return false;
     }
   } catch (error) {
-    console.warn("Error inicializando Google Generative AI:", error);
+    console.info("Inicializando en modo simulado:", error.message);
     return false;
   }
 }
@@ -29,7 +36,9 @@ function initializeGeminiAI() {
 // Inicializar al cargar
 document.addEventListener('DOMContentLoaded', function() {
   // Esperar un poco para que AppConfig esté disponible
-  setTimeout(initializeGeminiAI, 100);
+  setTimeout(() => initializeGeminiAI().catch(err => {
+    console.info('Usando modo simulado para generación de itinerarios');
+  }), 100);
 });
 
 const travelPlanSchema = {
@@ -112,7 +121,13 @@ Proporciona:
 Responde en español y con información realista y útil.`;
 
   try {
-    const model = ai.getGenerativeModel({ model: "gemini-pro" });
+    const model = ai.getGenerativeModel({
+      model: "gemini-1.5-flash", // Recomendado para velocidad y precisión JSON
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: travelPlanSchema
+      }
+    });
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();

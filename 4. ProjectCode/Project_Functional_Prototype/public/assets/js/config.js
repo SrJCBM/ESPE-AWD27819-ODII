@@ -1,3 +1,9 @@
+// Configuración global de la aplicación
+window.__CONFIG__ = window.__CONFIG__ || {};
+
+// Token de Mapbox (necesario para autocompletado de lugares)
+window.__CONFIG__.MAPBOX_TOKEN = 'pk.eyJ1Ijoic3JqY2JtIiwiYSI6ImNtZ3g0eGV5NDAwZzYya3BvdmFveWU2dnEifQ.yYCrLmlo9lW-AJf56akVCw';
+
 // Configuración de la aplicación
 window.AppConfig = {
     // Configuración de APIs

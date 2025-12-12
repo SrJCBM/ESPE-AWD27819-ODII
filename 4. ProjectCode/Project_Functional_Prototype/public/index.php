@@ -29,11 +29,13 @@ $router = new Router();
 
 // 3) Registrar rutas por feature
 require __DIR__ . '/../src/Features/Users/UserRoutes.php';
+require __DIR__ . '/../src/Features/Rates/RateRoutes.php';
 require __DIR__ . '/../src/Features/Destinations/DestinationRoutes.php';
 require __DIR__ . '/../src/Features/Trips/TripRoutes.php';
 require __DIR__ . '/../src/Features/Routes/RouteFavoritesRoutes.php';
 require __DIR__ . '/../src/Features/Currency/CurrencyRoutes.php';
 require __DIR__ . '/../src/Features/Weather/WeatherRoutes.php';
+require __DIR__ . '/../src/Features/Itinerary/ItineraryRoutes.php';
 
 // ============ HELPERS ============
 function requireAuth(): void {
@@ -47,11 +49,77 @@ function requireAuth(): void {
 
 function requireAdmin(): void {
   AuthMiddleware::startSession();
-  if (!AuthMiddleware::ensureAdmin()) {
-    http_response_code(403);
-    Response::error('Acceso denegado', 403);
-    exit;
+  AuthMiddleware::ensureAdmin();
+}
+
+/**
+ * Formatea una fecha MongoDB a string legible (usando timezone configurado)
+ */
+function formatMongoDate($date): string {
+  if ($date === null) return '';
+  
+  // Timezone configurado (America/Guayaquil = UTC-5)
+  $tz = new \DateTimeZone(date_default_timezone_get());
+  
+  // Si es UTCDateTime de MongoDB
+  if ($date instanceof \MongoDB\BSON\UTCDateTime) {
+    return $date->toDateTime()->setTimezone($tz)->format('Y-m-d H:i:s');
   }
+  
+  // Si es un array con formato $date.$numberLong (JSON extendido)
+  if (is_array($date) || is_object($date)) {
+    $arr = (array)$date;
+    if (isset($arr['$date'])) {
+      $inner = (array)$arr['$date'];
+      if (isset($inner['$numberLong'])) {
+        $ts = (int)$inner['$numberLong'] / 1000;
+        // date() ya usa el timezone por defecto de PHP
+        return date('Y-m-d H:i:s', (int)$ts);
+      }
+    }
+  }
+  
+  // Si ya es string
+  if (is_string($date)) {
+    return $date;
+  }
+  
+  return '';
+}
+
+/**
+ * Formatea fechas en un documento MongoDB
+ */
+function formatDocumentDates(array $doc): array {
+  $dateFields = ['createdAt', 'updatedAt', 'startDate', 'endDate', 'date', 'searchedAt'];
+  
+  foreach ($dateFields as $field) {
+    if (isset($doc[$field])) {
+      $doc[$field] = formatMongoDate($doc[$field]);
+    }
+  }
+  
+  // Convertir _id a string
+  if (isset($doc['_id'])) {
+    $doc['_id'] = (string)$doc['_id'];
+  }
+  
+  // Convertir userId a string
+  if (isset($doc['userId'])) {
+    $doc['userId'] = (string)$doc['userId'];
+  }
+  
+  // Convertir tripId a string
+  if (isset($doc['tripId'])) {
+    $doc['tripId'] = (string)$doc['tripId'];
+  }
+  
+  // Convertir destinationId a string
+  if (isset($doc['destinationId'])) {
+    $doc['destinationId'] = (string)$doc['destinationId'];
+  }
+  
+  return $doc;
 }
 
 // ============ SESIÓN ============
@@ -87,6 +155,11 @@ $router->get('/destinations', function () {
   readfile(__DIR__ . '/../src/views/destinations/destinations.html');
 });
 
+$router->get('/favorites', function () {
+  requireAuth();
+  readfile(__DIR__ . '/../src/views/destinations/favorites.html');
+});
+
 $router->get('/trips', function () {
   requireAuth();
   readfile(__DIR__ . '/../src/views/trips/trips-form.html');
@@ -118,6 +191,10 @@ $router->get('/itinerary', function () {
 });
 
 // ============ VISTA ADMIN ============
+$router->get('/admin', function () {
+  requireAdmin();
+  readfile(__DIR__ . '/../src/views/admin/index.html');
+});
 $router->get('/admin/users', function () {
   requireAdmin();
   readfile(__DIR__ . '/../src/views/admin/users.html');
@@ -139,12 +216,34 @@ $router->get('/api/auth/me', [$authController, 'me']);
 $router->post('/api/auth/logout', [$authController, 'logout']);
 
 // ============ API ADMIN USUARIOS ============
-// GET /api/admin/users?page=&size=
-$router->get('/api/admin/users', function () use ($usersCol) {
+// Resumen para métricas del dashboard
+$router->get('/api/admin/metrics', function () use ($usersCol, $mongoDb) {
   try {
     requireAdmin();
-    $page = max(1, (int)Request::get('page', 1));
-    $size = max(1, min(100, (int)Request::get('size', 10)));
+    $destinationsCol = $mongoDb->selectCollection('destinations');
+    $tripsCol = $mongoDb->selectCollection('trips');
+    $itinsCol = $mongoDb->selectCollection('itineraries');
+    $routesCol = $mongoDb->selectCollection('favorite_routes');
+
+    $usersTotal = $usersCol->countDocuments();
+    $usersActive = $usersCol->countDocuments(['status' => 'ACTIVE']);
+    $usersDeactivated = $usersCol->countDocuments(['status' => 'DEACTIVATED']);
+    $destinations = $destinationsCol->countDocuments();
+    $trips = $tripsCol->countDocuments();
+    $itineraries = $itinsCol->countDocuments();
+    $routes = $routesCol->countDocuments();
+
+    Response::json(['ok' => true, 'usersTotal' => $usersTotal, 'usersActive' => $usersActive, 'usersDeactivated' => $usersDeactivated, 'destinations' => $destinations, 'trips' => $trips, 'itineraries' => $itineraries, 'routes' => $routes]);
+  } catch (Exception $e) {
+    Response::error('Error métricas: ' . $e->getMessage(), 500);
+  }
+});
+// GET /api/admin/users/{page}/{size}
+$router->get('/api/admin/users/{page}/{size}', function ($page, $size) use ($usersCol) {
+  try {
+    requireAdmin();
+    $page = max(1, (int)$page);
+    $size = max(1, min(100, (int)$size));
     $skip = ($page - 1) * $size;
     
     $cursor = $usersCol->find([], [
@@ -155,8 +254,7 @@ $router->get('/api/admin/users', function () use ($usersCol) {
     ]);
     
     $items = array_map(function($user) {
-      $user['_id'] = (string)$user['_id'];
-      return $user;
+      return formatDocumentDates((array)$user);
     }, iterator_to_array($cursor));
     
     $total = $usersCol->countDocuments();
@@ -183,7 +281,7 @@ $router->get('/api/admin/users/{id}', function ($id) use ($usersCol) {
     }
     
     $user = $usersCol->findOne(
-      ['_id' => new ObjectId($id)],
+      ['_id' => new \MongoDB\BSON\ObjectId($id)],
       ['projection' => ['passwordHash' => 0]]
     );
     
@@ -192,7 +290,7 @@ $router->get('/api/admin/users/{id}', function ($id) use ($usersCol) {
       return;
     }
     
-    $user['_id'] = (string)$user['_id'];
+    $user = formatDocumentDates((array)$user);
     Response::json(['ok' => true, 'user' => $user]);
   } catch (Exception $e) {
     Response::error('Error al obtener usuario: ' . $e->getMessage(), 500);
@@ -230,7 +328,7 @@ $router->put('/api/admin/users/{id}', function ($id) use ($usersCol) {
     }
     
     $result = $usersCol->updateOne(
-      ['_id' => new ObjectId($id)],
+      ['_id' => new \MongoDB\BSON\ObjectId($id)],
       ['$set' => $updateData]
     );
     
@@ -256,7 +354,7 @@ $router->delete('/api/admin/users/{id}', function ($id) use ($usersCol) {
     }
     
     $result = $usersCol->updateOne(
-      ['_id' => new ObjectId($id)],
+      ['_id' => new \MongoDB\BSON\ObjectId($id)],
       ['$set' => ['status' => UserStatus::DEACTIVATED]]
     );
     
@@ -268,6 +366,193 @@ $router->delete('/api/admin/users/{id}', function ($id) use ($usersCol) {
     Response::json(['ok' => true]);
   } catch (Exception $e) {
     Response::error('Error al desactivar usuario: ' . $e->getMessage(), 500);
+  }
+});
+
+// ============ API ADMIN - DESTINOS ============
+$router->get('/api/admin/destinations/{page}/{size}', function ($page, $size) use ($mongoDb) {
+  try {
+    requireAdmin();
+    $page = max(1, (int)$page);
+    $size = min(100, max(1, (int)$size));
+    $skip = ($page - 1) * $size;
+    
+    $col = $mongoDb->selectCollection('destinations');
+    $total = $col->countDocuments();
+    $cursor = $col->find([], ['limit' => $size, 'skip' => $skip]);
+    $items = array_map(fn($doc) => formatDocumentDates((array)$doc), iterator_to_array($cursor));
+    
+    Response::json(['ok' => true, 'items' => $items, 'total' => $total, 'page' => $page, 'size' => $size]);
+  } catch (Exception $e) {
+    Response::error('Error al cargar destinos: ' . $e->getMessage(), 500);
+  }
+});
+
+// ============ API ADMIN - VIAJES ============
+$router->get('/api/admin/trips/{page}/{size}', function ($page, $size) use ($mongoDb) {
+  try {
+    requireAdmin();
+    $page = max(1, (int)$page);
+    $size = min(100, max(1, (int)$size));
+    $skip = ($page - 1) * $size;
+    
+    $col = $mongoDb->selectCollection('trips');
+    $total = $col->countDocuments();
+    $cursor = $col->find([], ['limit' => $size, 'skip' => $skip]);
+    $items = array_map(fn($doc) => formatDocumentDates((array)$doc), iterator_to_array($cursor));
+    
+    Response::json(['ok' => true, 'items' => $items, 'total' => $total, 'page' => $page, 'size' => $size]);
+  } catch (Exception $e) {
+    Response::error('Error al cargar viajes: ' . $e->getMessage(), 500);
+  }
+});
+
+// ============ API ADMIN - ITINERARIOS ============
+$router->get('/api/admin/itineraries/{page}/{size}', function ($page, $size) use ($mongoDb) {
+  try {
+    requireAdmin();
+    $page = max(1, (int)$page);
+    $size = min(100, max(1, (int)$size));
+    $skip = ($page - 1) * $size;
+    
+    $col = $mongoDb->selectCollection('itineraries');
+    $total = $col->countDocuments();
+    $cursor = $col->find([], ['limit' => $size, 'skip' => $skip]);
+    $items = array_map(fn($doc) => formatDocumentDates((array)$doc), iterator_to_array($cursor));
+    
+    Response::json(['ok' => true, 'items' => $items, 'total' => $total, 'page' => $page, 'size' => $size]);
+  } catch (Exception $e) {
+    Response::error('Error al cargar itinerarios: ' . $e->getMessage(), 500);
+  }
+});
+
+// ============ API ADMIN - RUTAS FAVORITAS ============
+$router->get('/api/admin/routes/{page}/{size}', function ($page, $size) use ($mongoDb) {
+  try {
+    requireAdmin();
+    $page = max(1, (int)$page);
+    $size = min(100, max(1, (int)$size));
+    $skip = ($page - 1) * $size;
+    
+    $col = $mongoDb->selectCollection('favorite_routes');
+    $total = $col->countDocuments();
+    $cursor = $col->find([], ['limit' => $size, 'skip' => $skip]);
+    $items = array_map(fn($doc) => formatDocumentDates((array)$doc), iterator_to_array($cursor));
+    
+    Response::json(['ok' => true, 'items' => $items, 'total' => $total, 'page' => $page, 'size' => $size]);
+  } catch (Exception $e) {
+    Response::error('Error al cargar rutas: ' . $e->getMessage(), 500);
+  }
+});
+
+// ============ API ADMIN - GASTOS ============
+$router->get('/api/admin/expenses/{page}/{size}', function ($page, $size) use ($mongoDb) {
+  try {
+    requireAdmin();
+    $page = max(1, (int)$page);
+    $size = min(100, max(1, (int)$size));
+    $skip = ($page - 1) * $size;
+    
+    $col = $mongoDb->selectCollection('expenses');
+    $total = $col->countDocuments();
+    $cursor = $col->find([], ['limit' => $size, 'skip' => $skip]);
+    $items = array_map(fn($doc) => formatDocumentDates((array)$doc), iterator_to_array($cursor));
+    
+    Response::json(['ok' => true, 'items' => $items, 'total' => $total, 'page' => $page, 'size' => $size]);
+  } catch (Exception $e) {
+    Response::error('Error al cargar gastos: ' . $e->getMessage(), 500);
+  }
+});
+
+// ============ API ADMIN - BÚSQUEDAS CLIMA ============
+$router->get('/api/admin/weather/{page}/{size}', function ($page, $size) use ($mongoDb) {
+  try {
+    requireAdmin();
+    $page = max(1, (int)$page);
+    $size = min(100, max(1, (int)$size));
+    $skip = ($page - 1) * $size;
+    
+    $col = $mongoDb->selectCollection('weather_searches');
+    $total = $col->countDocuments();
+    $cursor = $col->find([], ['limit' => $size, 'skip' => $skip]);
+    $items = array_map(fn($doc) => formatDocumentDates((array)$doc), iterator_to_array($cursor));
+    
+    Response::json(['ok' => true, 'items' => $items, 'total' => $total, 'page' => $page, 'size' => $size]);
+  } catch (Exception $e) {
+    Response::error('Error al cargar búsquedas de clima: ' . $e->getMessage(), 500);
+  }
+});
+
+// ============ API ADMIN - CALIFICACIONES (RATES) ============
+$router->get('/api/admin/rates/{page}/{size}', function ($page, $size) use ($mongoDb) {
+  try {
+    requireAdmin();
+    $page = max(1, (int)$page);
+    $size = min(100, max(1, (int)$size));
+    $skip = ($page - 1) * $size;
+    
+    $col = $mongoDb->selectCollection('rates');
+    $total = $col->countDocuments();
+    $cursor = $col->find([], ['limit' => $size, 'skip' => $skip, 'sort' => ['createdAt' => -1]]);
+    $items = array_map(fn($doc) => formatDocumentDates((array)$doc), iterator_to_array($cursor));
+    
+    Response::json(['ok' => true, 'items' => $items, 'total' => $total, 'page' => $page, 'size' => $size]);
+  } catch (Exception $e) {
+    Response::error('Error al cargar calificaciones: ' . $e->getMessage(), 500);
+  }
+});
+
+// ============ API ADMIN - ESTADÍSTICAS DE DESTINOS CON RATINGS ============
+$router->get('/api/admin/destinations-stats', function () use ($mongoDb) {
+  try {
+    requireAdmin();
+    
+    // Agregación: obtener destinos con sus estadísticas de ratings
+    $destinationsCol = $mongoDb->selectCollection('destinations');
+    $ratesCol = $mongoDb->selectCollection('rates');
+    
+    // Obtener todos los destinos
+    $destinations = iterator_to_array($destinationsCol->find([], ['limit' => 100]));
+    
+    $results = [];
+    foreach ($destinations as $dest) {
+      $destId = (string)$dest['_id'];
+      
+      // Calcular estadísticas de este destino
+      $pipeline = [
+        ['$match' => ['destinationId' => $destId]],
+        ['$group' => [
+          '_id' => '$destinationId',
+          'avgRating' => ['$avg' => '$rating'],
+          'totalRatings' => ['$sum' => 1],
+          'totalFavorites' => ['$sum' => ['$cond' => [['$eq' => ['$favorite', true]], 1, 0]]]
+        ]]
+      ];
+      
+      $stats = iterator_to_array($ratesCol->aggregate($pipeline));
+      
+      $results[] = [
+        '_id' => $destId,
+        'name' => $dest['name'] ?? 'Sin nombre',
+        'country' => $dest['country'] ?? '',
+        'userId' => (string)($dest['userId'] ?? ''),
+        'avgRating' => !empty($stats) ? round($stats[0]['avgRating'], 1) : 0,
+        'totalRatings' => !empty($stats) ? $stats[0]['totalRatings'] : 0,
+        'totalFavorites' => !empty($stats) ? $stats[0]['totalFavorites'] : 0,
+        'createdAt' => formatMongoDate($dest['createdAt'] ?? null)
+      ];
+    }
+    
+    // Ordenar por avgRating descendente
+    usort($results, fn($a, $b) => $b['avgRating'] <=> $a['avgRating']);
+    
+    Response::json([
+      'ok' => true,
+      'items' => $results,
+      'total' => count($results)
+    ]);
+  } catch (Exception $e) {
+    Response::error('Error al cargar estadísticas: ' . $e->getMessage(), 500);
   }
 });
 
