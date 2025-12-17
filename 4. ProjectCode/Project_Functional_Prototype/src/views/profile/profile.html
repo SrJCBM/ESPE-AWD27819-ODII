@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Perfil - Travel Brain</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/profile.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script src="/config.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <h1>Mi Perfil</h1>
+    <nav>
+      <a href="/">Inicio</a>
+      <a href="/destinations">Destinos</a>
+      <a href="/trips">Viajes</a>
+      <a href="/routes">Rutas</a>
+      <a href="/weather">Clima</a>
+      <a href="/profile" class="active">Perfil</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <!-- Información del perfil -->
+    <section class="card profile-card">
+      <div class="profile-header">
+        <div class="profile-avatar">
+          <span id="avatarInitials">--</span>
+        </div>
+        <div class="profile-info">
+          <h2 id="profileName">Cargando...</h2>
+          <p id="profileEmail" class="profile-email">-</p>
+          <span id="profileRole" class="profile-badge">-</span>
+        </div>
+      </div>
+      
+      <div class="profile-stats">
+        <div class="stat-item">
+          <span class="stat-value" id="statDestinations">0</span>
+          <span class="stat-label">Destinos</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="statTrips">0</span>
+          <span class="stat-label">Viajes</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="statRoutes">0</span>
+          <span class="stat-label">Rutas</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="statRatings">0</span>
+          <span class="stat-label">Reseñas</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Editar información -->
+    <section class="card">
+      <h2>📝 Editar Información</h2>
+      <form id="profileForm">
+        <div class="form-row">
+          <label>
+            Nombre
+            <input type="text" id="editFirstname" name="firstname" required minlength="2" maxlength="50">
+          </label>
+          <label>
+            Apellido
+            <input type="text" id="editLastname" name="lastname" required minlength="2" maxlength="50">
+          </label>
+        </div>
+        
+        <label>
+          Nombre de usuario
+          <input type="text" id="editUsername" name="username" required minlength="3" maxlength="30">
+        </label>
+        
+        <label>
+          Correo electrónico
+          <input type="email" id="editEmail" name="email" required>
+        </label>
+        
+        <button type="submit" class="btn-primary">Guardar Cambios</button>
+      </form>
+    </section>
+
+    <!-- Cambiar contraseña -->
+    <section class="card">
+      <h2>🔒 Cambiar Contraseña</h2>
+      <form id="passwordForm">
+        <label>
+          Contraseña actual
+          <input type="password" id="currentPassword" name="currentPassword" required minlength="6">
+        </label>
+        
+        <label>
+          Nueva contraseña
+          <input type="password" id="newPassword" name="newPassword" required minlength="6">
+          <small>Mínimo 6 caracteres</small>
+        </label>
+        
+        <label>
+          Confirmar nueva contraseña
+          <input type="password" id="confirmPassword" name="confirmPassword" required minlength="6">
+        </label>
+        
+        <button type="submit" class="btn-secondary">Cambiar Contraseña</button>
+      </form>
+    </section>
+
+    <!-- Zona de peligro -->
+    <section class="card danger-zone">
+      <h2>⚠️ Zona de Peligro</h2>
+      <p>Acciones irreversibles para tu cuenta.</p>
+      <button id="btnLogoutAll" class="btn-warning">Cerrar todas las sesiones</button>
+      <button id="btnDeleteAccount" class="btn-danger">Eliminar mi cuenta</button>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <small>Travel Brain - ESPE 2025</small>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <script src="/assets/js/validation.js"></script>
+  <script src="/assets/js/utils.dom.js"></script>
+  <script src="/assets/js/layout.js"></script>
+  <script src="/assets/js/auth-api.js"></script>
+  <script src="/assets/js/profile.js"></script>
+</body>
+</html>

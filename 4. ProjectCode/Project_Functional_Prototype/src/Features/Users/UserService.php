@@ -63,4 +63,25 @@ final class UserService {
     if ($hard) return $this->repo->delete($id);
     return $this->repo->update($id, ['status'=>'DEACTIVATED']);
   }
+
+  /**
+   * Cambia la contraseña del usuario
+   */
+  public function changePassword(string $userId, string $currentPassword, string $newPassword): bool {
+    // Obtener el usuario con su hash actual
+    $user = $this->repo->findById($userId);
+    
+    if (!$user) {
+      throw new \DomainException('Usuario no encontrado');
+    }
+
+    // Verificar la contraseña actual
+    if (!isset($user['passwordHash']) || !password_verify($currentPassword, $user['passwordHash'])) {
+      return false;
+    }
+
+    // Actualizar con la nueva contraseña
+    $newHash = password_hash($newPassword, PASSWORD_BCRYPT);
+    return $this->repo->update($userId, ['passwordHash' => $newHash]);
+  }
 }

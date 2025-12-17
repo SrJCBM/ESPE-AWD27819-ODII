@@ -190,6 +190,11 @@ $router->get('/itinerary', function () {
   readfile(__DIR__ . '/../src/views/itinerary/itinerary.html');
 });
 
+$router->get('/profile', function () {
+  requireAuth();
+  readfile(__DIR__ . '/../src/views/profile/profile.html');
+});
+
 // ============ VISTA ADMIN ============
 $router->get('/admin', function () {
   requireAdmin();

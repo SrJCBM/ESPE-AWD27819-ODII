@@ -14,6 +14,7 @@
       { href: '/budget', label: 'Presupuesto' },
       { href: '/itinerary', label: 'Itinerario' },
       { href: '/currency', label: 'Divisas (Frankfurter)' },
+      { href: '/profile', label: '👤 Perfil' },
       { href: '/admin/users', label: 'Usuarios' }
     ];
 
