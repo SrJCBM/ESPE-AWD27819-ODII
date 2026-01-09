@@ -3,6 +3,20 @@
 ready(() => {
   console.log('Auth page loaded');
 
+  // Apply background image from data attribute with fixed positioning
+  const illustration = document.querySelector('.auth-illustration');
+  if (illustration && illustration.dataset.bg) {
+    const bgUrl = illustration.dataset.bg;
+    illustration.style.setProperty('--bg-image', `url('${bgUrl}')`);
+    const beforePseudo = document.createElement('style');
+    beforePseudo.textContent = `
+      .auth-illustration::before {
+        background-image: url('${bgUrl}') !important;
+      }
+    `;
+    document.head.appendChild(beforePseudo);
+  }
+
   // Check if already authenticated
   if (isAuthenticated()) {
     redirectTo('dashboard.html');
@@ -38,6 +52,11 @@ async function handleLogin(e) {
     return;
   }
 
+  if (!formData.password || formData.password.length < 6) {
+    showToast('Password must be at least 6 characters', 'error');
+    return;
+  }
+
   // Set loading state
   btn.classList.add('loading');
   btn.disabled = true;
@@ -45,7 +64,8 @@ async function handleLogin(e) {
   try {
     // Call API
     const response = await apiPost(CONFIG.ENDPOINTS.LOGIN, {
-      email: formData.email
+      email: formData.email,
+      password: formData.password
     });
 
     if (response.success && response.token) {
@@ -99,6 +119,16 @@ async function handleRegister(e) {
     return;
   }
 
+  if (!formData.password || formData.password.length < 6) {
+    showToast('Password must be at least 6 characters', 'error');
+    return;
+  }
+
+  if (formData.password !== formData.confirmPassword) {
+    showToast('Passwords do not match', 'error');
+    return;
+  }
+
   // Set loading state
   btn.classList.add('loading');
   btn.disabled = true;
@@ -106,7 +136,8 @@ async function handleRegister(e) {
   try {
     // First, login to create/get user (using simple login endpoint)
     const loginResponse = await apiPost(CONFIG.ENDPOINTS.LOGIN, {
-      email: formData.email
+      email: formData.email,
+      password: formData.password
     });
 
     if (loginResponse.success && loginResponse.token) {
