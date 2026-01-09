@@ -4,12 +4,13 @@ const authController = require('../controllers/authController');
 
 /**
  * Authentication Routes
+ * Note: These routes are mounted at /api/auth in app.js
  */
 
 // POST /api/auth/login - Simple login
-router.post('/api/auth/login', authController.simpleLogin);
+router.post('/login', authController.simpleLogin);
 
 // GET /api/auth/verify - Verify JWT token
-router.get('/api/auth/verify', authController.verifyToken);
+router.get('/verify', authController.verifyToken);
 
 module.exports = router;

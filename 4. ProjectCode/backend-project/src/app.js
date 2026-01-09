@@ -49,7 +49,7 @@ const createApp = () => {
   });
 
   // ===== API Routes =====
-  app.use('/', authRoutes);
+  app.use('/api/auth', authRoutes);
   app.use('/', userRoutes);
   app.use('/', destinationRoutes);
   app.use('/', tripRoutes);
