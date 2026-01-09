@@ -37,7 +37,8 @@ const destinationSchema = new mongoose.Schema(
       trim: true
     },
     userId: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
       required: false
     },
     createdAt: {

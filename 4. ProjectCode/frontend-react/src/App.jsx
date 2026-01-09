@@ -5,6 +5,8 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Profile from './pages/Profile'
+import Trips from './pages/Trips'
+import Destinations from './pages/Destinations'
 import './App.css'
 
 function App() {
@@ -26,6 +28,22 @@ function App() {
         element={
           <ProtectedRoute>
             <Profile />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/trips" 
+        element={
+          <ProtectedRoute>
+            <Trips />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/destinations" 
+        element={
+          <ProtectedRoute>
+            <Destinations />
           </ProtectedRoute>
         } 
       />

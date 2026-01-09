@@ -11,6 +11,8 @@ export default function Dashboard() {
   const [user, setUser] = useState(getUser())
   const [stats, setStats] = useState({ trips: 0, destinations: 0, favorites: 0 })
   const [showMenu, setShowMenu] = useState(false)
+  const [recentActivities, setRecentActivities] = useState([])
+  const [loadingActivities, setLoadingActivities] = useState(true)
 
   useEffect(() => {
     loadDashboardData()
@@ -29,24 +31,89 @@ export default function Dashboard() {
 
   const loadDashboardData = async () => {
     try {
-      const [trips, destinations] = await Promise.all([
+      setLoadingActivities(true)
+      const [tripsRes, destinationsRes, weatherRes] = await Promise.all([
         api.get(API_CONFIG.ENDPOINTS.TRIPS),
-        api.get(API_CONFIG.ENDPOINTS.DESTINATIONS)
+        api.get(API_CONFIG.ENDPOINTS.DESTINATIONS),
+        api.get(API_CONFIG.ENDPOINTS.WEATHERS).catch(() => ({ data: [] }))
       ])
 
+      const trips = Array.isArray(tripsRes.data) ? tripsRes.data : []
+      const destinations = Array.isArray(destinationsRes.data) ? destinationsRes.data : []
+      const weathers = Array.isArray(weatherRes.data) ? weatherRes.data : []
+
       setStats({
-        trips: trips.data.filter(t => t.user_id === user._id).length,
-        destinations: destinations.data.length,
+        trips: trips.filter(t => t.userId === user._id).length,
+        destinations: destinations.length,
         favorites: 0
       })
+
+      // Combine all activities
+      const activities = []
+
+      // Add trips
+      trips.slice(0, 5).forEach(trip => {
+        activities.push({
+          type: 'trip',
+          icon: '✈️',
+          title: 'Created trip',
+          description: `${trip.title} to ${trip.destination}`,
+          date: trip.createdAt || new Date(),
+          color: '#47F59A'
+        })
+      })
+
+      // Add destinations
+      destinations.slice(0, 5).forEach(dest => {
+        activities.push({
+          type: 'destination',
+          icon: '📍',
+          title: 'Added destination',
+          description: `${dest.name}, ${dest.country}`,
+          date: dest.createdAt || new Date(),
+          color: '#a77bf3'
+        })
+      })
+
+      // Add weather searches
+      weathers.slice(0, 3).forEach(weather => {
+        activities.push({
+          type: 'weather',
+          icon: '☁️',
+          title: 'Checked weather',
+          description: `${weather.label || 'Location'} - ${weather.temp}°C`,
+          date: weather.createdAt || new Date(),
+          color: '#E54A7A'
+        })
+      })
+
+      // Sort by date (most recent first) and take top 5
+      activities.sort((a, b) => new Date(b.date) - new Date(a.date))
+      setRecentActivities(activities.slice(0, 5))
+      setLoadingActivities(false)
     } catch (error) {
       console.error('Error loading data:', error)
+      setLoadingActivities(false)
     }
   }
 
   const handleLogout = () => {
     logout()
     navigate('/')
+  }
+
+  const formatActivityDate = (date) => {
+    const now = new Date()
+    const activityDate = new Date(date)
+    const diffTime = Math.abs(now - activityDate)
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+    const diffHours = Math.floor(diffTime / (1000 * 60 * 60))
+    const diffMinutes = Math.floor(diffTime / (1000 * 60))
+
+    if (diffMinutes < 60) return `${diffMinutes} min ago`
+    if (diffHours < 24) return `${diffHours}h ago`
+    if (diffDays < 7) return `${diffDays}d ago`
+    return activityDate.toLocaleDateString()
   }
 
   return (
@@ -63,7 +130,6 @@ export default function Dashboard() {
             <Link to="/dashboard" className="nav-link">Dashboard</Link>
             <Link to="/trips" className="nav-link">My Trips</Link>
             <Link to="/destinations" className="nav-link">Destinations</Link>
-            <Link to="/weather" className="nav-link">Weather</Link>
           </div>
 
           <div className="navbar-right">
@@ -147,7 +213,7 @@ export default function Dashboard() {
             </h1>
             <p className="welcome-subtitle">Ready to plan your next adventure?</p>
           </div>
-          <Link to="/trips/new" className="btn-primary">
+          <Link to="/trips" className="btn-primary">
             <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
               <path d="M8 4a.5.5 0 01.5.5v3h3a.5.5 0 010 1h-3v3a.5.5 0 01-1 0v-3h-3a.5.5 0 010-1h3v-3A.5.5 0 018 4z"/>
             </svg>
@@ -198,7 +264,7 @@ export default function Dashboard() {
         <section className="quick-actions">
           <h2 className="section-title">Quick Actions</h2>
           <div className="actions-grid">
-            <Link to="/trips/new" className="action-card">
+            <Link to="/trips" className="action-card">
               <div className="action-icon">
                 <svg width="32" height="32" viewBox="0 0 16 16" fill="currentColor">
                   <path d="M8 4a.5.5 0 01.5.5V6a.5.5 0 01-.5.5H6.5v1.5a.5.5 0 01-1 0V6.5H4a.5.5 0 010-1h1.5V4a.5.5 0 011 0v1.5H8a.5.5 0 01.5.5zM3.5 0a.5.5 0 01.5.5V1h8V.5a.5.5 0 011 0V1h1a2 2 0 012 2v11a2 2 0 01-2 2H2a2 2 0 01-2-2V3a2 2 0 012-2h1V.5a.5.5 0 01.5-.5zM1 4v10a1 1 0 001 1h12a1 1 0 001-1V4H1z"/>
@@ -228,14 +294,14 @@ export default function Dashboard() {
               <p className="action-description">View and manage your travel plans</p>
             </Link>
 
-            <Link to="/weather" className="action-card">
+            <Link to="/destinations" className="action-card">
               <div className="action-icon">
                 <svg width="32" height="32" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M4.158 12.025a.5.5 0 01.316.633l-.5 1.5a.5.5 0 01-.948-.316l.5-1.5a.5.5 0 01.632-.317zm6 0a.5.5 0 01.316.633l-.5 1.5a.5.5 0 01-.948-.316l.5-1.5a.5.5 0 01.632-.317zm-3.5 1.5a.5.5 0 01.316.633l-.5 1.5a.5.5 0 01-.948-.316l.5-1.5a.5.5 0 01.632-.317zm6 0a.5.5 0 01.316.633l-.5 1.5a.5.5 0 11-.948-.316l.5-1.5a.5.5 0 01.632-.317zm.747-8.498a5.001 5.001 0 00-9.499-1.004A3.5 3.5 0 103.5 11H13a3 3 0 00.405-5.973z"/>
+                  <path d="M8 16s6-5.686 6-10A6 6 0 002 6c0 4.314 6 10 6 10zm0-7a3 3 0 110-6 3 3 0 010 6z"/>
                 </svg>
               </div>
-              <h3 className="action-title">Weather</h3>
-              <p className="action-description">Check weather conditions for your destinations</p>
+              <h3 className="action-title">Destinations</h3>
+              <p className="action-description">Browse and save your favorite places</p>
             </Link>
           </div>
         </section>
@@ -244,14 +310,36 @@ export default function Dashboard() {
         <section className="recent-activity">
           <h2 className="section-title">Recent Activity</h2>
           <div className="activity-card">
-            <div className="empty-state">
-              <svg width="64" height="64" viewBox="0 0 16 16" fill="currentColor">
-                <path d="M8 15A7 7 0 118 1a7 7 0 010 14zm0 1A8 8 0 108 0a8 8 0 000 16z"/>
-                <path d="M8 4a.5.5 0 01.5.5v3h3a.5.5 0 010 1h-3v3a.5.5 0 01-1 0v-3h-3a.5.5 0 010-1h3v-3A.5.5 0 018 4z"/>
-              </svg>
-              <p>No recent activity yet</p>
-              <p className="empty-state-subtitle">Start planning your first trip!</p>
-            </div>
+            {loadingActivities ? (
+              <div className="empty-state">
+                <div className="spinner"></div>
+                <p>Loading activities...</p>
+              </div>
+            ) : recentActivities.length > 0 ? (
+              <div className="activity-list">
+                {recentActivities.map((activity, index) => (
+                  <div key={index} className="activity-item">
+                    <div className="activity-icon" style={{ background: `${activity.color}15`, color: activity.color }}>
+                      <span>{activity.icon}</span>
+                    </div>
+                    <div className="activity-content">
+                      <h4 className="activity-title">{activity.title}</h4>
+                      <p className="activity-description">{activity.description}</p>
+                      <span className="activity-time">{formatActivityDate(activity.date)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="empty-state">
+                <svg width="64" height="64" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M8 15A7 7 0 118 1a7 7 0 010 14zm0 1A8 8 0 108 0a8 8 0 000 16z"/>
+                  <path d="M8 4a.5.5 0 01.5.5v3h3a.5.5 0 010 1h-3v3a.5.5 0 01-1 0v-3h-3a.5.5 0 010-1h3v-3A.5.5 0 018 4z"/>
+                </svg>
+                <p>No recent activity yet</p>
+                <p className="empty-state-subtitle">Start planning your first trip!</p>
+              </div>
+            )}
           </div>
         </section>
       </main>
