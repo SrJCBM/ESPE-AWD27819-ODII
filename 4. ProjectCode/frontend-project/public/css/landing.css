@@ -1,0 +1,345 @@
+/* TravelBrain - Landing Page Styles */
+
+/* Header & Navigation */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(16, 17, 16, 0.95);
+  backdrop-filter: blur(10px);
+  z-index: var(--z-sticky);
+  border-bottom: 1px solid var(--color-neutral-darker);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-lg);
+}
+
+.nav-logo .logo {
+  height: 50px;
+  width: auto;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+/* Hero Section */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+  padding-top: 100px;
+  padding-bottom: var(--spacing-4xl);
+}
+
+.hero-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-3xl);
+  align-items: center;
+}
+
+.hero-text {
+  max-width: 600px;
+}
+
+.hero-title {
+  font-size: var(--text-6xl);
+  font-weight: var(--font-extrabold);
+  line-height: 1.1;
+  margin-bottom: var(--spacing-lg);
+  color: var(--text-primary);
+}
+
+.hero-title .text-primary {
+  display: block;
+  background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-subtitle {
+  font-size: var(--text-lg);
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-xl);
+}
+
+.hero-actions {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.hero-image {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.seasons-img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-2xl);
+  transition: transform var(--transition-slow);
+}
+
+.seasons-img:hover {
+  transform: scale(1.05) rotate(2deg);
+}
+
+/* Video Section */
+.video-section {
+  padding: var(--spacing-4xl) 0;
+  background-color: var(--bg-secondary);
+}
+
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-2xl);
+}
+
+.hero-video {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.hero-video iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+}
+
+/* Features Section */
+.features {
+  padding: var(--spacing-4xl) 0;
+  background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+}
+
+.features-content {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: var(--spacing-3xl);
+  align-items: center;
+}
+
+.features-image {
+  display: flex;
+  justify-content: center;
+}
+
+.features-logo {
+  max-width: 300px;
+  height: auto;
+  filter: drop-shadow(0 10px 30px rgba(71, 245, 154, 0.3));
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+.features-text {
+  max-width: 700px;
+}
+
+.features-title {
+  font-size: var(--text-4xl);
+  font-weight: var(--font-bold);
+  line-height: 1.3;
+  margin-bottom: var(--spacing-lg);
+  color: var(--text-primary);
+}
+
+.features-description {
+  font-size: var(--text-xl);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+/* Destinations Preview Section */
+.destinations-preview {
+  padding: var(--spacing-3xl) 0;
+  background-color: var(--bg-primary);
+}
+
+.panorama-img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-2xl);
+  transition: transform var(--transition-slow);
+}
+
+.panorama-img:hover {
+  transform: scale(1.02);
+}
+
+/* Footer */
+.footer {
+  background-color: var(--bg-primary);
+  padding: var(--spacing-3xl) 0 var(--spacing-xl);
+  border-top: 1px solid var(--color-neutral-darker);
+}
+
+.footer .container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xl);
+}
+
+.footer-social {
+  display: flex;
+  gap: var(--spacing-xl);
+}
+
+.social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  transition: all var(--transition-base);
+}
+
+.social-link:hover {
+  background-color: var(--color-primary);
+  color: var(--text-dark);
+  transform: translateY(-3px);
+}
+
+.footer-brand {
+  text-align: center;
+}
+
+.footer-title {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-extrabold);
+  letter-spacing: 2px;
+  color: var(--text-primary);
+}
+
+.footer-legal {
+  text-align: center;
+}
+
+.copyright {
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.footer-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
+.footer-link {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  transition: color var(--transition-base);
+}
+
+.footer-link:hover {
+  color: var(--color-primary);
+}
+
+.separator {
+  color: var(--text-tertiary);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .hero-content {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .hero-text {
+    max-width: 100%;
+  }
+
+  .hero-actions {
+    justify-content: center;
+  }
+
+  .hero-title {
+    font-size: var(--text-5xl);
+  }
+
+  .features-content {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding-top: 80px;
+  }
+
+  .hero-title {
+    font-size: var(--text-4xl);
+  }
+
+  .features-title {
+    font-size: var(--text-3xl);
+  }
+
+  .features-description {
+    font-size: var(--text-lg);
+  }
+
+  .footer-links {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  .separator {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-logo .logo {
+    height: 40px;
+  }
+
+  .hero-title {
+    font-size: var(--text-3xl);
+  }
+
+  .btn-lg {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    font-size: var(--text-base);
+  }
+
+  .features-logo {
+    max-width: 200px;
+  }
+
+  .social-link {
+    width: 40px;
+    height: 40px;
+  }
+}

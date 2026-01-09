@@ -1,0 +1,15 @@
+# TravelBrain Frontend
+
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+*.swp
+*.swo
+.env
+.vscode/
+.idea/
+dist/
+build/
+*.zip
+*.tar.gz

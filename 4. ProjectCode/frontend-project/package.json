@@ -1,0 +1,16 @@
+{
+  "name": "travelbrain-frontend",
+  "version": "1.0.0",
+  "description": "TravelBrain Frontend - Smart Travel Planning Platform",
+  "main": "public/index.html",
+  "scripts": {
+    "start": "python -m http.server 8000 --directory public",
+    "serve": "http-server public -p 8000 -c-1"
+  },
+  "keywords": ["travel", "planner", "weather", "routes", "destinations"],
+  "author": "Overnight Developers Squad II",
+  "license": "ISC",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

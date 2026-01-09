@@ -1,0 +1,147 @@
+/* TravelBrain Design System - Color Palette & Variables */
+
+:root {
+  /* Primary Colors - Green Palette */
+  --color-primary-light: #47F59A;
+  --color-primary: #39C070;
+  --color-primary-medium: #2DA65C;
+  --color-primary-dark: #1D7647;
+  --color-primary-darker: #11842F;
+  --color-primary-darkest: #062D18;
+  --color-primary-black: #021609;
+
+  /* Secondary Colors - Pink/Magenta Palette */
+  --color-secondary-light: #FBCE9F;
+  --color-secondary-lighter: #E994AF;
+  --color-secondary: #E54A7A;
+  --color-secondary-medium: #D1297B;
+  --color-secondary-dark: #B61554;
+  --color-secondary-darker: #4F0F0F;
+  --color-secondary-darkest: #260916;
+
+  /* Neutral Colors - Gray Scale */
+  --color-neutral-lightest: #D3DAD5;
+  --color-neutral-lighter: #ACB3AE;
+  --color-neutral-light: #878C89;
+  --color-neutral: #646965;
+  --color-neutral-dark: #434644;
+  --color-neutral-darker: #242825;
+  --color-neutral-darkest: #101110;
+
+  /* Accent Colors */
+  --color-accent-green: #47F59A;
+  --color-accent-pink: #E54A7A;
+
+  /* Semantic Colors */
+  --color-success: #39C070;
+  --color-error: #D1297B;
+  --color-warning: #FBCE9F;
+  --color-info: #47F59A;
+
+  /* Background Colors */
+  --bg-primary: #101110;
+  --bg-secondary: #242825;
+  --bg-tertiary: #434644;
+  --bg-light: #D3DAD5;
+  --bg-white: #ffffff;
+
+  /* Text Colors */
+  --text-primary: #ffffff;
+  --text-secondary: #D3DAD5;
+  --text-tertiary: #ACB3AE;
+  --text-dark: #101110;
+  --text-gray: #646965;
+
+  /* Spacing */
+  --spacing-xs: 0.25rem;   /* 4px */
+  --spacing-sm: 0.5rem;    /* 8px */
+  --spacing-md: 1rem;      /* 16px */
+  --spacing-lg: 1.5rem;    /* 24px */
+  --spacing-xl: 2rem;      /* 32px */
+  --spacing-2xl: 3rem;     /* 48px */
+  --spacing-3xl: 4rem;     /* 64px */
+  --spacing-4xl: 6rem;     /* 96px */
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+  /* Transitions */
+  --transition-fast: 150ms ease-in-out;
+  --transition-base: 250ms ease-in-out;
+  --transition-slow: 350ms ease-in-out;
+
+  /* Font Families */
+  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Font Sizes */
+  --text-xs: 0.75rem;      /* 12px */
+  --text-sm: 0.875rem;     /* 14px */
+  --text-base: 1rem;       /* 16px */
+  --text-lg: 1.125rem;     /* 18px */
+  --text-xl: 1.25rem;      /* 20px */
+  --text-2xl: 1.5rem;      /* 24px */
+  --text-3xl: 1.875rem;    /* 30px */
+  --text-4xl: 2.25rem;     /* 36px */
+  --text-5xl: 3rem;        /* 48px */
+  --text-6xl: 3.75rem;     /* 60px */
+
+  /* Font Weights */
+  --font-light: 300;
+  --font-regular: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-extrabold: 800;
+
+  /* Line Heights */
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose: 2;
+
+  /* Z-Index */
+  --z-base: 1;
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-modal-backdrop: 1200;
+  --z-modal: 1300;
+  --z-tooltip: 1400;
+  --z-notification: 1500;
+
+  /* Container Widths */
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+  --container-2xl: 1536px;
+}
+
+/* Dark Mode Overrides (if needed) */
+[data-theme="dark"] {
+  --bg-primary: #101110;
+  --bg-secondary: #242825;
+  --text-primary: #ffffff;
+  --text-secondary: #D3DAD5;
+}
+
+/* Light Mode Overrides (if needed) */
+[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #D3DAD5;
+  --text-primary: #101110;
+  --text-secondary: #434644;
+}
