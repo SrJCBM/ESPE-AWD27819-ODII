@@ -1,113 +1,6 @@
-const { OAuth2Client } = require('google-auth-library');
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const config = require('../config/env');
-
-const client = new OAuth2Client(config.googleClientId);
-
-/**
- * Google OAuth Login
- * @route POST /api/auth/google-login
- */
-exports.googleLogin = async (req, res) => {
-  try {
-    const { credential } = req.body;
-
-    if (!credential) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Credencial de Google no proporcionada' 
-      });
-    }
-
-    // Verificar token de Google
-    const ticket = await client.verifyIdToken({
-      idToken: credential,
-      audience: config.googleClientId,
-    });
-
-    const payload = ticket.getPayload();
-    
-    if (!payload) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'Token de Google inválido' 
-      });
-    }
-
-    // Datos del usuario de Google
-    const { sub: googleId, email, name, picture } = payload;
-
-    console.log('Usuario autenticado con Google:', { email, name });
-
-    // Buscar usuario existente por email, googleId o username
-    let user = await User.findOne({ 
-      $or: [
-        { googleId: googleId },
-        { email: email }
-      ]
-    });
-
-    if (user) {
-      // Usuario existe, actualizar googleId si no lo tiene
-      if (!user.googleId) {
-        user.googleId = googleId;
-        user.picture = picture;
-        await user.save();
-      }
-      console.log('Usuario existente encontrado:', user.email);
-    } else {
-      // Generar username único
-      const baseUsername = email.split('@')[0];
-      let username = baseUsername;
-      let counter = 1;
-      
-      // Verificar si el username ya existe y generar uno único
-      while (await User.findOne({ username: username })) {
-        username = `${baseUsername}${counter}`;
-        counter++;
-      }
-      
-      // Crear nuevo usuario
-      user = new User({
-        googleId: googleId,
-        email: email,
-        username: username,
-        name: name,
-        picture: picture,
-        role: 'USER',
-        status: 'ACTIVE'
-      });
-      
-      await user.save();
-      console.log('Nuevo usuario creado con Google:', user.email, 'Username:', user.username);
-    }
-
-    // Retornar información del usuario
-    res.json({ 
-      success: true,
-      ok: true,
-      user: {
-        _id: user._id.toString(),
-        email: user.email,
-        username: user.username,
-        name: user.name || user.username,
-        picture: user.picture,
-        role: user.role,
-        googleId: user.googleId
-      },
-      msg: `Bienvenido ${user.name || user.username}`
-    });
-
-  } catch (error) {
-    console.error('Error en Google OAuth:', error);
-    res.status(500).json({ 
-      success: false,
-      ok: false, 
-      message: 'Error al autenticar con Google',
-      error: error.message 
-    });
-  }
-};
 
 /**
  * Verify JWT Token
@@ -124,7 +17,6 @@ exports.verifyToken = async (req, res) => {
       });
     }
 
-    const jwt = require('jsonwebtoken');
     const decoded = jwt.verify(token, config.jwtSecret);
     const user = await User.findById(decoded.userId);
 
@@ -151,6 +43,72 @@ exports.verifyToken = async (req, res) => {
     res.status(401).json({ 
       success: false, 
       message: 'Token inválido o expirado' 
+    });
+  }
+};
+
+/**
+ * Simple Login for Development/Testing
+ * @route POST /api/auth/login
+ */
+exports.simpleLogin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email es requerido'
+      });
+    }
+
+    // Buscar o crear usuario
+    let user = await User.findOne({ email: email.toLowerCase() });
+
+    if (!user) {
+      // Crear nuevo usuario
+      const username = email.split('@')[0];
+      user = new User({
+        email: email.toLowerCase(),
+        username: username,
+        name: username,
+        role: 'USER',
+        status: 'ACTIVE'
+      });
+      await user.save();
+      console.log('Nuevo usuario creado:', user.email);
+    }
+
+    // Generar JWT token
+    const token = jwt.sign(
+      {
+        userId: user._id.toString(),
+        email: user.email,
+        role: user.role
+      },
+      config.jwtSecret,
+      { expiresIn: config.jwtExpiresIn }
+    );
+
+    res.json({
+      success: true,
+      token,
+      user: {
+        _id: user._id.toString(),
+        email: user.email,
+        username: user.username,
+        name: user.name,
+        role: user.role
+      },
+      msg: `Bienvenido ${user.name}`
+    });
+
+  } catch (error) {
+    console.error('Error en simple login:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al iniciar sesión',
+      error: error.message
     });
   }
 };

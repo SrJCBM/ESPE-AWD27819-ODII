@@ -6,8 +6,8 @@ const authController = require('../controllers/authController');
  * Authentication Routes
  */
 
-// POST /api/auth/google-login - Google OAuth login
-router.post('/api/auth/google-login', authController.googleLogin);
+// POST /api/auth/login - Simple login
+router.post('/api/auth/login', authController.simpleLogin);
 
 // GET /api/auth/verify - Verify JWT token
 router.get('/api/auth/verify', authController.verifyToken);
