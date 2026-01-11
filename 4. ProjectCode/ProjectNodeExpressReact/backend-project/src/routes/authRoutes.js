@@ -7,6 +7,9 @@ const authController = require('../controllers/authController');
  * Note: These routes are mounted at /api/auth in app.js
  */
 
+// POST /api/auth/register - Register new user
+router.post('/register', authController.register);
+
 // POST /api/auth/login - Simple login
 router.post('/login', authController.simpleLogin);
 

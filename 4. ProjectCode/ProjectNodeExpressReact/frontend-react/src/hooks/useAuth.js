@@ -19,7 +19,7 @@ export const useAuth = () => {
   const logout = () => {
     localStorage.removeItem(STORAGE_KEYS.TOKEN)
     localStorage.removeItem(STORAGE_KEYS.USER)
-    window.location.href = '/login'
+    window.location.href = '/'
   }
 
   return {

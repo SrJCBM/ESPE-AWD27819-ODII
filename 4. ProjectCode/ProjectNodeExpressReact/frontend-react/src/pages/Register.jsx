@@ -35,23 +35,16 @@ export default function Register() {
     setLoading(true)
 
     try {
-      // Create user via login endpoint
-      const loginResponse = await api.post(API_CONFIG.ENDPOINTS.LOGIN, {
+      // Register new user
+      const registerResponse = await api.post(API_CONFIG.ENDPOINTS.REGISTER, {
         email: formData.email,
+        username: formData.username,
+        name: formData.name,
         password: formData.password
       })
 
-      if (loginResponse.data.success && loginResponse.data.token) {
-        saveAuth(loginResponse.data.token, loginResponse.data.user)
-
-        // Update user profile
-        const userId = loginResponse.data.user._id
-        await api.put(API_CONFIG.ENDPOINTS.USER_BY_ID(userId), {
-          username: formData.username,
-          name: formData.name,
-          email: formData.email
-        })
-
+      if (registerResponse.data.success && registerResponse.data.token) {
+        saveAuth(registerResponse.data.token, registerResponse.data.user)
         navigate('/dashboard')
       }
     } catch (err) {

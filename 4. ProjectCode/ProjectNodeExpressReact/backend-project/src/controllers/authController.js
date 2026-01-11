@@ -62,21 +62,14 @@ exports.simpleLogin = async (req, res) => {
       });
     }
 
-    // Buscar o crear usuario
+    // Buscar usuario existente
     let user = await User.findOne({ email: email.toLowerCase() });
 
     if (!user) {
-      // Crear nuevo usuario
-      const username = email.split('@')[0];
-      user = new User({
-        email: email.toLowerCase(),
-        username: username,
-        name: username,
-        role: 'USER',
-        status: 'ACTIVE'
+      return res.status(401).json({
+        success: false,
+        message: 'Usuario no encontrado. Por favor, crea una cuenta primero.'
       });
-      await user.save();
-      console.log('Nuevo usuario creado:', user.email);
     }
 
     // Generar JWT token
@@ -108,6 +101,84 @@ exports.simpleLogin = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al iniciar sesión',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Register new user
+ * @route POST /api/auth/register
+ */
+exports.register = async (req, res) => {
+  try {
+    const { email, username, name, password } = req.body;
+
+    // Validar campos requeridos
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email es requerido'
+      });
+    }
+
+    // Verificar si el usuario ya existe
+    const existingUser = await User.findOne({ 
+      $or: [
+        { email: email.toLowerCase() },
+        { username: username }
+      ]
+    });
+
+    if (existingUser) {
+      return res.status(409).json({
+        success: false,
+        message: 'El email o username ya está registrado'
+      });
+    }
+
+    // Crear nuevo usuario
+    const newUsername = username || email.split('@')[0];
+    const user = new User({
+      email: email.toLowerCase(),
+      username: newUsername,
+      name: name || newUsername,
+      role: 'USER',
+      status: 'ACTIVE'
+    });
+
+    await user.save();
+    console.log('Nuevo usuario registrado:', user.email);
+
+    // Generar JWT token
+    const token = jwt.sign(
+      {
+        userId: user._id.toString(),
+        email: user.email,
+        role: user.role
+      },
+      config.jwtSecret,
+      { expiresIn: config.jwtExpiresIn }
+    );
+
+    res.status(201).json({
+      success: true,
+      token,
+      user: {
+        _id: user._id.toString(),
+        email: user.email,
+        username: user.username,
+        name: user.name,
+        role: user.role
+      },
+      msg: `Cuenta creada exitosamente. Bienvenido ${user.name}`
+    });
+
+  } catch (error) {
+    console.error('Error en registro:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al registrar usuario',
       error: error.message
     });
   }
