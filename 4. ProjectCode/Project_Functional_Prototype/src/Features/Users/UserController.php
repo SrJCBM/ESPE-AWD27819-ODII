@@ -280,4 +280,85 @@ final class UserController {
     $deleted = $this->service->delete($id);
     Response::json(['deleted' => $deleted]);
   }
+
+  /**
+   * GET /api/users/me/level - Obtener nivel del usuario actual
+   * 
+   * REGLA DE NEGOCIO CALCULADA:
+   * Calcula automáticamente el nivel basado en:
+   * - Viajes completados (+10 pts)
+   * - Ratings dados (+5 pts)
+   * - Rutas favoritas (+2 pts)
+   * - Destinos visitados (+1 pt)
+   * 
+   * NIVELES:
+   * - Bronze: 0-100 puntos (0% descuento)
+   * - Silver: 101-500 puntos (5% descuento)
+   * - Gold: 501-1000 puntos (10% descuento)
+   * - Platinum: 1001+ puntos (15% descuento)
+   */
+  public function getMyLevel(): void {
+    AuthMiddleware::startSession();
+    if (!AuthMiddleware::isAuthenticated()) {
+      Response::error('No autenticado', 401);
+      return;
+    }
+
+    $userId = AuthMiddleware::getUserId();
+
+    try {
+      $calculator = new UserLevelCalculator();
+      $levelData = $calculator->getUserLevel($userId);
+
+      Response::json([
+        'ok' => true,
+        'level' => $levelData
+      ]);
+    } catch (\Throwable $e) {
+      Response::error($e->getMessage(), 500);
+    }
+  }
+
+  /**
+   * POST /api/users/me/level/recalculate - Recalcular nivel del usuario
+   */
+  public function recalculateMyLevel(): void {
+    AuthMiddleware::startSession();
+    if (!AuthMiddleware::isAuthenticated()) {
+      Response::error('No autenticado', 401);
+      return;
+    }
+
+    $userId = AuthMiddleware::getUserId();
+
+    try {
+      $calculator = new UserLevelCalculator();
+      $levelData = $calculator->recalculate($userId);
+
+      Response::json([
+        'ok' => true,
+        'msg' => 'Nivel recalculado correctamente',
+        'level' => $levelData
+      ]);
+    } catch (\Throwable $e) {
+      Response::error($e->getMessage(), 500);
+    }
+  }
+
+  /**
+   * GET /api/users/leaderboard - Ranking de usuarios por puntos
+   */
+  public function getLeaderboard(): void {
+    try {
+      $calculator = new UserLevelCalculator();
+      $leaderboard = $calculator->getLeaderboard(10);
+
+      Response::json([
+        'ok' => true,
+        'leaderboard' => $leaderboard
+      ]);
+    } catch (\Throwable $e) {
+      Response::error($e->getMessage(), 500);
+    }
+  }
 }

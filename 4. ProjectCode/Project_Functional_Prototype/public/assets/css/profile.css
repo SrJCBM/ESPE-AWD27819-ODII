@@ -253,3 +253,366 @@ nav a.active {
   font-weight: 700;
   color: #4a90e2;
 }
+
+/* =====================================================
+   Sistema de Niveles de Usuario - Business Rule
+   ===================================================== */
+
+.level-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border: 1px solid #cbd5e1;
+}
+
+.level-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.level-header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 2px solid #4a90e2;
+  color: #4a90e2;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-outline:hover {
+  background: #4a90e2;
+  color: white;
+}
+
+.btn-sm {
+  padding: 4px 10px;
+  font-size: 0.8rem;
+}
+
+/* Badge de nivel */
+.level-display {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.level-badge-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.level-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 32px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.level-badge:hover {
+  transform: scale(1.05);
+}
+
+.level-badge .level-icon {
+  font-size: 3rem;
+  margin-bottom: 8px;
+}
+
+.level-badge .level-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* Colores por nivel */
+.level-badge.level-bronze {
+  background: linear-gradient(135deg, #fef3e2 0%, #f5deb3 100%);
+  border: 2px solid #CD7F32;
+}
+.level-badge.level-bronze .level-name { color: #CD7F32; }
+
+.level-badge.level-silver {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 2px solid #C0C0C0;
+}
+.level-badge.level-silver .level-name { color: #6c757d; }
+
+.level-badge.level-gold {
+  background: linear-gradient(135deg, #fff9e6 0%, #ffe066 100%);
+  border: 2px solid #FFD700;
+}
+.level-badge.level-gold .level-name { color: #b8860b; }
+
+.level-badge.level-platinum {
+  background: linear-gradient(135deg, #f8f9fa 0%, #dee2e6 100%);
+  border: 2px solid #7c3aed;
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.3);
+}
+.level-badge.level-platinum .level-name { 
+  color: #7c3aed;
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Descuento */
+.level-discount {
+  text-align: center;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  border-radius: 12px;
+  color: white;
+}
+
+.level-discount .discount-value {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.level-discount .discount-label {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+/* Puntos */
+.level-progress-section {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.points-display {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.points-display .points-current {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #4a90e2;
+}
+
+.points-display .points-label {
+  display: block;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+/* Barra de progreso */
+.level-progress-container {
+  margin-top: 12px;
+}
+
+.level-progress-bar {
+  height: 12px;
+  background: #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.level-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4a90e2, #357abd);
+  border-radius: 6px;
+  transition: width 0.5s ease;
+}
+
+.level-progress-info {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+/* Estadísticas del nivel */
+.level-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .level-stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.level-stat {
+  background: white;
+  padding: 16px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease;
+}
+
+.level-stat:hover {
+  transform: translateY(-2px);
+}
+
+.level-stat-icon {
+  font-size: 1.5rem;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.level-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  display: block;
+}
+
+.level-stat-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  display: block;
+  margin-top: 2px;
+}
+
+.level-stat-points {
+  font-size: 0.7rem;
+  color: #10b981;
+  font-weight: 600;
+}
+
+/* Beneficios */
+.level-benefits {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.level-benefits h4 {
+  margin: 0 0 12px 0;
+  font-size: 1rem;
+  color: #1e293b;
+}
+
+.benefits-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.benefits-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f0fdf4;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #166534;
+}
+
+.benefit-check {
+  color: #10b981;
+  font-weight: bold;
+}
+
+/* Niveles de membresía */
+.level-tiers {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.level-tiers h4 {
+  text-align: center;
+  margin: 0 0 16px 0;
+  color: #64748b;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.tiers-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .tiers-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.tier-item {
+  text-align: center;
+  padding: 16px;
+  background: white;
+  border-radius: 10px;
+  border: 2px solid #e2e8f0;
+  transition: all 0.3s ease;
+  opacity: 0.7;
+}
+
+.tier-item.current {
+  opacity: 1;
+  border-color: #4a90e2;
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.2);
+  transform: scale(1.02);
+}
+
+.tier-item .tier-icon {
+  font-size: 1.8rem;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.tier-item .tier-name {
+  font-weight: 600;
+  display: block;
+  color: #1e293b;
+}
+
+.tier-item .tier-range {
+  font-size: 0.75rem;
+  color: #64748b;
+  display: block;
+  margin-top: 2px;
+}
+
+.tier-item .tier-discount {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 2px 8px;
+  background: #dcfce7;
+  color: #166534;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Colores específicos de tiers */
+.tier-item[data-tier="bronze"].current { border-color: #CD7F32; }
+.tier-item[data-tier="silver"].current { border-color: #C0C0C0; }
+.tier-item[data-tier="gold"].current { border-color: #FFD700; }
+.tier-item[data-tier="platinum"].current { 
+  border-color: #7c3aed; 
+  background: linear-gradient(135deg, #faf5ff 0%, #ede9fe 100%);
+}

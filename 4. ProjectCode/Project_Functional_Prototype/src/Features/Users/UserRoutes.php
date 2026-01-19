@@ -11,6 +11,11 @@ $router->delete('/api/users/me',       [$c, 'deleteMe']);
 $router->put('/api/users/me/password', [$c, 'changePassword']);
 $router->get('/api/users/me/rates/{page}/{limit}', [$c, 'myRates']);
 
+// User Level - Regla de negocio calculada (Sistema de niveles)
+$router->get('/api/users/me/level',              [$c, 'getMyLevel']);
+$router->post('/api/users/me/level/recalculate', [$c, 'recalculateMyLevel']);
+$router->get('/api/users/leaderboard',           [$c, 'getLeaderboard']);
+
 // Rutas CRUD estándar (admin)
 $router->get('/users',         [$c,'index']);
 $router->post('/users',        [$c,'store']);

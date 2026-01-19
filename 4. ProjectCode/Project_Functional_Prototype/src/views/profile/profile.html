@@ -56,6 +56,110 @@
       </div>
     </section>
 
+    <!-- Sistema de Niveles - Business Rule Calculada -->
+    <section class="card level-card">
+      <div class="level-header">
+        <h2>🏆 Mi Nivel de Viajero</h2>
+        <button id="btnRecalculateLevel" class="btn-outline btn-sm" title="Recalcular nivel">
+          🔄 Actualizar
+        </button>
+      </div>
+      
+      <div class="level-display" id="levelDisplay">
+        <div class="level-badge-container">
+          <div class="level-badge" id="levelBadge">
+            <span class="level-icon">🥉</span>
+            <span class="level-name" id="levelName">Bronze</span>
+          </div>
+          <div class="level-discount" id="levelDiscount">
+            <span class="discount-value">0%</span>
+            <span class="discount-label">descuento</span>
+          </div>
+        </div>
+
+        <div class="level-progress-section">
+          <div class="points-display">
+            <span class="points-current" id="currentPoints">0</span>
+            <span class="points-label">puntos</span>
+          </div>
+          
+          <div class="level-progress-container">
+            <div class="level-progress-bar">
+              <div class="level-progress-fill" id="levelProgressFill" style="width: 0%"></div>
+            </div>
+            <div class="level-progress-info">
+              <span id="progressText">0% hacia el siguiente nivel</span>
+              <span id="nextLevelText">Siguiente: Silver</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="level-stats-grid">
+          <div class="level-stat">
+            <span class="level-stat-icon">✈️</span>
+            <span class="level-stat-value" id="levelTrips">0</span>
+            <span class="level-stat-label">Viajes completados</span>
+            <span class="level-stat-points">+10 pts c/u</span>
+          </div>
+          <div class="level-stat">
+            <span class="level-stat-icon">⭐</span>
+            <span class="level-stat-value" id="levelRatings">0</span>
+            <span class="level-stat-label">Reseñas dadas</span>
+            <span class="level-stat-points">+5 pts c/u</span>
+          </div>
+          <div class="level-stat">
+            <span class="level-stat-icon">🗺️</span>
+            <span class="level-stat-value" id="levelRoutes">0</span>
+            <span class="level-stat-label">Rutas guardadas</span>
+            <span class="level-stat-points">+2 pts c/u</span>
+          </div>
+          <div class="level-stat">
+            <span class="level-stat-icon">📍</span>
+            <span class="level-stat-value" id="levelDestinations">0</span>
+            <span class="level-stat-label">Destinos visitados</span>
+            <span class="level-stat-points">+1 pt c/u</span>
+          </div>
+        </div>
+
+        <div class="level-benefits">
+          <h4>🎁 Tus Beneficios</h4>
+          <ul id="benefitsList" class="benefits-list">
+            <li>Cargando beneficios...</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="level-tiers">
+        <h4>Niveles de Membresía</h4>
+        <div class="tiers-grid">
+          <div class="tier-item" data-tier="bronze">
+            <span class="tier-icon">🥉</span>
+            <span class="tier-name">Bronze</span>
+            <span class="tier-range">0-100 pts</span>
+            <span class="tier-discount">0%</span>
+          </div>
+          <div class="tier-item" data-tier="silver">
+            <span class="tier-icon">🥈</span>
+            <span class="tier-name">Silver</span>
+            <span class="tier-range">101-500 pts</span>
+            <span class="tier-discount">5%</span>
+          </div>
+          <div class="tier-item" data-tier="gold">
+            <span class="tier-icon">🥇</span>
+            <span class="tier-name">Gold</span>
+            <span class="tier-range">501-1000 pts</span>
+            <span class="tier-discount">10%</span>
+          </div>
+          <div class="tier-item" data-tier="platinum">
+            <span class="tier-icon">💎</span>
+            <span class="tier-name">Platinum</span>
+            <span class="tier-range">1001+ pts</span>
+            <span class="tier-discount">15%</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Editar información -->
     <section class="card">
       <h2>📝 Editar Información</h2>

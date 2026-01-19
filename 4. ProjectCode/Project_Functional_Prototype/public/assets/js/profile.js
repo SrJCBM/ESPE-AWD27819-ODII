@@ -6,6 +6,7 @@
 
   document.addEventListener('DOMContentLoaded', async () => {
     await loadProfile();
+    await loadUserLevel();
     setupEventListeners();
   });
 
@@ -109,6 +110,156 @@
     }
   }
 
+  // =====================================================
+  // BUSINESS RULE: User Level Calculator
+  // Regla de Negocio Calculada: Sistema de Niveles de Usuario
+  // =====================================================
+  // BR-LEVEL-001: Bronze  → 0-100 puntos    → 0% descuento
+  // BR-LEVEL-002: Silver  → 101-500 puntos  → 5% descuento
+  // BR-LEVEL-003: Gold    → 501-1000 puntos → 10% descuento
+  // BR-LEVEL-004: Platinum→ 1001+ puntos    → 15% descuento
+  // =====================================================
+
+  /**
+   * Carga el nivel del usuario desde el backend
+   */
+  async function loadUserLevel() {
+    try {
+      const response = await fetch('/api/users/me/level', { credentials: 'include' });
+      const data = await response.json();
+
+      if (data.ok && data.level) {
+        displayUserLevel(data.level);
+      } else {
+        console.warn('No se pudo cargar el nivel del usuario');
+      }
+    } catch (error) {
+      console.error('Error cargando nivel de usuario:', error);
+    }
+  }
+
+  /**
+   * Muestra el nivel del usuario en la UI
+   */
+  function displayUserLevel(level) {
+    // Iconos por nivel
+    const levelIcons = {
+      'Bronze': '🥉',
+      'Silver': '🥈',
+      'Gold': '🥇',
+      'Platinum': '💎'
+    };
+
+    // Colores por nivel
+    const levelColors = {
+      'Bronze': '#CD7F32',
+      'Silver': '#C0C0C0',
+      'Gold': '#FFD700',
+      'Platinum': '#E5E4E2'
+    };
+
+    // Actualizar badge de nivel
+    const levelBadge = document.getElementById('levelBadge');
+    if (levelBadge) {
+      levelBadge.className = `level-badge level-${level.level.toLowerCase()}`;
+      levelBadge.querySelector('.level-icon').textContent = levelIcons[level.level] || '🥉';
+      levelBadge.querySelector('.level-name').textContent = level.level;
+    }
+
+    // Actualizar descuento
+    const levelDiscount = document.getElementById('levelDiscount');
+    if (levelDiscount) {
+      levelDiscount.querySelector('.discount-value').textContent = `${level.discountPercentage}%`;
+    }
+
+    // Actualizar puntos
+    const currentPoints = document.getElementById('currentPoints');
+    if (currentPoints) {
+      currentPoints.textContent = level.points;
+    }
+
+    // Actualizar barra de progreso
+    const progressFill = document.getElementById('levelProgressFill');
+    const progressText = document.getElementById('progressText');
+    const nextLevelText = document.getElementById('nextLevelText');
+
+    if (progressFill) {
+      progressFill.style.width = `${level.progressToNextLevel}%`;
+      progressFill.style.backgroundColor = levelColors[level.level];
+    }
+
+    if (progressText) {
+      if (level.level === 'Platinum') {
+        progressText.textContent = '¡Has alcanzado el nivel máximo!';
+      } else {
+        progressText.textContent = `${level.progressToNextLevel}% hacia el siguiente nivel`;
+      }
+    }
+
+    if (nextLevelText) {
+      if (level.nextLevel) {
+        nextLevelText.textContent = `Siguiente: ${level.nextLevel} (faltan ${level.pointsToNextLevel} pts)`;
+      } else {
+        nextLevelText.textContent = '¡Nivel máximo alcanzado!';
+      }
+    }
+
+    // Actualizar estadísticas del nivel
+    document.getElementById('levelTrips').textContent = level.tripsCompleted || 0;
+    document.getElementById('levelRatings').textContent = level.ratingsGiven || 0;
+    document.getElementById('levelRoutes').textContent = level.routesSaved || 0;
+    document.getElementById('levelDestinations').textContent = level.destinationsVisited || 0;
+
+    // Actualizar beneficios
+    const benefitsList = document.getElementById('benefitsList');
+    if (benefitsList && level.benefits) {
+      benefitsList.innerHTML = level.benefits
+        .map(benefit => `<li><span class="benefit-check">✓</span> ${benefit}</li>`)
+        .join('');
+    }
+
+    // Resaltar el tier actual
+    document.querySelectorAll('.tier-item').forEach(item => {
+      item.classList.remove('current');
+      if (item.dataset.tier === level.level.toLowerCase()) {
+        item.classList.add('current');
+      }
+    });
+  }
+
+  /**
+   * Recalcula el nivel del usuario
+   */
+  async function recalculateLevel() {
+    const btn = document.getElementById('btnRecalculateLevel');
+    const originalText = btn.textContent;
+
+    try {
+      btn.disabled = true;
+      btn.textContent = 'Calculando...';
+
+      const response = await fetch('/api/users/me/level/recalculate', {
+        method: 'POST',
+        credentials: 'include'
+      });
+
+      const data = await response.json();
+
+      if (data.ok && data.level) {
+        displayUserLevel(data.level);
+        showToast('Nivel actualizado correctamente', 'success');
+      } else {
+        throw new Error(data.error || 'Error al recalcular');
+      }
+    } catch (error) {
+      console.error('Error recalculando nivel:', error);
+      showToast(error.message || 'Error al recalcular el nivel', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
+  }
+
   /**
    * Configura los event listeners
    */
@@ -124,6 +275,12 @@
 
     // Eliminar cuenta
     document.getElementById('btnDeleteAccount').addEventListener('click', handleDeleteAccount);
+
+    // Recalcular nivel
+    const btnRecalculate = document.getElementById('btnRecalculateLevel');
+    if (btnRecalculate) {
+      btnRecalculate.addEventListener('click', recalculateLevel);
+    }
   }
 
   /**
